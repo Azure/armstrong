@@ -3,11 +3,12 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
 	"io/ioutil"
+	"log"
 	"strings"
 
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/helper"
+	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
 )
 
 type Resource struct {
@@ -23,7 +24,7 @@ type PropertyDependencyMapping struct {
 	Reference string
 }
 
-func NewResourceFromExample(filepath, bodyPropertyName string) (*Resource, error) {
+func NewResourceFromExample(filepath string) (*Resource, error) {
 	exampleData, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -41,7 +42,11 @@ func NewResourceFromExample(filepath, bodyPropertyName string) (*Resource, error
 	if exampleMap, ok := example.(map[string]interface{}); ok {
 		if exampleMap["parameters"] != nil {
 			if parametersMap, ok := exampleMap["parameters"].(map[string]interface{}); ok {
-				body = parametersMap[bodyPropertyName]
+				for _, value := range parametersMap {
+					if bodyMap, ok := value.(map[string]interface{}); ok {
+						body = bodyMap
+					}
+				}
 				mappings = append(mappings, GetKeyValueMappings(body, "")...)
 
 				apiVersion = parametersMap["api-version"].(string)
@@ -97,7 +102,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 				ref := target + "." + propertyName
 				replacements[mapping.ValuePath] = "${" + ref + "}"
 			} else {
-				fmt.Printf("[WARN] dependency not found, resource type: %s", resourceType)
+				log.Printf("[WARN] dependency not found, resource type: %s", resourceType)
 			}
 		}
 	}
@@ -112,9 +117,14 @@ func (r Resource) GetUrl(dependencyHcl string) string {
 			propertyName := parts[1]
 			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
 				ref := target + "." + propertyName
-				return strings.ReplaceAll(r.ExampleId, mapping.Value, "${"+ref+"}")
+				url := strings.ReplaceAll(r.ExampleId, mapping.Value, "${"+ref+"}")
+				index := strings.LastIndex(url, "/")
+				if index != -1 {
+					url = url[0:index+1] + helper.GetRandomResourceName()
+				}
+				return url
 			} else {
-				fmt.Printf("[WARN] dependency not found, resource type: %s", resourceType)
+				log.Printf("[WARN] dependency not found, resource type: %s", resourceType)
 			}
 		}
 	}

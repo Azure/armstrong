@@ -42,7 +42,7 @@ func GetRenamedHcl(input string) string {
 		block.SetLabels(labels)
 		if block.Body() != nil && block.Body().GetAttribute("name") != nil {
 			rand.Seed(time.Now().UnixNano())
-			block.Body().SetAttributeValue("name", cty.StringVal(fmt.Sprintf("acctest%d", rand.Intn(1000))))
+			block.Body().SetAttributeValue("name", cty.StringVal(GetRandomResourceName()))
 		}
 		resHcl.Body().AppendBlock(block)
 	}
@@ -104,6 +104,11 @@ func GetResourceFromHcl(config, resourceType string) string {
 		}
 	}
 	return ""
+}
+
+func GetRandomResourceName() string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("acctest%d", rand.Intn(10000))
 }
 
 const ProviderHcl = `
