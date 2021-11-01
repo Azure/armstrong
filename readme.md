@@ -22,11 +22,18 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
 
 ## Troubleshooting
 1. Q: When use `test` commands, server side validation error happens.
+   
    A: You may need to modify the dependency.tf or testing.tf to meet the server side's requirements. It happens when the testing resource requires running in specific region or some configurations of its dependencies. After modification, run `test` command to continue the test.
+
+
 2. Q: When use `test` commands, 405 error(Method not accepted) happens.
+   
    A: Testing resource uses `PUT` method as the default method to create or update resource. Please add `create_method={required_method}` and `update_method={required_method}` to `testing.tf`. This issue will be resolved in later version, when generate testing files from swagger instead of examples.
+
+
 3. Q: Will dependencies be removed after testing is done?
-   A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources. If using `auto` command
+   
+    A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources. If using `auto` command
 
 
 ## Todo
