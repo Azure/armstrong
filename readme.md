@@ -7,17 +7,17 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
 1. Requisites
     1. Download and setup Terraform.
     2. Setup the generic terraform provider by following [this document](https://github.com/ms-henglu/terraform-provider-azurerm-generic/blob/develop/README.md).
-2. Install this tool
-    1. git clone https://github.com/ms-henglu/azurerm-rest-api-testing-tool
-    2. cd azurerm-rest-api-testing-tool
-    3. go install
+2. Install this tool: `go install github.com/ms-henglu/azurerm-rest-api-testing-tool`
 3. Generate terraform files and Test
     1.  Generate testing files by running `azurerm-rest-api-testing-tool generate path_to_swagger_example`.
         Here's an example:
-        `azurerm-rest-api-testing-tool generate C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
+        
+        `azurerm-rest-api-testing-tool generate C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
+        
         Then `dependency.tf` and `testing.tf` will be generated.
     2. Run API tests by running `azurerm-rest-api-testing-tool test`. This command will set up dependencies and test the ARM resource API.
     3. There's an `auto` command, it can generate testing files, then run the tests and remove all resources if test is passed. Example:
+    
        `azurerm-rest-api-testing-tool auto C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
 
 ## Troubleshooting
