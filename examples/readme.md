@@ -9,7 +9,7 @@ Command
 
 Logs
 
-1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/tree/master/example/dependency.tf) and [testing.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/tree/master/example/testing.tf).
+1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/blob/master/example/dependency.tf) and [testing.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/blob/master/example/testing.tf).
 ```
 2021/11/01 13:27:33 [INFO] command: auto, args: [C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json]
 2021/11/01 13:27:33 [INFO] loading dependencies
