@@ -25,7 +25,11 @@ func GetRenamedHcl(input string) string {
 	resHcl, _ := hclwrite.ParseConfig([]byte(""), "res.tf", hcl.InitialPos)
 	for _, block := range f.Body().Blocks() {
 		// remove terraform and provider blocks
-		if block.Type() == "terraform" || block.Type() == "provider" {
+		if block.Type() == "terraform" || block.Type() == "provider" || block.Type() == "output" {
+			continue
+		}
+		if block.Type() == "variable" {
+			resHcl.Body().AppendBlock(block)
 			continue
 		}
 		labels := block.Labels()

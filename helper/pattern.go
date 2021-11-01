@@ -7,6 +7,9 @@ import (
 )
 
 func IsValueMatchPattern(value, pattern string) bool {
+	if len(pattern) == 0 {
+		return false
+	}
 	if valuePattern, err := GetIdPattern(value); err == nil {
 		return strings.EqualFold(valuePattern, pattern)
 	}

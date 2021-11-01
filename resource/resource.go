@@ -106,6 +106,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 			}
 		}
 	}
+	replacements[".location"] = "westeurope"
 	return GetUpdatedBody(r.ExampleBody, replacements, "")
 }
 
@@ -136,6 +137,7 @@ func (r Resource) GetDependencyHcl(deps []types.Dependency) string {
 	for index, mapping := range r.PropertyDependencyMappings {
 		for _, dep := range deps {
 			if helper.IsValueMatchPattern(mapping.Value, dep.Pattern) {
+				log.Printf("[INFO] found dependency: %s", dep.ResourceType)
 				r.PropertyDependencyMappings[index].Reference = dep.ResourceType + "." + dep.ReferredProperty
 				dependencyHcl = helper.GetCombinedHcl(dependencyHcl, helper.GetRenamedHcl(dep.ExampleConfiguration))
 				break // take the first match
