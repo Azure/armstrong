@@ -1,7 +1,7 @@
 # Example
 
 ## Introduction
-This is an exmaple of testing the API to manage Machine Learning Compute/Compute Instance resource.
+This is an exmaple of testing the API which manages Machine Learning Compute/Compute Instance resource.
 
 ## Commands and logs
 Command
