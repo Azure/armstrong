@@ -59,6 +59,8 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 					exampleId = id
 				} else if id := GetIdFromResponseExample(responseMap["201"]); len(id) > 0 {
 					exampleId = id
+				} else if id := GetIdFromResponseExample(responseMap["202"]); len(id) > 0 {
+					exampleId = id
 				}
 				if len(exampleId) > 0 {
 					mappings = append(mappings, PropertyDependencyMapping{

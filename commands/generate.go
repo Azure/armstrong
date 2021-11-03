@@ -23,11 +23,19 @@ func Generate(args []string) {
 	hardcodeLoader := loader.HardcodeDependencyLoader{}
 
 	deps := make([]types.Dependency, 0)
+	depsMap := make(map[string]types.Dependency, 0)
 	if temp, err := mappingJsonLoader.Load(); err == nil {
-		deps = append(deps, temp...)
+		for _, dep := range temp {
+			depsMap[dep.ResourceType+"."+dep.ReferredProperty] = dep
+		}
 	}
 	if temp, err := hardcodeLoader.Load(); err == nil {
-		deps = append(deps, temp...)
+		for _, dep := range temp {
+			depsMap[dep.ResourceType+"."+dep.ReferredProperty] = dep
+		}
+	}
+	for _, dep := range depsMap {
+		deps = append(deps, dep)
 	}
 
 	// load example and generate hcl
