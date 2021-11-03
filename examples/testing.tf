@@ -1,6 +1,6 @@
 
 resource "azurermg_resource" "test" {
-	url = "${azurerm_machine_learning_workspace.test.id}/computes/acctest1275"
+	resource_id = "${azurerm_machine_learning_workspace.test.id}/computes/acctest1275"
 	api_version = "2021-07-01"
  	body = <<BODY
 {
