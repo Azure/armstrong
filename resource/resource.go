@@ -109,7 +109,8 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 		}
 	}
 	replacements[".location"] = "westeurope"
-	return GetUpdatedBody(r.ExampleBody, replacements, "")
+	removes := []string{ ".name"}
+	return GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }
 
 func (r Resource) GetUrl(dependencyHcl string) string {

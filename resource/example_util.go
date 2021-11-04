@@ -31,7 +31,7 @@ func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependen
 	return results
 }
 
-func GetUpdatedBody(body interface{}, replacements map[string]string, path string) interface{} {
+func GetUpdatedBody(body interface{}, replacements map[string]string, removes []string, path string) interface{} {
 	if len(replacements) == 0 {
 		return body
 	}
@@ -39,7 +39,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, path strin
 	case map[string]interface{}:
 		res := make(map[string]interface{}, 0)
 		for key, value := range body.(map[string]interface{}) {
-			if temp := GetUpdatedBody(value, replacements, path+"."+key); temp != nil {
+			if temp := GetUpdatedBody(value, replacements,removes, path+"."+key); temp != nil {
 				res[key] = temp
 			}
 		}
@@ -47,7 +47,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, path strin
 	case []interface{}:
 		res := make([]interface{}, 0)
 		for index, value := range body.([]interface{}) {
-			if temp := GetUpdatedBody(value, replacements, path+"."+strconv.Itoa(index)); temp != nil {
+			if temp := GetUpdatedBody(value, replacements,removes, path+"."+strconv.Itoa(index)); temp != nil {
 				res = append(res, temp)
 			}
 		}
@@ -56,6 +56,11 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, path strin
 		for key, replacement := range replacements {
 			if key == path {
 				return replacement
+			}
+		}
+		for _, remove := range removes {
+			if path == remove {
+				return nil
 			}
 		}
 	default:
