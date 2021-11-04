@@ -84,7 +84,7 @@ func (r Resource) GetHcl(dependencyHcl string) string {
 	body, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
 	return fmt.Sprintf(`
 resource "azurermg_resource" "test" {
-	url = "%s"
+	resource_id = "%s"
 	api_version = "%s"
  	body = <<BODY
 %s
