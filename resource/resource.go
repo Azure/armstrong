@@ -85,12 +85,12 @@ func (r Resource) GetHcl(dependencyHcl string) string {
 	return fmt.Sprintf(`
 resource "azurermg_resource" "test" {
 	resource_id = "%s"
-	api_version = "%s"
+	type = "%s@%s"
  	body = <<BODY
 %s
 BODY
 }
-`, r.GetUrl(dependencyHcl), r.ApiVersion, body)
+`, r.GetUrl(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
@@ -109,7 +109,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 		}
 	}
 	replacements[".location"] = "westeurope"
-	removes := []string{ ".name"}
+	removes := []string{".name"}
 	return GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }
 

@@ -39,7 +39,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 	case map[string]interface{}:
 		res := make(map[string]interface{}, 0)
 		for key, value := range body.(map[string]interface{}) {
-			if temp := GetUpdatedBody(value, replacements,removes, path+"."+key); temp != nil {
+			if temp := GetUpdatedBody(value, replacements, removes, path+"."+key); temp != nil {
 				res[key] = temp
 			}
 		}
@@ -47,7 +47,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 	case []interface{}:
 		res := make([]interface{}, 0)
 		for index, value := range body.([]interface{}) {
-			if temp := GetUpdatedBody(value, replacements,removes, path+"."+strconv.Itoa(index)); temp != nil {
+			if temp := GetUpdatedBody(value, replacements, removes, path+"."+strconv.Itoa(index)); temp != nil {
 				res = append(res, temp)
 			}
 		}
