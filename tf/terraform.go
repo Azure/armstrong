@@ -39,8 +39,8 @@ func NewTerraform() (*Terraform, error) {
 func (t *Terraform) Init() error {
 	if _, err := os.Stat(".terraform"); os.IsNotExist(err) {
 		err := t.exec.Init(context.Background(), tfexec.Upgrade(false))
-		// ignore the error if can't find azurermg
-		if err != nil && strings.Contains(err.Error(), "ms-henglu/azurermg: provider registry registry.terraform.io does not have") {
+		// ignore the error if can't find azurerm-restapi
+		if err != nil && strings.Contains(err.Error(), "Azure/azurerm-restapi: provider registry registry.terraform.io does not have") {
 			return nil
 		}
 		return err
