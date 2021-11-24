@@ -212,6 +212,79 @@ resource "azurerm_synapse_workspace" "example" {
 			ResourceType:         "azurerm_synapse_role_assignment",
 			ReferredProperty:     "id",
 		},
+		// override all kinds of associations
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_network_interface_nat_rule_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_subnet_route_table_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_network_interface_application_security_group_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_virtual_desktop_workspace_application_group_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_nat_gateway_public_ip_prefix_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_management_group_subscription_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_network_interface_application_gateway_backend_address_pool_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_subnet_nat_gateway_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_subnet_network_security_group_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_network_interface_backend_address_pool_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_network_interface_security_group_association",
+			ReferredProperty:     "id",
+		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_nat_gateway_public_ip_association",
+			ReferredProperty:     "id",
+		},
 	}, nil
 }
 
