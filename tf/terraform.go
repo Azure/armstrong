@@ -2,6 +2,7 @@ package tf
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -17,6 +18,8 @@ type Terraform struct {
 
 const planfile = "tfplan"
 
+var LogEnabled = false
+
 func NewTerraform() (*Terraform, error) {
 	execPath, err := tfinstall.LookPath().ExecPath(context.TODO())
 	if err != nil {
@@ -28,12 +31,23 @@ func NewTerraform() (*Terraform, error) {
 		return nil, err
 	}
 
-	tf.SetStdout(os.Stdout)
-	tf.SetStderr(os.Stderr)
-	tf.SetLogger(log.New(os.Stdout, "", 0))
-	return &Terraform{
+	t := &Terraform{
 		exec: *tf,
-	}, nil
+	}
+	t.SetLogEnabled(true)
+	return t, nil
+}
+
+func (t *Terraform) SetLogEnabled(enabled bool) {
+	if enabled && LogEnabled {
+		t.exec.SetStdout(os.Stdout)
+		t.exec.SetStderr(os.Stderr)
+		t.exec.SetLogger(log.New(os.Stdout, "", 0))
+	} else {
+		t.exec.SetStdout(ioutil.Discard)
+		t.exec.SetStderr(ioutil.Discard)
+		t.exec.SetLogger(log.New(ioutil.Discard, "", 0))
+	}
 }
 
 func (t *Terraform) Init() error {
@@ -62,7 +76,11 @@ func (t *Terraform) Plan() (*tfjson.Plan, error) {
 		// no changes
 		return nil, nil
 	}
-	return t.exec.ShowPlanFile(context.TODO(), planfile)
+
+	t.SetLogEnabled(false)
+	p, err := t.exec.ShowPlanFile(context.TODO(), planfile)
+	t.SetLogEnabled(true)
+	return p, err
 }
 
 func (t *Terraform) Apply() error {
@@ -71,12 +89,4 @@ func (t *Terraform) Apply() error {
 
 func (t *Terraform) Destroy() error {
 	return t.exec.Destroy(context.TODO())
-}
-
-func (t *Terraform) HasDiff() bool {
-	plan, err := t.Plan()
-	if err != nil {
-		return true
-	}
-	return plan != nil && GetChanges(plan) > 0
 }

@@ -15,7 +15,7 @@ func Generate(args []string) {
 		Help()
 		return
 	}
-
+	log.Println("[INFO] ----------- generate dependency and test resource ---------")
 	// load dependencies
 	log.Println("[INFO] loading dependencies")
 	// MappingJsonFilepath: "C:\\Users\\henglu\\go\\src\\github.com\\ms-henglu\\azurerm-terraform-mapping-tool\\mappings.json"

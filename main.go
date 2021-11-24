@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/commands"
 	"log"
+
+	"github.com/ms-henglu/azurerm-rest-api-testing-tool/commands"
 )
 
 func main() {
@@ -20,8 +21,8 @@ func main() {
 	case "cleanup":
 		commands.Cleanup()
 	case "help":
+		commands.Help()
 	default:
 		commands.Help()
 	}
-
 }

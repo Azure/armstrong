@@ -1,7 +1,7 @@
 # Terraform based API testing Tool
 
 ## Introduction
-The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [generic azurerm provider](https://github.com/ms-henglu/terraform-provider-azurerm-generic).
+The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [generic azurerm provider](https://github.com/Azure/terraform-provider-azurerm-restapi).
 
 ## How to use?
 1. Requisites
@@ -42,6 +42,6 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
 - [ ] Support complicated dependency analysis, ex: key vault id, key vault cert id
 - [ ] Improve accuracy in mapping between resourceId and azurerm resource type
 - [ ] Improve accuracy in azurerm resource example configuration: example configuration must be valid
-- [ ] Hide terraform logs and generate a more friendly report
+- [x] Hide terraform logs and generate a more friendly report
 
 

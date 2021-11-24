@@ -7,14 +7,17 @@ import (
 )
 
 func Cleanup() {
+	log.Println("[INFO] ----------- cleanup resources ---------")
 	terraform, err := tf.NewTerraform()
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}
-	log.Printf("[INFO] prepare working directory\n")
-	terraform.Init()
+	log.Println("[INFO] prepare working directory")
+	_ = terraform.Init()
+	log.Println("[INFO] running destroy command to cleanup resources...")
 	err = terraform.Destroy()
 	if err != nil {
 		log.Fatalf("[Error] error cleaning up resources: %+v\n", err)
 	}
+	log.Println("[INFO] all resources have been deleted")
 }
