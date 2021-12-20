@@ -10,22 +10,21 @@ import (
 )
 
 type AutoCommand struct {
-	Ui   cli.Ui
-	path string
+	Ui      cli.Ui
+	path    string
+	verbose bool
 }
 
 func (c *AutoCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("generate")
-
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
-
+	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
-
 	return fs
 }
 func (c AutoCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool auto -path <filepath to example>
+Usage: azurerm-rest-api-testing-tool auto -path <filepath to example> [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

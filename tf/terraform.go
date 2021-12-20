@@ -13,14 +13,13 @@ import (
 )
 
 type Terraform struct {
-	exec tfexec.Terraform
+	exec       tfexec.Terraform
+	LogEnabled bool
 }
 
 const planfile = "tfplan"
 
-var LogEnabled = false
-
-func NewTerraform() (*Terraform, error) {
+func NewTerraform(logEnabled bool) (*Terraform, error) {
 	execPath, err := tfinstall.LookPath().ExecPath(context.TODO())
 	if err != nil {
 		return nil, err
@@ -32,14 +31,15 @@ func NewTerraform() (*Terraform, error) {
 	}
 
 	t := &Terraform{
-		exec: *tf,
+		exec:       *tf,
+		LogEnabled: logEnabled,
 	}
 	t.SetLogEnabled(true)
 	return t, nil
 }
 
 func (t *Terraform) SetLogEnabled(enabled bool) {
-	if enabled && LogEnabled {
+	if enabled && t.LogEnabled {
 		t.exec.SetStdout(os.Stdout)
 		t.exec.SetStderr(os.Stderr)
 		t.exec.SetLogger(log.New(os.Stdout, "", 0))

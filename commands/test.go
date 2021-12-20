@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"strings"
 
@@ -10,13 +12,21 @@ import (
 )
 
 type TestCommand struct {
-	Ui cli.Ui
+	Ui      cli.Ui
+	verbose bool
+}
+
+func (command *TestCommand) flags() *flag.FlagSet {
+	fs := defaultFlagSet("version")
+	fs.BoolVar(&command.verbose, "v", false, "whether show terraform logs")
+	fs.Usage = func() { command.Ui.Error(command.Help()) }
+	return fs
 }
 
 func (command TestCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool test
-` + command.Synopsis() + "\n\n"
+Usage: azurerm-rest-api-testing-tool test [-v]
+` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
 
 	return strings.TrimSpace(helpText)
 }
@@ -26,8 +36,14 @@ func (command TestCommand) Synopsis() string {
 }
 
 func (command TestCommand) Run(args []string) int {
+	f := command.flags()
+	if err := f.Parse(args); err != nil {
+		command.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		return 1
+	}
+
 	log.Println("[INFO] ----------- run tests ---------")
-	terraform, err := tf.NewTerraform()
+	terraform, err := tf.NewTerraform(command.verbose)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}
