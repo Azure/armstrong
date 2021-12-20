@@ -1,28 +1,62 @@
 package main
 
 import (
-	"log"
+	"os"
 
+	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/commands"
 )
 
 func main() {
-	command, args := commands.GetCommandArgs()
-	log.Printf("[INFO] command: %v, args: %v", command, args)
-	switch command {
-	case "generate":
-		commands.Generate(args)
-	case "auto":
-		commands.Auto(args)
-	case "test":
-		commands.Test(args)
-	case "setup":
-		commands.Setup()
-	case "cleanup":
-		commands.Cleanup()
-	case "help":
-		commands.Help()
-	default:
-		commands.Help()
+	c := &cli.CLI{
+		Name:       "azurerm-restapi-to-azurerm",
+		Version:    VersionString(),
+		Args:       os.Args[1:],
+		HelpWriter: os.Stdout,
 	}
+
+	ui := &cli.ColoredUi{
+		ErrorColor: cli.UiColorRed,
+		WarnColor:  cli.UiColorYellow,
+		Ui: &cli.BasicUi{
+			Writer:      os.Stdout,
+			Reader:      os.Stdin,
+			ErrorWriter: os.Stderr,
+		},
+	}
+
+	c.Commands = map[string]cli.CommandFactory{
+		"auto": func() (cli.Command, error) {
+			return &commands.AutoCommand{
+				Ui: ui,
+			}, nil
+		},
+		"generate": func() (cli.Command, error) {
+			return &commands.GenerateCommand{
+				Ui: ui,
+			}, nil
+		},
+		"cleanup": func() (cli.Command, error) {
+			return &commands.CleanupCommand{
+				Ui: ui,
+			}, nil
+		},
+		"setup": func() (cli.Command, error) {
+			return &commands.SetupCommand{
+				Ui: ui,
+			}, nil
+		},
+		"test": func() (cli.Command, error) {
+			return &commands.TestCommand{
+				Ui: ui,
+			}, nil
+		},
+	}
+
+	exitStatus, err := c.Run()
+	if err != nil {
+		ui.Error("Error: " + err.Error())
+	}
+
+	os.Exit(exitStatus)
 }

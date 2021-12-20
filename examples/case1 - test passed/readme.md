@@ -1,11 +1,11 @@
 # Example
 
 ## Introduction
-This is an exmaple of testing the API which manages Microsoft.Batch/batchAccounts/applications@2021-06-01 resource
+This is an example of testing the API which manages Microsoft.Batch/batchAccounts/applications@2021-06-01 resource
 
 ## Commands and logs
 Command
-`azurerm-rest-api-testing-tool auto C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\batch\resource-manager\Microsoft.Batch\stable\2021-06-01\examples\ApplicationCreate.json`
+`azurerm-rest-api-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\batch\resource-manager\Microsoft.Batch\stable\2021-06-01\examples\ApplicationCreate.json`
 
 Logs
 

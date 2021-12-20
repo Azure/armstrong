@@ -1,20 +1,57 @@
 package commands
 
 import (
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
+	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/helper"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/loader"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/resource"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
 )
 
-func Generate(args []string) {
-	if len(args) == 0 {
-		Help()
-		return
+type GenerateCommand struct {
+	Ui   cli.Ui
+	path string
+}
+
+func (c *GenerateCommand) flags() *flag.FlagSet {
+	fs := defaultFlagSet("generate")
+
+	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
+
+	fs.Usage = func() { c.Ui.Error(c.Help()) }
+
+	return fs
+}
+
+func (c GenerateCommand) Help() string {
+	helpText := `
+Usage: azurerm-rest-api-testing-tool generate -path <filepath to example>
+` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
+
+	return strings.TrimSpace(helpText)
+}
+
+func (c GenerateCommand) Synopsis() string {
+	return "Generate testing files including terraform configuration for dependency and testing resource."
+}
+
+func (c GenerateCommand) Run(args []string) int {
+	f := c.flags()
+	if err := f.Parse(args); err != nil {
+		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		return 1
 	}
+	if len(c.path) == 0 {
+		c.Ui.Error(c.Help())
+		return 1
+	}
+
 	log.Println("[INFO] ----------- generate dependency and test resource ---------")
 	// load dependencies
 	log.Println("[INFO] loading dependencies")
@@ -41,7 +78,7 @@ func Generate(args []string) {
 	// load example and generate hcl
 	//exampleFilepath := "C:\\Users\\henglu\\go\\src\\github.com\\Azure\\azure-rest-api-specs\\specification\\synapse\\resource-manager\\Microsoft.Synapse\\stable\\2020-12-01\\examples\\CreateOrUpdateSqlPoolWorkloadGroupMax.json"
 	log.Println("[INFO] generating testing files")
-	exampleFilepath := args[0]
+	exampleFilepath := c.path
 	exampleResource, err := resource.NewResourceFromExample(exampleFilepath)
 	if err != nil {
 		log.Fatalf("[Error] error reading example file: %+v\n", err)
@@ -62,4 +99,5 @@ func Generate(args []string) {
 		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
 	}
 	log.Println("[INFO] testing.tf generated")
+	return 0
 }

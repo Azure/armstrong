@@ -2,12 +2,30 @@ package commands
 
 import (
 	"log"
+	"strings"
 
+	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/azurerm-rest-api-testing-tool/tf"
 	"github.com/nsf/jsondiff"
 )
 
-func Test(args []string) {
+type TestCommand struct {
+	Ui cli.Ui
+}
+
+func (command TestCommand) Help() string {
+	helpText := `
+Usage: azurerm-rest-api-testing-tool test
+` + command.Synopsis() + "\n\n"
+
+	return strings.TrimSpace(helpText)
+}
+
+func (command TestCommand) Synopsis() string {
+	return "Clean up dependency"
+}
+
+func (command TestCommand) Run(args []string) int {
 	log.Println("[INFO] ----------- run tests ---------")
 	terraform, err := tf.NewTerraform()
 	if err != nil {
@@ -54,7 +72,7 @@ func Test(args []string) {
 
 	if len(tf.GetChanges(plan)) == 0 {
 		log.Println("[INFO] Test passed!")
-		return
+		return 0
 	}
 
 	before, after := tf.GetBodyChange(plan)
@@ -73,4 +91,5 @@ func Test(args []string) {
 	}
 	_, msg = jsondiff.Compare([]byte(before), []byte(after), &option)
 	log.Fatalf("[INFO] report:\n%s", msg)
+	return 1
 }

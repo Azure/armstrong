@@ -9,16 +9,16 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
     2. Setup the generic terraform provider by following [this document](https://github.com/ms-henglu/terraform-provider-azurerm-generic/blob/develop/README.md).
 2. Install this tool: `go install github.com/ms-henglu/azurerm-rest-api-testing-tool`
 3. Generate terraform files and Test
-    1.  Generate testing files by running `azurerm-rest-api-testing-tool generate path_to_swagger_example`.
+    1.  Generate testing files by running `azurerm-rest-api-testing-tool generate -path path_to_swagger_example`.
         Here's an example:
         
-        `azurerm-rest-api-testing-tool generate C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
+        `azurerm-rest-api-testing-tool generate -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
         
         Then `dependency.tf` and `testing.tf` will be generated.
     2. Run API tests by running `azurerm-rest-api-testing-tool test`. This command will set up dependencies and test the ARM resource API.
     3. There's an `auto` command, it can generate testing files, then run the tests and remove all resources if test is passed. Example:
     
-       `azurerm-rest-api-testing-tool auto C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
+       `azurerm-rest-api-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
 
 ## Troubleshooting
 1. Q: When use `test` commands, server side validation error happens.
@@ -36,12 +36,12 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
     A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources. If using `auto` command
 
 
-## Todo
+## Features
 - [ ] Generate multiple test cases from given resource type and swagger file
 - [ ] Generate test cases containing all defined properties
 - [ ] Support complicated dependency analysis, ex: key vault id, key vault cert id
-- [ ] Improve accuracy in mapping between resourceId and azurerm resource type
-- [ ] Improve accuracy in azurerm resource example configuration: example configuration must be valid
+- [x] Improve accuracy in mapping between resourceId and azurerm resource type
+- [x] Improve accuracy in azurerm resource example configuration: example configuration must be valid
 - [x] Hide terraform logs and generate a more friendly report
 
 

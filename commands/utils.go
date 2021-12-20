@@ -1,22 +1,29 @@
 package commands
 
 import (
-	"os"
-
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/tf"
+	"flag"
+	"io/ioutil"
+	"strings"
 )
 
-func GetCommandArgs() (string, []string) {
-	args := make([]string, 0)
-	for _, arg := range os.Args {
-		if arg == "-v" {
-			tf.LogEnabled = true
-		} else {
-			args = append(args, arg)
-		}
-	}
-	if len(args) > 1 {
-		return args[1], args[2:]
-	}
-	return "", []string{}
+func defaultFlagSet(cmdName string) *flag.FlagSet {
+	f := flag.NewFlagSet(cmdName, flag.ContinueOnError)
+	f.SetOutput(ioutil.Discard)
+
+	// Set the default Usage to empty
+	f.Usage = func() {}
+
+	return f
+}
+
+func helpForFlags(fs *flag.FlagSet) string {
+	buf := &strings.Builder{}
+	buf.WriteString("Options:\n\n")
+
+	w := fs.Output()
+	defer fs.SetOutput(w)
+	fs.SetOutput(buf)
+	fs.PrintDefaults()
+
+	return buf.String()
 }
