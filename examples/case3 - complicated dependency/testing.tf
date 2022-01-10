@@ -1,8 +1,9 @@
 
 resource "azurerm-restapi_resource" "test" {
-	resource_id = "${azurerm_databricks_workspace.test.id}/virtualNetworkPeerings/acctest6988"
-	type = "Microsoft.Databricks/workspaces/virtualNetworkPeerings@2021-04-01-preview"
-	body = <<BODY
+	name      = "acctest6988"
+	parent_id = azurerm_databricks_workspace.test.id
+	type      = "Microsoft.Databricks/workspaces/virtualNetworkPeerings@2021-04-01-preview"
+	body      = <<BODY
 {
     "properties": {
         "allowForwardedTraffic": false,

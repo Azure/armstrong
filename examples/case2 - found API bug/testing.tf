@@ -1,8 +1,9 @@
 
 resource "azurerm-restapi_resource" "test" {
-	resource_id = "${azurerm_spring_cloud_service.test.id}/apps/acctest7600"
-	type = "Microsoft.AppPlatform/Spring/apps@2020-07-01"
- 	body = <<BODY
+	name      = "acctest7600"
+	parent_id = azurerm_spring_cloud_service.test.id
+	type      = "Microsoft.AppPlatform/Spring/apps@2020-07-01"
+ 	body      = <<BODY
 {
     "location": "westeurope",
     "properties": {

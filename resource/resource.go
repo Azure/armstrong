@@ -84,13 +84,14 @@ func (r Resource) GetHcl(dependencyHcl string) string {
 	body, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
 	return fmt.Sprintf(`
 resource "azurerm-restapi_resource" "test" {
-	resource_id = "%s"
+    name = "%s"
+	parent_id = %s
 	type = "%s@%s"
  	body = <<BODY
 %s
 BODY
 }
-`, r.GetUrl(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
+`, helper.GetRandomResourceName(), r.GetParentId(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
@@ -113,7 +114,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 	return GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }
 
-func (r Resource) GetUrl(dependencyHcl string) string {
+func (r Resource) GetParentId(dependencyHcl string) string {
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath == "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")
@@ -121,12 +122,7 @@ func (r Resource) GetUrl(dependencyHcl string) string {
 			propertyName := parts[1]
 			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
 				ref := target + "." + propertyName
-				url := strings.ReplaceAll(r.ExampleId, mapping.Value, "${"+ref+"}")
-				index := strings.LastIndex(url, "/")
-				if index != -1 {
-					url = url[0:index+1] + helper.GetRandomResourceName()
-				}
-				return url
+				return ref
 			} else {
 				log.Printf("[WARN] dependency not found, resource type: %s", resourceType)
 			}
