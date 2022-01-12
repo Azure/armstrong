@@ -95,7 +95,7 @@ BODY
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
-	replacements := make(map[string]string, 0)
+	replacements := make(map[string]string)
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath != "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")

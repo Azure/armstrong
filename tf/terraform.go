@@ -13,7 +13,7 @@ import (
 )
 
 type Terraform struct {
-	exec       tfexec.Terraform
+	exec       *tfexec.Terraform
 	LogEnabled bool
 }
 
@@ -24,14 +24,14 @@ func NewTerraform(logEnabled bool) (*Terraform, error) {
 	if err != nil {
 		return nil, err
 	}
-	workingDirectory, err := os.Getwd()
+	workingDirectory, _ := os.Getwd()
 	tf, err := tfexec.NewTerraform(workingDirectory, execPath)
 	if err != nil {
 		return nil, err
 	}
 
 	t := &Terraform{
-		exec:       *tf,
+		exec:       tf,
 		LogEnabled: logEnabled,
 	}
 	t.SetLogEnabled(true)

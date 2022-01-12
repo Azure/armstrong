@@ -60,7 +60,7 @@ func (c GenerateCommand) Run(args []string) int {
 	hardcodeLoader := loader.HardcodeDependencyLoader{}
 
 	deps := make([]types.Dependency, 0)
-	depsMap := make(map[string]types.Dependency, 0)
+	depsMap := make(map[string]types.Dependency)
 	if temp, err := mappingJsonLoader.Load(); err == nil {
 		for _, dep := range temp {
 			depsMap[dep.ResourceType+"."+dep.ReferredProperty] = dep

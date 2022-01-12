@@ -11,19 +11,19 @@ func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependen
 		return []PropertyDependencyMapping{}
 	}
 	results := make([]PropertyDependencyMapping, 0)
-	switch parameters.(type) {
+	switch param := parameters.(type) {
 	case map[string]interface{}:
-		for key, value := range parameters.(map[string]interface{}) {
+		for key, value := range param {
 			results = append(results, GetKeyValueMappings(value, path+"."+key)...)
 		}
 	case []interface{}:
-		for index, value := range parameters.([]interface{}) {
+		for index, value := range param {
 			results = append(results, GetKeyValueMappings(value, path+"."+strconv.Itoa(index))...)
 		}
 	case string:
 		results = append(results, PropertyDependencyMapping{
 			ValuePath: path,
-			Value:     parameters.(string),
+			Value:     param,
 		})
 	default:
 
@@ -35,10 +35,10 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 	if len(replacements) == 0 {
 		return body
 	}
-	switch body.(type) {
+	switch bodyValue := body.(type) {
 	case map[string]interface{}:
-		res := make(map[string]interface{}, 0)
-		for key, value := range body.(map[string]interface{}) {
+		res := make(map[string]interface{})
+		for key, value := range bodyValue {
 			if temp := GetUpdatedBody(value, replacements, removes, path+"."+key); temp != nil {
 				res[key] = temp
 			}
@@ -46,7 +46,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 		return res
 	case []interface{}:
 		res := make([]interface{}, 0)
-		for index, value := range body.([]interface{}) {
+		for index, value := range bodyValue {
 			if temp := GetUpdatedBody(value, replacements, removes, path+"."+strconv.Itoa(index)); temp != nil {
 				res = append(res, temp)
 			}
