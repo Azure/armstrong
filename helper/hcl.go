@@ -17,11 +17,11 @@ import (
 func GetRenamedHcl(input string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(input), "temp.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
-		log.Printf(parseDiags.Error())
+		log.Println(parseDiags.Error())
 		return ""
 	}
-	resourceCountMap := make(map[string]int, 0)
-	resourceNameMap := make(map[string]string, 0)
+	resourceCountMap := make(map[string]int)
+	resourceNameMap := make(map[string]string)
 	resHcl, _ := hclwrite.ParseConfig([]byte(""), "res.tf", hcl.InitialPos)
 	for _, block := range f.Body().Blocks() {
 		// remove terraform and provider blocks
@@ -62,17 +62,17 @@ func GetRenamedHcl(input string) string {
 func GetCombinedHcl(old, new string) string {
 	oldHcl, parseDiags := hclwrite.ParseConfig([]byte(old), "old.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
-		log.Printf(parseDiags.Error())
+		log.Println(parseDiags.Error())
 		return ""
 	}
 	newHcl, parseDiags := hclwrite.ParseConfig([]byte(new), "new.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
-		log.Printf(parseDiags.Error())
+		log.Println(parseDiags.Error())
 		return ""
 	}
 	resHcl, _ := hclwrite.ParseConfig([]byte(""), "res.tf", hcl.InitialPos)
 
-	blocks := make(map[string]hclwrite.Block, 0)
+	blocks := make(map[string]hclwrite.Block)
 	for _, block := range oldHcl.Body().Blocks() {
 		labels := block.Labels()
 		resourceName := strings.Join(labels, ".")
@@ -95,7 +95,7 @@ func GetCombinedHcl(old, new string) string {
 func GetResourceFromHcl(config, resourceType string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(config), "old.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
-		log.Printf(parseDiags.Error())
+		log.Println(parseDiags.Error())
 		return ""
 	}
 	if f == nil || f.Body() == nil {

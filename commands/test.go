@@ -49,7 +49,7 @@ func (command TestCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] prepare working directory\n")
-	terraform.Init()
+	_ = terraform.Init()
 
 	log.Println("[INFO] running plan command to check changes...")
 	plan, err := terraform.Plan()
