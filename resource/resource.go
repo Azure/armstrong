@@ -91,7 +91,7 @@ resource "azurerm-restapi_resource" "test" {
 %s
 BODY
 }
-`, helper.GetRandomResourceName(), r.GetParentId(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
+`, helper.GetRandomResourceName(), r.GetParentReference(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
@@ -114,7 +114,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 	return GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }
 
-func (r Resource) GetParentId(dependencyHcl string) string {
+func (r Resource) GetParentReference(dependencyHcl string) string {
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath == "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")
