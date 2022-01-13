@@ -92,6 +92,7 @@ func GetCombinedHcl(old, new string) string {
 	return string(hclwrite.Format([]byte(resHcl.BuildTokens(nil).Bytes())))
 }
 
+// GetResourceFromHcl returns first resource address which is resourceType from config
 func GetResourceFromHcl(config, resourceType string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(config), "old.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// GetKeyValueMappings returns a list of key and value of input
 func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependencyMapping {
 	if parameters == nil {
 		return []PropertyDependencyMapping{}
@@ -32,7 +33,7 @@ func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependen
 }
 
 func GetUpdatedBody(body interface{}, replacements map[string]string, removes []string, path string) interface{} {
-	if len(replacements) == 0 {
+	if len(replacements) == 0 && len(removes) == 0 {
 		return body
 	}
 	switch bodyValue := body.(type) {
@@ -69,6 +70,7 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 	return body
 }
 
+// GetIdFromResponseExample extracts id from response
 func GetIdFromResponseExample(response interface{}) string {
 	if response != nil {
 		if responseMap, ok := response.(map[string]interface{}); ok && responseMap["body"] != nil {
@@ -82,6 +84,7 @@ func GetIdFromResponseExample(response interface{}) string {
 	return ""
 }
 
+// GetParentIdFromId returns the id of its parent resource from id
 func GetParentIdFromId(id string) string {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
