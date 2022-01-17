@@ -3,11 +3,23 @@
 ## Introduction
 The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [generic azurerm provider](https://github.com/Azure/terraform-provider-azurerm-restapi).
 
+## Usage
+```shell
+Usage: azurerm-restapi-to-azurerm [--version] [--help] <command> [<args>]
+
+Available commands are:
+auto        Run generate and test, if test passed, run cleanup
+cleanup     Clean up dependencies and testing resource
+generate    Generate testing files including terraform configuration for dependencies and testing resource.
+setup       Update dependencies for tests
+test        Update dependencies for tests and run tests
+```
+
 ## How to use?
 1. Requisites
     1. Download and setup Terraform.
     2. Setup the generic terraform provider by following [this document](https://github.com/ms-henglu/terraform-provider-azurerm-generic/blob/develop/README.md).
-2. Install this tool: `go install github.com/ms-henglu/azurerm-rest-api-testing-tool`
+2. Install this tool: `go install github.com/ms-henglu/azurerm-restapi-testing-tool`
 3. Generate terraform files and Test
     1.  Generate testing files by running `azurerm-rest-api-testing-tool generate -path path_to_swagger_example`.
         Here's an example:
@@ -25,15 +37,9 @@ The tool can simplify the process to test a ARM rest API. It can generate a terr
    
    A: You may need to modify the dependency.tf or testing.tf to meet the server side's requirements. It happens when the testing resource requires running in specific region or some configurations of its dependencies. After modification, run `test` command to continue the test.
 
-
-2. Q: When use `test` commands, 405 error(Method not accepted) happens.
+2. Q: Will dependencies be removed after testing is done?
    
-   A: Testing resource uses `PUT` method as the default method to create or update resource. Please add `create_method={required_method}` and `update_method={required_method}` to `testing.tf`. This issue will be resolved in later version, when generate testing files from swagger instead of examples.
-
-
-3. Q: Will dependencies be removed after testing is done?
-   
-    A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources. If using `auto` command
+    A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources. If using `auto` command, it will run `cleanup` command if test passed,
 
 
 ## Features

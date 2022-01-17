@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/helper"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
 )
 
 type Resource struct {

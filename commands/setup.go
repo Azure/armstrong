@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/tf"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
 )
 
 type SetupCommand struct {
@@ -31,7 +31,7 @@ Usage: azurerm-rest-api-testing-tool setup [-v]
 }
 
 func (c SetupCommand) Synopsis() string {
-	return "Update dependency for tests"
+	return "Update dependencies for tests"
 }
 
 func (c SetupCommand) Run(args []string) int {

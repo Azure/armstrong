@@ -3,7 +3,7 @@ package helper_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/helper"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
 )
 
 func Test_IsValueMatchPattern(t *testing.T) {

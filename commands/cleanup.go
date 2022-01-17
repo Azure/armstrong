@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/tf"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
 )
 
 type CleanupCommand struct {
@@ -31,7 +31,7 @@ Usage: azurerm-rest-api-testing-tool cleanup [-v]
 }
 
 func (c CleanupCommand) Synopsis() string {
-	return "Clean up dependency"
+	return "Clean up dependencies and testing resource"
 }
 
 func (c CleanupCommand) Run(args []string) int {

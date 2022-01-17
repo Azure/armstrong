@@ -31,7 +31,7 @@ Usage: azurerm-rest-api-testing-tool auto -path <filepath to example> [-v]
 }
 
 func (c AutoCommand) Synopsis() string {
-	return "Run generate and test"
+	return "Run generate and test, if test passed, run cleanup"
 }
 
 func (c AutoCommand) Run(args []string) int {

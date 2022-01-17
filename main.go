@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/commands"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/commands"
 )
 
 func main() {

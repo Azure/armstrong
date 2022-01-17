@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/tf"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
 	"github.com/nsf/jsondiff"
 )
 
@@ -32,7 +32,7 @@ Usage: azurerm-rest-api-testing-tool test [-v]
 }
 
 func (command TestCommand) Synopsis() string {
-	return "Clean up dependency"
+	return "Update dependencies for tests and run tests"
 }
 
 func (command TestCommand) Run(args []string) int {

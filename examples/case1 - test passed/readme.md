@@ -9,7 +9,7 @@ Command
 
 Logs
 
-1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/blob/master/examples/case1%20-%20test%20passed/dependency.tf) and [testing.tf](https://github.com/ms-henglu/azurerm-rest-api-testing-tool/blob/master/examples/case1%20-%20test%20passed/testing.tf).
+1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/azurerm-restapi-testing-tool/blob/master/examples/case1%20-%20test%20passed/dependency.tf) and [testing.tf](https://github.com/ms-henglu/azurerm-restapi-testing-tool/blob/master/examples/case1%20-%20test%20passed/testing.tf).
 ```
 2021/11/24 13:39:42 [INFO] command: auto, args: [C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\batch\resource-manager\Microsoft.Batch\stable\2021-06-01\examples\ApplicationCreate.json]
 2021/11/24 13:39:42 [INFO] ----------- generate dependency and test resource ---------

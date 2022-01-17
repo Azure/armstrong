@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
 )
 
 type MappingJsonDependencyLoader struct {

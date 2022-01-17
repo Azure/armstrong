@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/helper"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/loader"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/resource"
-	"github.com/ms-henglu/azurerm-rest-api-testing-tool/types"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/loader"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/resource"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
 )
 
 type GenerateCommand struct {
@@ -38,7 +38,7 @@ Usage: azurerm-rest-api-testing-tool generate -path <filepath to example>
 }
 
 func (c GenerateCommand) Synopsis() string {
-	return "Generate testing files including terraform configuration for dependency and testing resource."
+	return "Generate testing files including terraform configuration for dependencies and testing resource."
 }
 
 func (c GenerateCommand) Run(args []string) int {

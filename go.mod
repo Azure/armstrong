@@ -1,4 +1,4 @@
-module github.com/ms-henglu/azurerm-rest-api-testing-tool
+module github.com/ms-henglu/azurerm-restapi-testing-tool
 
 go 1.16
 
