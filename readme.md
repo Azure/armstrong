@@ -4,7 +4,7 @@
 The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [generic azurerm provider](https://github.com/Azure/terraform-provider-azurerm-restapi).
 
 ## Usage
-```shell
+```
 Usage: azurerm-restapi-to-azurerm [--version] [--help] <command> [<args>]
 
 Available commands are:
