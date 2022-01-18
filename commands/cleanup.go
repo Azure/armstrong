@@ -24,7 +24,7 @@ func (c *CleanupCommand) flags() *flag.FlagSet {
 
 func (c CleanupCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool cleanup [-v]
+Usage: azurerm-restapi-testing-tool cleanup [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

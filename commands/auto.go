@@ -24,7 +24,7 @@ func (c *AutoCommand) flags() *flag.FlagSet {
 }
 func (c AutoCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool auto -path <filepath to example> [-v]
+Usage: azurerm-restapi-testing-tool auto -path <filepath to example> [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -45,6 +45,10 @@ func (c AutoCommand) Run(args []string) int {
 		return 1
 	}
 	GenerateCommand{Ui: c.Ui}.Run(args)
+	args = make([]string, 0)
+	if c.verbose {
+		args = append(args, "-v")
+	}
 	TestCommand{Ui: c.Ui}.Run(args)
 	CleanupCommand{Ui: c.Ui}.Run(args)
 	log.Println("[INFO] Test passed!")

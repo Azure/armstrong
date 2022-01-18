@@ -138,10 +138,12 @@ resource "azurerm_synapse_role_assignment" "example" {
 	expect := `provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "henglu112-resources"
   location = "West Europe"
 }
+
 resource "azurerm_storage_account" "example" {
   name                     = "henglu0113"
   resource_group_name      = azurerm_resource_group.example.name
@@ -151,10 +153,12 @@ resource "azurerm_storage_account" "example" {
   account_kind             = "StorageV2"
   is_hns_enabled           = "true"
 }
+
 resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
   name               = "henglu0113"
   storage_account_id = azurerm_storage_account.example.id
 }
+
 resource "azurerm_synapse_workspace" "example" {
   name                                 = "henglu0113sw"
   resource_group_name                  = azurerm_resource_group.example.name
@@ -163,13 +167,16 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 }
+
 data "azurerm_client_config" "current" {}
+
 resource "azurerm_synapse_role_assignment" "example" {
   synapse_workspace_id = azurerm_synapse_workspace.example.id
   role_name            = "Synapse SQL Administrator"
   principal_id         = data.azurerm_client_config.current.object_id
 
 }
+
 `
 	if expect != output {
 		t.Fatalf("expect %s but got %s", expect, output)

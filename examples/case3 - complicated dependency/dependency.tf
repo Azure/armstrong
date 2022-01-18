@@ -5,26 +5,32 @@ terraform {
     }
   }
 }
+
 provider "azurerm" {
   features {}
 }
+
 provider "azurerm-restapi" {
   schema_validation_enabled = false
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest8331"
   location = "West Europe"
 }
+
 resource "azurerm_network_security_group" "test" {
   name                = "acctest8331"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctest8331"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest8331"
   location            = azurerm_resource_group.test.location
@@ -57,6 +63,7 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
+
 resource "azurerm_databricks_workspace" "test" {
   name                = "acctest6473"
   resource_group_name = azurerm_resource_group.test.name

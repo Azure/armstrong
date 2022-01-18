@@ -24,7 +24,7 @@ func (c *SetupCommand) flags() *flag.FlagSet {
 
 func (c SetupCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool setup [-v]
+Usage: azurerm-restapi-testing-tool setup [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

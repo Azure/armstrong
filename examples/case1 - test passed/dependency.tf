@@ -5,15 +5,19 @@ terraform {
     }
   }
 }
+
 provider "azurerm" {
   features {}
 }
+
 provider "azurerm-restapi" {
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest6746"
   location = "West Europe"
 }
+
 resource "azurerm_storage_account" "test" {
   name                     = "acctest6746"
   resource_group_name      = azurerm_resource_group.test.name
@@ -21,6 +25,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
+
 resource "azurerm_batch_account" "test" {
   name                 = "acctest6746"
   resource_group_name  = azurerm_resource_group.test.name

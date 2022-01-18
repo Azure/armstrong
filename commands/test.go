@@ -25,7 +25,7 @@ func (command *TestCommand) flags() *flag.FlagSet {
 
 func (command TestCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool test [-v]
+Usage: azurerm-restapi-testing-tool test [-v]
 ` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
 
 	return strings.TrimSpace(helpText)

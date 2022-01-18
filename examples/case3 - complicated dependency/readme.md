@@ -5,7 +5,7 @@ This is an example of testing the API which manages Microsoft.Databricks/workspa
 
 ## Commands and logs
 Command
-`azurerm-rest-api-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\databricks\resource-manager\Microsoft.Databricks\preview\2021-04-01-preview\examples\WorkspaceVirtualNetworkPeeringCreateOrUpdate.json`
+`azurerm-restapi-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\databricks\resource-manager\Microsoft.Databricks\preview\2021-04-01-preview\examples\WorkspaceVirtualNetworkPeeringCreateOrUpdate.json`
 
 Logs
 
