@@ -5,7 +5,7 @@ This is an example of testing the API which manages Microsoft.AppPlatform/Spring
 
 ## Commands and logs
 Command
-`azurerm-rest-api-testing-tool.exe auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\appplatform\resource-manager\Microsoft.AppPlatform\stable\2020-07-01\examples\Apps_CreateOrUpdate.json`
+`azurerm-restapi-testing-tool.exe auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\appplatform\resource-manager\Microsoft.AppPlatform\stable\2020-07-01\examples\Apps_CreateOrUpdate.json`
 
 Logs
 

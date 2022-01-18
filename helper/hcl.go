@@ -78,6 +78,7 @@ func GetCombinedHcl(old, new string) string {
 		resourceName := strings.Join(labels, ".")
 		blocks[resourceName] = *block
 		resHcl.Body().AppendBlock(block)
+		resHcl.Body().AppendNewline()
 	}
 	for _, block := range newHcl.Body().Blocks() {
 		labels := block.Labels()
@@ -86,6 +87,7 @@ func GetCombinedHcl(old, new string) string {
 			// TODO: check whether exist and block are equal, if not, they must both exist??
 		} else {
 			resHcl.Body().AppendBlock(block)
+			resHcl.Body().AppendNewline()
 		}
 	}
 

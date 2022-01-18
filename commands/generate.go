@@ -31,7 +31,7 @@ func (c *GenerateCommand) flags() *flag.FlagSet {
 
 func (c GenerateCommand) Help() string {
 	helpText := `
-Usage: azurerm-rest-api-testing-tool generate -path <filepath to example>
+Usage: azurerm-restapi-testing-tool generate -path <filepath to example>
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
