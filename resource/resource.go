@@ -90,6 +90,7 @@ resource "azurerm-restapi_resource" "test" {
  	body = <<BODY
 %s
 BODY
+    schema_validation_enabled = false
 }
 `, helper.GetRandomResourceName(), r.GetParentReference(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
 }

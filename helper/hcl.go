@@ -132,6 +132,5 @@ provider "azurerm" {
 }
 
 provider "azurerm-restapi" {
-  schema_validation_enabled = false
 }
 `
