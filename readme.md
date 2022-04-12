@@ -1,11 +1,11 @@
 # Terraform based API testing Tool
 
 ## Introduction
-The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [generic azurerm provider](https://github.com/Azure/terraform-provider-azurerm-restapi).
+The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
 
 ## Usage
 ```
-Usage: azurerm-restapi-to-azurerm [--version] [--help] <command> [<args>]
+Usage: azurerm-restapi-testing-tool [--version] [--help] <command> [<args>]
 
 Available commands are:
 auto        Run generate and test, if test passed, run cleanup
@@ -18,7 +18,6 @@ test        Update dependencies for tests and run tests
 ## How to use?
 1. Requisites
     1. Download and setup Terraform.
-    2. Setup the generic terraform provider by following [this document](https://github.com/Azure/terraform-provider-azurerm-restapi/blob/main/README.md).
 2. Install this tool: `go install github.com/ms-henglu/azurerm-restapi-testing-tool`
 3. Generate terraform files and Test
     1.  Generate testing files by running `azurerm-restapi-testing-tool generate -path path_to_swagger_example`.

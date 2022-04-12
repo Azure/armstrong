@@ -1,5 +1,5 @@
 
-resource "azurerm-restapi_resource" "test" {
+resource "azapi_resource" "test" {
 	name      = "acctest6988"
 	parent_id = azurerm_databricks_workspace.test.id
 	type      = "Microsoft.Databricks/workspaces/virtualNetworkPeerings@2021-04-01-preview"
