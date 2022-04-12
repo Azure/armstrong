@@ -121,8 +121,8 @@ func GetRandomResourceName() string {
 const ProviderHcl = `
 terraform {
   required_providers {
-    azurerm-restapi = {
-      source  = "Azure/azurerm-restapi"
+    azapi = {
+      source  = "Azure/azapi"
     }
   }
 }
@@ -131,6 +131,6 @@ provider "azurerm" {
   features {}
 }
 
-provider "azurerm-restapi" {
+provider "azapi" {
 }
 `

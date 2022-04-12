@@ -9,7 +9,7 @@ import (
 
 func main() {
 	c := &cli.CLI{
-		Name:       "azurerm-restapi-to-azurerm",
+		Name:       "azurerm-restapi-testing-tool",
 		Version:    VersionString(),
 		Args:       os.Args[1:],
 		HelpWriter: os.Stdout,

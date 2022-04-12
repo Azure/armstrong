@@ -2,7 +2,7 @@ package tf
 
 import tfjson "github.com/hashicorp/terraform-json"
 
-const TestResourceAddress = "azurerm-restapi_resource.test"
+const TestResourceAddress = "azapi_resource.test"
 
 type Action string
 

@@ -83,7 +83,7 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 func (r Resource) GetHcl(dependencyHcl string) string {
 	body, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
 	return fmt.Sprintf(`
-resource "azurerm-restapi_resource" "test" {
+resource "azapi_resource" "test" {
     name = "%s"
 	parent_id = %s
 	type = "%s@%s"
