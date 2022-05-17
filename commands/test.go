@@ -110,6 +110,6 @@ func (command TestCommand) Run(args []string) int {
 		}
 	}
 
-	log.Fatalf("[ERROR] %v API issues found", len(reports))
+	log.Fatalf("[ERROR] found %v API issues", len(reports))
 	return 1
 }
