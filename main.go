@@ -4,12 +4,12 @@ import (
 	"os"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/commands"
+	"github.com/ms-henglu/armstrong/commands"
 )
 
 func main() {
 	c := &cli.CLI{
-		Name:       "azurerm-restapi-testing-tool",
+		Name:       "armstrong",
 		Version:    VersionString(),
 		Args:       os.Args[1:],
 		HelpWriter: os.Stdout,

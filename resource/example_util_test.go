@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/resource"
+	"github.com/ms-henglu/armstrong/resource"
 )
 
 const inputJson = `

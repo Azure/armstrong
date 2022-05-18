@@ -2,7 +2,7 @@ package tf
 
 import (
 	tfjson "github.com/hashicorp/terraform-json"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"github.com/ms-henglu/armstrong/types"
 	"strings"
 )
 

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
+	"github.com/ms-henglu/armstrong/helper"
+	"github.com/ms-henglu/armstrong/tf"
 )
 
 type TestCommand struct {
@@ -27,7 +27,7 @@ func (command *TestCommand) flags() *flag.FlagSet {
 
 func (command TestCommand) Help() string {
 	helpText := `
-Usage: azurerm-restapi-testing-tool test [-v]
+Usage: armstrong test [-v]
 ` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
 
 	return strings.TrimSpace(helpText)

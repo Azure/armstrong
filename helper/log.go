@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 func ParseLogs(filepath string) ([]types.RequestTrace, error) {

@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/loader"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/resource"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"github.com/ms-henglu/armstrong/helper"
+	"github.com/ms-henglu/armstrong/loader"
+	"github.com/ms-henglu/armstrong/resource"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 type GenerateCommand struct {
@@ -31,7 +31,7 @@ func (c *GenerateCommand) flags() *flag.FlagSet {
 
 func (c GenerateCommand) Help() string {
 	helpText := `
-Usage: azurerm-restapi-testing-tool generate -path <filepath to example>
+Usage: armstrong generate -path <filepath to example>
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

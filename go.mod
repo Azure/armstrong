@@ -1,4 +1,4 @@
-module github.com/ms-henglu/azurerm-restapi-testing-tool
+module github.com/ms-henglu/armstrong
 
 go 1.16
 

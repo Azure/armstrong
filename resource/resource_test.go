@@ -4,8 +4,8 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/resource"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"github.com/ms-henglu/armstrong/resource"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 func Test_NewResourceFromExample(t *testing.T) {

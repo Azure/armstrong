@@ -1,6 +1,6 @@
 package loader
 
-import "github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+import "github.com/ms-henglu/armstrong/types"
 
 type DependencyLoader interface {
 	Load() ([]types.Dependency, error)
