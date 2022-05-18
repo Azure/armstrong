@@ -3,12 +3,14 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/mitchellh/cli"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
 	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
-	"github.com/nsf/jsondiff"
 )
 
 type TestCommand struct {
@@ -72,7 +74,6 @@ func (command TestCommand) Run(args []string) int {
 		}
 	}
 	log.Printf("[INFO] found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", c+r+u+d, c, r, u, d)
-
 	log.Println("[INFO] running apply command to provision test resource...")
 	err = terraform.Apply()
 	if err != nil {
@@ -91,21 +92,24 @@ func (command TestCommand) Run(args []string) int {
 		return 0
 	}
 
-	before, after := tf.GetBodyChange(plan)
-	option := jsondiff.DefaultConsoleOptions()
-	_, msg := jsondiff.Compare([]byte(before), []byte(after), &option)
-	log.Printf("[INFO] found differences between response and configuration:\n%s", msg)
-	option = jsondiff.Options{
-		Added:                 jsondiff.Tag{Begin: "\033[0;32m", End: " is not returned from response\033[0m"},
-		Removed:               jsondiff.Tag{Begin: "\033[0;31m", End: "\033[0m"},
-		Changed:               jsondiff.Tag{Begin: "\033[0;33m Got ", End: "\033[0m"},
-		Skipped:               jsondiff.Tag{Begin: "\033[0;90m", End: "\033[0m"},
-		SkippedArrayElement:   jsondiff.SkippedArrayElement,
-		SkippedObjectProperty: jsondiff.SkippedObjectProperty,
-		ChangedSeparator:      " in response, expect ",
-		Indent:                "    ",
+	reports := tf.NewReports(plan)
+	logs, err := helper.ParseLogs("./log.txt")
+	if err != nil {
+		log.Printf("[ERROR] parsing log.txt: %+v", err)
 	}
-	_, msg = jsondiff.Compare([]byte(before), []byte(after), &option)
-	log.Fatalf("[INFO] report:\n%s", msg)
+	for _, report := range reports {
+		log.Printf("[INFO] found differences between response and configuration:\n\naddress: %s\n\n%s\n",
+			report.Address, helper.DiffMessageTerraform(report.Change))
+		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", report.Address, helper.DiffMessageReadable(report.Change))
+		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(report.Type, "/", "_"), time.Now().Format("20060102030405PM"))
+		err := ioutil.WriteFile(markdownFilename, []byte(helper.MarkdownReport(report, logs)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
+		} else {
+			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
+		}
+	}
+
+	log.Fatalf("[ERROR] found %v API issues", len(reports))
 	return 1
 }

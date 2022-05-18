@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
@@ -35,6 +36,10 @@ func NewTerraform(logEnabled bool) (*Terraform, error) {
 		LogEnabled: logEnabled,
 	}
 	t.SetLogEnabled(true)
+	err = t.exec.SetLogPath(path.Join(workingDirectory, "log.txt"))
+	if err != nil {
+		return nil, err
+	}
 	return t, nil
 }
 

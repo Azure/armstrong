@@ -1,7 +1,9 @@
 # Terraform based API testing Tool
 
 ## Introduction
-The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
+The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a
+terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
+It can also generate a markdown report when found API issues.
 
 ## Usage
 ```
@@ -48,5 +50,6 @@ test        Update dependencies for tests and run tests
 - [x] Improve accuracy in mapping between resourceId and azurerm resource type
 - [x] Improve accuracy in azurerm resource example configuration: example configuration must be valid
 - [x] Hide terraform logs and generate a more friendly report
+- [x] Generate Markdown report when there are API issues
 
 

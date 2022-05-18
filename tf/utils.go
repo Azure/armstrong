@@ -1,8 +1,10 @@
 package tf
 
-import tfjson "github.com/hashicorp/terraform-json"
-
-const TestResourceAddress = "azapi_resource.test"
+import (
+	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"strings"
+)
 
 type Action string
 
@@ -45,29 +47,32 @@ func GetChanges(plan *tfjson.Plan) []Action {
 	return actions
 }
 
-func GetBodyChange(plan *tfjson.Plan) (string, string) {
-	before := "{}"
-	after := "{}"
+func NewReports(plan *tfjson.Plan) []types.Report {
+	res := make([]types.Report, 0)
 	if plan != nil {
 		for _, resourceChange := range plan.ResourceChanges {
-			if resourceChange != nil && resourceChange.Address == TestResourceAddress && resourceChange.Change != nil {
-				if resourceChange.Change.Before != nil {
-					if beforeMap, ok := resourceChange.Change.Before.(map[string]interface{}); ok && beforeMap["body"] != nil {
-						if value, ok := beforeMap["body"].(string); ok {
-							before = value
-						}
-					}
-				}
-				if resourceChange.Change.After != nil {
-					if afterMap, ok := resourceChange.Change.After.(map[string]interface{}); ok && afterMap["body"] != nil {
-						if value, ok := afterMap["body"].(string); ok {
-							after = value
-						}
-					}
-				}
-				break
+			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+				continue
 			}
+			if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
+				continue
+			}
+			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+			afterMap, afterMapOk := resourceChange.Change.After.(map[string]interface{})
+			if !beforeMapOk || !afterMapOk {
+				continue
+			}
+			res = append(res, types.Report{
+				Id:      afterMap["id"].(string),
+				Type:    afterMap["type"].(string),
+				Address: resourceChange.Address,
+				Change: types.Diff{
+					Before: beforeMap["body"].(string),
+					After:  afterMap["body"].(string),
+				},
+			})
+
 		}
 	}
-	return before, after
+	return res
 }
