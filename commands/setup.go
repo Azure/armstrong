@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/tf"
+	"github.com/ms-henglu/armstrong/tf"
 )
 
 type SetupCommand struct {
@@ -24,7 +24,7 @@ func (c *SetupCommand) flags() *flag.FlagSet {
 
 func (c SetupCommand) Help() string {
 	helpText := `
-Usage: azurerm-restapi-testing-tool setup [-v]
+Usage: armstrong setup [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

@@ -5,11 +5,11 @@ This is an example of testing the API which manages Microsoft.Databricks/workspa
 
 ## Commands and logs
 Command
-`azurerm-restapi-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\databricks\resource-manager\Microsoft.Databricks\preview\2021-04-01-preview\examples\WorkspaceVirtualNetworkPeeringCreateOrUpdate.json`
+`armstrong auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\databricks\resource-manager\Microsoft.Databricks\preview\2021-04-01-preview\examples\WorkspaceVirtualNetworkPeeringCreateOrUpdate.json`
 
 Logs
 
-1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/azurerm-restapi-testing-tool/blob/master/examples/case3%20-%20complicated%20dependency/dependency.tf) and [testing.tf](https://github.com/ms-henglu/azurerm-restapi-testing-tool/blob/master/examples/case3%20-%20complicated%20dependency/testing.tf).
+1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/case3%20-%20complicated%20dependency/dependency.tf) and [testing.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/case3%20-%20complicated%20dependency/testing.tf).
 ```
 2021/11/24 15:47:11 [INFO] ----------- generate dependency and test resource ---------
 2021/11/24 15:47:11 [INFO] loading dependencies

@@ -3,7 +3,7 @@ package helper_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/helper"
+	"github.com/ms-henglu/armstrong/helper"
 )
 
 func Test_GetResourceFromHcl(t *testing.T) {

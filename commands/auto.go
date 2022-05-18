@@ -24,7 +24,7 @@ func (c *AutoCommand) flags() *flag.FlagSet {
 }
 func (c AutoCommand) Help() string {
 	helpText := `
-Usage: azurerm-restapi-testing-tool auto -path <filepath to example> [-v]
+Usage: armstrong auto -path <filepath to example> [-v]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

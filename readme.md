@@ -1,13 +1,13 @@
-# Terraform based API testing Tool
+# Armstrong - A Terraform based ARM REST API testing Tool
 
 ## Introduction
-The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a
+The tool can simplify the process to test an ARM REST API. It can generate a terraform file containing dependencies and a
 terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
 It can also generate a markdown report when found API issues.
 
 ## Usage
 ```
-Usage: azurerm-restapi-testing-tool [--version] [--help] <command> [<args>]
+Usage: armstrong [--version] [--help] <command> [<args>]
 
 Available commands are:
 auto        Run generate and test, if test passed, run cleanup
@@ -20,18 +20,18 @@ test        Update dependencies for tests and run tests
 ## How to use?
 1. Requisites
     1. Download and setup Terraform.
-2. Install this tool: `go install github.com/ms-henglu/azurerm-restapi-testing-tool`
+2. Install this tool: `go install github.com/ms-henglu/armstrong`
 3. Generate terraform files and Test
-    1.  Generate testing files by running `azurerm-restapi-testing-tool generate -path path_to_swagger_example`.
+    1.  Generate testing files by running `armstrong generate -path path_to_swagger_example`.
         Here's an example:
         
-        `azurerm-restapi-testing-tool generate -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
+        `armstrong generate -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
         
         Then `dependency.tf` and `testing.tf` will be generated.
-    2. Run API tests by running `azurerm-restapi-testing-tool test`. This command will set up dependencies and test the ARM resource API.
+    2. Run API tests by running `armstrong test`. This command will set up dependencies and test the ARM resource API.
     3. There's an `auto` command, it can generate testing files, then run the tests and remove all resources if test is passed. Example:
     
-       `azurerm-restapi-testing-tool auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
+       `armstrong auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
 
 ## Troubleshooting
 1. Q: When use `test` commands, server side validation error happens.

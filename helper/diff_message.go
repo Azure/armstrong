@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/ms-henglu/azurerm-restapi-testing-tool/types"
+	"github.com/ms-henglu/armstrong/types"
 	"github.com/nsf/jsondiff"
 )
 
