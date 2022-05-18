@@ -1,7 +1,7 @@
-# Terraform based API testing Tool
+# Armstrong - A Terraform based ARM REST API testing Tool
 
 ## Introduction
-The tool can simplify the process to test a ARM rest API. It can generate a terraform file containing dependencies and a
+The tool can simplify the process to test an ARM REST API. It can generate a terraform file containing dependencies and a
 terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
 It can also generate a markdown report when found API issues.
 
