@@ -59,7 +59,6 @@ func RequestTracesContent(id string, logs []types.RequestTrace) string {
 	}
 	if log, i := findLastLog(logs, id, "PUT", "OUTGOING REQUEST", index); i != -1 {
 		content = log.Content + "\n" + content
-		index = i
 	}
 	return content
 }

@@ -36,7 +36,10 @@ func NewTerraform(logEnabled bool) (*Terraform, error) {
 		LogEnabled: logEnabled,
 	}
 	t.SetLogEnabled(true)
-	t.exec.SetLogPath(path.Join(workingDirectory, "log.txt"))
+	err = t.exec.SetLogPath(path.Join(workingDirectory, "log.txt"))
+	if err != nil {
+		return nil, err
+	}
 	return t, nil
 }
 

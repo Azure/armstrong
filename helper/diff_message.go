@@ -22,8 +22,7 @@ func DiffMessageReadable(diff types.Diff) string {
 		ChangedSeparator:      " in response, expect ",
 		Indent:                "    ",
 	}
-	dff, msg := jsondiff.Compare([]byte(diff.Before), []byte(diff.After), &option)
-	dff.String()
+	_, msg := jsondiff.Compare([]byte(diff.Before), []byte(diff.After), &option)
 	return msg
 }
 
@@ -38,7 +37,6 @@ func DiffMessageMarkdown(diff types.Diff) string {
 		ChangedSeparator:      " in response, expect ",
 		Indent:                "    ",
 	}
-	dff, msg := jsondiff.Compare([]byte(diff.Before), []byte(diff.After), &option)
-	dff.String()
+	_, msg := jsondiff.Compare([]byte(diff.Before), []byte(diff.After), &option)
 	return msg
 }
