@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/ms-henglu/armstrong/hcl"
 	"github.com/ms-henglu/armstrong/helper"
 	"github.com/ms-henglu/armstrong/types"
 )
@@ -80,16 +81,23 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 	}, nil
 }
 
-func (r Resource) GetHcl(dependencyHcl string) string {
-	body, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
+func (r Resource) GetHcl(dependencyHcl string, useRawJsonPayload bool) string {
+	body := ""
+	if useRawJsonPayload {
+		jsonBody, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
+		body = fmt.Sprintf(`<<BODY
+%s
+BODY`, jsonBody)
+	} else {
+		hclBody := hcl.MarshalIndent(r.GetBody(dependencyHcl), "", "  ")
+		body = fmt.Sprintf(`jsonencode(%s)`, hclBody)
+	}
 	return fmt.Sprintf(`
 resource "azapi_resource" "test" {
     name = "%s"
 	parent_id = %s
 	type = "%s@%s"
- 	body = <<BODY
-%s
-BODY
+ 	body = %s
     schema_validation_enabled = false
 }
 `, helper.GetRandomResourceName(), r.GetParentReference(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)

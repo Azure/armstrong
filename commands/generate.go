@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/helper"
 	"github.com/ms-henglu/armstrong/loader"
@@ -15,15 +16,16 @@ import (
 )
 
 type GenerateCommand struct {
-	Ui   cli.Ui
-	path string
+	Ui                cli.Ui
+	path              string
+	useRawJsonPayload bool
 }
 
 func (c *GenerateCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("generate")
 
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
-
+	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in `body`")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 
 	return fs
@@ -87,14 +89,14 @@ func (c GenerateCommand) Run(args []string) int {
 	dependencyHcl := exampleResource.GetDependencyHcl(deps)
 	finalHcl := helper.GetCombinedHcl(helper.ProviderHcl, dependencyHcl)
 
-	err = ioutil.WriteFile("dependency.tf", []byte(finalHcl), 0644)
+	err = ioutil.WriteFile("dependency.tf", hclwrite.Format([]byte(finalHcl)), 0644)
 	if err != nil {
 		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
 	}
 	log.Println("[INFO] dependency.tf generated")
 
-	testResourceHcl := exampleResource.GetHcl(dependencyHcl)
-	err = ioutil.WriteFile("testing.tf", []byte(testResourceHcl), 0644)
+	testResourceHcl := exampleResource.GetHcl(dependencyHcl, c.useRawJsonPayload)
+	err = ioutil.WriteFile("testing.tf", hclwrite.Format([]byte(testResourceHcl)), 0644)
 	if err != nil {
 		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
 	}
