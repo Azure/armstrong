@@ -37,5 +37,4 @@ func MarshalIndent(input interface{}, prefix, indent string) string {
 	default:
 		return fmt.Sprintf("%v", i)
 	}
-	return fmt.Sprintf("%v", input)
 }
