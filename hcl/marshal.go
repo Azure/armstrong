@@ -20,13 +20,17 @@ func MarshalIndent(input interface{}, prefix, indent string) string {
 		content := ""
 		for _, key := range keys {
 			value := i[key]
-			content += fmt.Sprintf("%s%s = %s\n", prefix+indent, key, MarshalIndent(value, prefix+indent, indent))
+			wrapKey := key
+			if strings.Contains(key, "/") {
+				wrapKey = fmt.Sprintf(`"%s"`, key)
+			}
+			content += fmt.Sprintf("%s%s = %s\n", prefix+indent, wrapKey, MarshalIndent(value, prefix+indent, indent))
 		}
 		return fmt.Sprintf("{\n%s%s}", content, prefix)
 	case []interface{}:
 		content := ""
 		for _, value := range i {
-			content += fmt.Sprintf("%s%s\n", prefix+indent, MarshalIndent(value, prefix+indent, indent))
+			content += fmt.Sprintf("%s%s,\n", prefix+indent, MarshalIndent(value, prefix+indent, indent))
 		}
 		return fmt.Sprintf("[\n%s%s]", content, prefix)
 	case string:

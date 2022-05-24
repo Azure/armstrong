@@ -14,6 +14,7 @@ type AutoCommand struct {
 	path              string
 	verbose           bool
 	useRawJsonPayload bool
+	overwrite         bool
 }
 
 func (c *AutoCommand) flags() *flag.FlagSet {
@@ -21,6 +22,7 @@ func (c *AutoCommand) flags() *flag.FlagSet {
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in `body`")
+	fs.BoolVar(&c.overwrite, "overwrite", false, "whether overwrite existing terraform configurations")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }

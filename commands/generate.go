@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -19,6 +20,7 @@ type GenerateCommand struct {
 	Ui                cli.Ui
 	path              string
 	useRawJsonPayload bool
+	overwrite         bool
 }
 
 func (c *GenerateCommand) flags() *flag.FlagSet {
@@ -26,6 +28,7 @@ func (c *GenerateCommand) flags() *flag.FlagSet {
 
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
 	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in `body`")
+	fs.BoolVar(&c.overwrite, "overwrite", false, "whether overwrite existing terraform configurations")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 
 	return fs
@@ -52,6 +55,10 @@ func (c GenerateCommand) Run(args []string) int {
 	if len(c.path) == 0 {
 		c.Ui.Error(c.Help())
 		return 1
+	}
+	if c.overwrite {
+		_ = os.Remove("testing.tf")
+		_ = os.Remove("dependency.tf")
 	}
 
 	log.Println("[INFO] ----------- generate dependency and test resource ---------")
@@ -86,20 +93,37 @@ func (c GenerateCommand) Run(args []string) int {
 		log.Fatalf("[Error] error reading example file: %+v\n", err)
 	}
 
-	dependencyHcl := exampleResource.GetDependencyHcl(deps)
-	finalHcl := helper.GetCombinedHcl(helper.ProviderHcl, dependencyHcl)
+	existDeps := helper.GetExistingDependencies(deps)
+	dependencyHcl := exampleResource.GetDependencyHcl(existDeps, deps)
 
-	err = ioutil.WriteFile("dependency.tf", hclwrite.Format([]byte(finalHcl)), 0644)
+	finalHcl := dependencyHcl
+	if _, err := os.Stat("dependency.tf"); err != nil {
+		finalHcl = helper.GetCombinedHcl(helper.ProviderHcl, dependencyHcl)
+	}
+	err = appendFile("dependency.tf", finalHcl)
 	if err != nil {
 		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
 	}
 	log.Println("[INFO] dependency.tf generated")
 
 	testResourceHcl := exampleResource.GetHcl(dependencyHcl, c.useRawJsonPayload)
-	err = ioutil.WriteFile("testing.tf", hclwrite.Format([]byte(testResourceHcl)), 0644)
+	err = appendFile("testing.tf", testResourceHcl)
 	if err != nil {
 		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
 	}
 	log.Println("[INFO] testing.tf generated")
 	return 0
+}
+
+func appendFile(filename string, hclContent string) error {
+	content := hclContent
+	if _, err := os.Stat(filename); err == nil {
+		existingHcl, err := ioutil.ReadFile(filename)
+		if err != nil {
+			log.Printf("[WARN] reading %s: %+v", filename, err)
+		} else {
+			content = helper.GetCombinedHcl(string(existingHcl), content)
+		}
+	}
+	return ioutil.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
 }

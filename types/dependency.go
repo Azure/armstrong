@@ -5,4 +5,5 @@ type Dependency struct {
 	ExampleConfiguration string
 	ResourceType         string
 	ReferredProperty     string
+	Address              string
 }

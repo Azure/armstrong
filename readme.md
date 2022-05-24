@@ -22,12 +22,14 @@ test        Update dependencies for tests and run tests
     1. Download and setup Terraform.
 2. Install this tool: `go install github.com/ms-henglu/armstrong`
 3. Generate terraform files and Test
-    1.  Generate testing files by running `armstrong generate -path path_to_swagger_example`.
+    1. Generate testing files by running `armstrong generate -path path_to_swagger_example`.
         Here's an example:
         
         `armstrong generate -path .\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
         
         Then `dependency.tf` and `testing.tf` will be generated. It also supports generate `body` with raw json format, by adding option `-raw`.
+        You can append more test cases by executing this command with different example paths, this feature is enabled by default,
+        to get a clean working directory, use `-overwrite` option to clean up the existing files.
     2. Run API tests by running `armstrong test`. This command will set up dependencies and test the ARM resource API.
     3. There's an `auto` command, it can generate testing files, then run the tests and remove all resources if test is passed. Example:
     
@@ -47,6 +49,7 @@ test        Update dependencies for tests and run tests
 - [ ] Generate multiple test cases from given resource type and swagger file
 - [ ] Generate test cases containing all defined properties
 - [ ] Support complicated dependency analysis, ex: key vault id, key vault cert id
+- [x] Support appending more testcases.
 - [x] Support `body` in both `jsonencode` format and raw json format.
 - [x] Improve accuracy in mapping between resourceId and azurerm resource type
 - [x] Improve accuracy in azurerm resource example configuration: example configuration must be valid

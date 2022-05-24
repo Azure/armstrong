@@ -2,14 +2,18 @@ package helper
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/ms-henglu/armstrong/types"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -116,6 +120,72 @@ func GetResourceFromHcl(config, resourceType string) string {
 func GetRandomResourceName() string {
 	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("acctest%d", rand.Intn(10000))
+}
+
+func GetExistingDependencies(deps []types.Dependency) []types.Dependency {
+	dir, _ := os.Getwd()
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Printf("[WARN] reading dir %s: %+v", dir, err)
+		return nil
+	}
+	existDeps := make([]types.Dependency, 0)
+	for _, file := range files {
+		if !strings.HasSuffix(file.Name(), ".tf") {
+			continue
+		}
+		src, err := ioutil.ReadFile(path.Join(dir, file.Name()))
+		if err != nil {
+			log.Printf("[WARN] reading file %s: %+v", file.Name(), err)
+			continue
+		}
+		f, diag := hclwrite.ParseConfig(src, file.Name(), hcl.InitialPos)
+		if diag.HasErrors() {
+			log.Printf("[WARN] parsing file %s: %+v", file.Name(), diag.Error())
+			continue
+		}
+		if f == nil || f.Body() == nil {
+			continue
+		}
+		for _, block := range f.Body().Blocks() {
+			labels := block.Labels()
+			if len(labels) >= 2 {
+				pattern := ""
+				if labels[0] == "azapi_resource" {
+					pattern = GetAzApiResourceIdPattern(block)
+				}
+				existDeps = append(existDeps, types.Dependency{
+					Pattern:          pattern,
+					ResourceType:     labels[0],
+					ReferredProperty: "id",
+					Address:          strings.Join(labels, "."),
+				})
+			}
+		}
+	}
+	for i := range existDeps {
+		for _, dep := range deps {
+			if dep.ResourceType == existDeps[i].ResourceType {
+				existDeps[i].Pattern = dep.Pattern
+				break
+			}
+		}
+	}
+	return existDeps
+}
+
+func GetAzApiResourceIdPattern(block *hclwrite.Block) string {
+	if block == nil || block.Body() == nil {
+		return ""
+	}
+	attribute := block.Body().GetAttribute("type")
+	if attribute == nil || attribute.Expr() == nil {
+		return ""
+	}
+	typeValue := string(attribute.Expr().BuildTokens(nil).Bytes())
+	typeValue = strings.Trim(typeValue, ` "`)
+	typeValue = typeValue[0:strings.Index(typeValue, "@")]
+	return fmt.Sprintf("/subscriptions/resourceGroups/providers/%s", typeValue)
 }
 
 const ProviderHcl = `
