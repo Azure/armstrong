@@ -1,4 +1,4 @@
-package helper
+package hcl
 
 import (
 	"fmt"
@@ -17,8 +17,8 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// GetRenamedHcl is used to rename resource name to make name unique
-func GetRenamedHcl(input string) string {
+// RenameLabel is used to rename resource name to make name unique
+func RenameLabel(input string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(input), "temp.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
 		log.Println(parseDiags.Error())
@@ -50,7 +50,7 @@ func GetRenamedHcl(input string) string {
 		block.SetLabels(labels)
 		if block.Body() != nil && block.Body().GetAttribute("name") != nil {
 			rand.Seed(time.Now().UnixNano())
-			block.Body().SetAttributeValue("name", cty.StringVal(GetRandomResourceName()))
+			block.Body().SetAttributeValue("name", cty.StringVal(RandomName()))
 		}
 		resHcl.Body().AppendBlock(block)
 	}
@@ -62,8 +62,8 @@ func GetRenamedHcl(input string) string {
 	return string(hclwrite.Format([]byte(labelRenamedHcl)))
 }
 
-// GetCombinedHcl is used to merge hcl and avoid create duplicate resources
-func GetCombinedHcl(old, new string) string {
+// Combine is used to merge hcl and avoid create duplicate resources
+func Combine(old, new string) string {
 	oldHcl, parseDiags := hclwrite.ParseConfig([]byte(old), "old.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
 		log.Println(parseDiags.Error())
@@ -98,8 +98,8 @@ func GetCombinedHcl(old, new string) string {
 	return string(hclwrite.Format([]byte(resHcl.BuildTokens(nil).Bytes())))
 }
 
-// GetResourceFromHcl returns first resource address which is resourceType from config
-func GetResourceFromHcl(config, resourceType string) string {
+// FindResourceAddress returns first resource address which is resourceType from config
+func FindResourceAddress(config, resourceType string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(config), "old.tf", hcl.InitialPos)
 	if parseDiags != nil && parseDiags.HasErrors() {
 		log.Println(parseDiags.Error())
@@ -117,12 +117,12 @@ func GetResourceFromHcl(config, resourceType string) string {
 	return ""
 }
 
-func GetRandomResourceName() string {
+func RandomName() string {
 	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("acctest%d", rand.Intn(10000))
 }
 
-func GetExistingDependencies(deps []types.Dependency) []types.Dependency {
+func LoadExistingDependencies() []types.Dependency {
 	dir, _ := os.Getwd()
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -160,14 +160,6 @@ func GetExistingDependencies(deps []types.Dependency) []types.Dependency {
 					ReferredProperty: "id",
 					Address:          strings.Join(labels, "."),
 				})
-			}
-		}
-	}
-	for i := range existDeps {
-		for _, dep := range deps {
-			if dep.ResourceType == existDeps[i].ResourceType {
-				existDeps[i].Pattern = dep.Pattern
-				break
 			}
 		}
 	}

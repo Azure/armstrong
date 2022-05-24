@@ -3,13 +3,13 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"github.com/ms-henglu/armstrong/report"
 	"io/ioutil"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/armstrong/helper"
 	"github.com/ms-henglu/armstrong/tf"
 )
 
@@ -93,16 +93,16 @@ func (command TestCommand) Run(args []string) int {
 	}
 
 	reports := tf.NewReports(plan)
-	logs, err := helper.ParseLogs("./log.txt")
+	logs, err := report.ParseLogs("./log.txt")
 	if err != nil {
 		log.Printf("[ERROR] parsing log.txt: %+v", err)
 	}
-	for _, report := range reports {
+	for _, r := range reports {
 		log.Printf("[INFO] found differences between response and configuration:\n\naddress: %s\n\n%s\n",
-			report.Address, helper.DiffMessageTerraform(report.Change))
-		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", report.Address, helper.DiffMessageReadable(report.Change))
-		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(report.Type, "/", "_"), time.Now().Format("20060102030405PM"))
-		err := ioutil.WriteFile(markdownFilename, []byte(helper.MarkdownReport(report, logs)), 0644)
+			r.Address, report.DiffMessageTerraform(r.Change))
+		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", r.Address, report.DiffMessageReadable(r.Change))
+		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), time.Now().Format("20060102030405PM"))
+		err := ioutil.WriteFile(markdownFilename, []byte(report.MarkdownReport(r, logs)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {

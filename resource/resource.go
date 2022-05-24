@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/ms-henglu/armstrong/hcl"
-	"github.com/ms-henglu/armstrong/helper"
+	"github.com/ms-henglu/armstrong/resource/utils"
 	"github.com/ms-henglu/armstrong/types"
 )
 
@@ -56,17 +57,17 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 
 		if exampleMap["responses"] != nil {
 			if responseMap, ok := exampleMap["responses"].(map[string]interface{}); ok {
-				if id := GetIdFromResponseExample(responseMap["200"]); len(id) > 0 {
+				if id := utils.GetIdFromResponseExample(responseMap["200"]); len(id) > 0 {
 					exampleId = id
-				} else if id := GetIdFromResponseExample(responseMap["201"]); len(id) > 0 {
+				} else if id := utils.GetIdFromResponseExample(responseMap["201"]); len(id) > 0 {
 					exampleId = id
-				} else if id := GetIdFromResponseExample(responseMap["202"]); len(id) > 0 {
+				} else if id := utils.GetIdFromResponseExample(responseMap["202"]); len(id) > 0 {
 					exampleId = id
 				}
 				if len(exampleId) > 0 {
 					mappings = append(mappings, PropertyDependencyMapping{
 						ValuePath: "parent",
-						Value:     GetParentIdFromId(exampleId),
+						Value:     utils.GetParentIdFromId(exampleId),
 					})
 				}
 			}
@@ -81,7 +82,7 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 	}, nil
 }
 
-func (r Resource) GetHcl(dependencyHcl string, useRawJsonPayload bool) string {
+func (r Resource) Hcl(dependencyHcl string, useRawJsonPayload bool) string {
 	body := ""
 	if useRawJsonPayload {
 		jsonBody, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
@@ -102,7 +103,7 @@ resource "azapi_resource" "%[1]s" {
 
     schema_validation_enabled = false
 }
-`, helper.GetRandomResourceName(), r.GetParentReference(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
+`, hcl.RandomName(), r.FindParentReference(dependencyHcl), utils.GetResourceType(r.ExampleId), r.ApiVersion, body)
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
@@ -116,7 +117,7 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 			}
 			resourceType := parts[0]
 			propertyName := parts[1]
-			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
+			if target := hcl.FindResourceAddress(dependencyHcl, resourceType); len(target) > 0 {
 				ref := target + "." + propertyName
 				replacements[mapping.ValuePath] = "${" + ref + "}"
 			} else {
@@ -126,10 +127,10 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 	}
 	replacements[".location"] = "westeurope"
 	removes := []string{".name"}
-	return GetUpdatedBody(r.ExampleBody, replacements, removes, "")
+	return utils.GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }
 
-func (r Resource) GetParentReference(dependencyHcl string) string {
+func (r Resource) FindParentReference(dependencyHcl string) string {
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath == "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")
@@ -138,7 +139,7 @@ func (r Resource) GetParentReference(dependencyHcl string) string {
 			}
 			resourceType := parts[0]
 			propertyName := parts[1]
-			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
+			if target := hcl.FindResourceAddress(dependencyHcl, resourceType); len(target) > 0 {
 				ref := target + "." + propertyName
 				return ref
 			} else {
@@ -149,29 +150,53 @@ func (r Resource) GetParentReference(dependencyHcl string) string {
 	return r.ExampleId
 }
 
-func (r Resource) GetDependencyHcl(existDeps []types.Dependency, deps []types.Dependency) string {
+func (r Resource) DependencyHcl(existDeps []types.Dependency, deps []types.Dependency) string {
 	dependencyHcl := ""
 	for index, mapping := range r.PropertyDependencyMappings {
-		isDependencyExist := false
 		for _, dep := range existDeps {
-			if helper.IsValueMatchPattern(mapping.Value, dep.Pattern) {
-				isDependencyExist = true
+			if utils.IsValueMatchPattern(mapping.Value, dep.Pattern) {
 				log.Printf("[INFO] found existing dependency: %s", dep.Address)
 				r.PropertyDependencyMappings[index].Reference = dep.Address + "." + dep.ReferredProperty
 				break
 			}
 		}
-		if isDependencyExist {
+		if len(r.PropertyDependencyMappings[index].Reference) != 0 {
 			continue
 		}
 		for _, dep := range deps {
-			if helper.IsValueMatchPattern(mapping.Value, dep.Pattern) {
+			if utils.IsValueMatchPattern(mapping.Value, dep.Pattern) {
 				log.Printf("[INFO] found dependency: %s", dep.ResourceType)
 				r.PropertyDependencyMappings[index].Reference = dep.ResourceType + "." + dep.ReferredProperty
-				dependencyHcl = helper.GetCombinedHcl(dependencyHcl, helper.GetRenamedHcl(dep.ExampleConfiguration))
+				dependencyHcl = hcl.Combine(dependencyHcl, hcl.RenameLabel(dep.ExampleConfiguration))
 				break // take the first match
 			}
 		}
 	}
 	return dependencyHcl
+}
+
+// GetKeyValueMappings returns a list of key and value of input
+func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependencyMapping {
+	if parameters == nil {
+		return []PropertyDependencyMapping{}
+	}
+	results := make([]PropertyDependencyMapping, 0)
+	switch param := parameters.(type) {
+	case map[string]interface{}:
+		for key, value := range param {
+			results = append(results, GetKeyValueMappings(value, path+"."+key)...)
+		}
+	case []interface{}:
+		for index, value := range param {
+			results = append(results, GetKeyValueMappings(value, path+"."+strconv.Itoa(index))...)
+		}
+	case string:
+		results = append(results, PropertyDependencyMapping{
+			ValuePath: path,
+			Value:     param,
+		})
+	default:
+
+	}
+	return results
 }

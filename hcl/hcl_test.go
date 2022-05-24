@@ -1,12 +1,11 @@
-package helper_test
+package hcl_test
 
 import (
+	"github.com/ms-henglu/armstrong/hcl"
 	"testing"
-
-	"github.com/ms-henglu/armstrong/helper"
 )
 
-func Test_GetResourceFromHcl(t *testing.T) {
+func Test_FindResourceAddress(t *testing.T) {
 	config :=
 		`
 provider "azurerm" {
@@ -73,13 +72,13 @@ resource "azurerm_synapse_role_assignment" "example" {
 	}
 
 	for _, testcase := range testcases {
-		if output := helper.GetResourceFromHcl(config, testcase.Input); output != testcase.Expect {
+		if output := hcl.FindResourceAddress(config, testcase.Input); output != testcase.Expect {
 			t.Fatalf("expect %v but got %v", testcase.Expect, output)
 		}
 	}
 }
 
-func Test_GetCombinedHcl(t *testing.T) {
+func Test_Combine(t *testing.T) {
 	old :=
 		`
 provider "azurerm" {
@@ -134,7 +133,7 @@ resource "azurerm_synapse_role_assignment" "example" {
 
 }
 `
-	output := helper.GetCombinedHcl(old, new)
+	output := hcl.Combine(old, new)
 	expect := `provider "azurerm" {
   features {}
 }
@@ -183,7 +182,7 @@ resource "azurerm_synapse_role_assignment" "example" {
 	}
 }
 
-func Test_GetRenamedHcl(t *testing.T) {
+func Test_RenameLabel(t *testing.T) {
 	config :=
 		`
 provider "azurerm" {
@@ -225,7 +224,7 @@ resource "azurerm_synapse_role_assignment" "example" {
 
 }
 `
-	output := helper.GetRenamedHcl(config)
+	output := hcl.RenameLabel(config)
 
 	expect := `resource "azurerm_resource_group" "test" {
   location = "West Europe"

@@ -1,9 +1,8 @@
-package helper_test
+package utils_test
 
 import (
+	"github.com/ms-henglu/armstrong/resource/utils"
 	"testing"
-
-	"github.com/ms-henglu/armstrong/helper"
 )
 
 func Test_IsValueMatchPattern(t *testing.T) {
@@ -25,7 +24,7 @@ func Test_IsValueMatchPattern(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		if output := helper.IsValueMatchPattern(testcase.Value, testcase.Pattern); output != testcase.Expect {
+		if output := utils.IsValueMatchPattern(testcase.Value, testcase.Pattern); output != testcase.Expect {
 			t.Fatalf("expect %v but got %v", testcase.Expect, output)
 		}
 	}
@@ -48,7 +47,7 @@ func Test_GetIdPattern(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		if output, err := helper.GetIdPattern(testcase.Value); err != nil || output != testcase.Expect {
+		if output, err := utils.GetIdPattern(testcase.Value); err != nil || output != testcase.Expect {
 			t.Fatalf("expect %v but got %v, err: %+v", testcase.Expect, output, err)
 		}
 	}
@@ -71,7 +70,7 @@ func Test_GetResourceType(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		if output := helper.GetResourceType(testcase.Value); output != testcase.Expect {
+		if output := utils.GetResourceType(testcase.Value); output != testcase.Expect {
 			t.Fatalf("expect %v but got %v", testcase.Expect, output)
 		}
 	}

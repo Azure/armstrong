@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/armstrong/helper"
+	"github.com/ms-henglu/armstrong/hcl"
 	"github.com/ms-henglu/armstrong/loader"
 	"github.com/ms-henglu/armstrong/resource"
 	"github.com/ms-henglu/armstrong/types"
@@ -60,11 +60,54 @@ func (c GenerateCommand) Run(args []string) int {
 		_ = os.Remove("testing.tf")
 		_ = os.Remove("dependency.tf")
 	}
+	err := ioutil.WriteFile("provider.tf", hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
+	if err != nil {
+		log.Fatalf("[Error] error writing provider.tf: %+v\n", err)
+	}
 
 	log.Println("[INFO] ----------- generate dependency and test resource ---------")
 	// load dependencies
 	log.Println("[INFO] loading dependencies")
-	// MappingJsonFilepath: "C:\\Users\\henglu\\go\\src\\github.com\\ms-henglu\\azurerm-terraform-mapping-tool\\mappings.json"
+	existDeps, deps := loadDependencies()
+
+	// load example and generate hcl
+	log.Println("[INFO] generating testing files")
+	exampleFilepath := c.path
+	exampleResource, err := resource.NewResourceFromExample(exampleFilepath)
+	if err != nil {
+		log.Fatalf("[Error] error reading example file: %+v\n", err)
+	}
+
+	dependencyHcl := exampleResource.DependencyHcl(existDeps, deps)
+	err = appendFile("dependency.tf", dependencyHcl)
+	if err != nil {
+		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
+	}
+	log.Println("[INFO] dependency.tf generated")
+
+	testResourceHcl := exampleResource.Hcl(dependencyHcl, c.useRawJsonPayload)
+	err = appendFile("testing.tf", testResourceHcl)
+	if err != nil {
+		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
+	}
+	log.Println("[INFO] testing.tf generated")
+	return 0
+}
+
+func appendFile(filename string, hclContent string) error {
+	content := hclContent
+	if _, err := os.Stat(filename); err == nil {
+		existingHcl, err := ioutil.ReadFile(filename)
+		if err != nil {
+			log.Printf("[WARN] reading %s: %+v", filename, err)
+		} else {
+			content = hcl.Combine(string(existingHcl), content)
+		}
+	}
+	return ioutil.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
+}
+
+func loadDependencies() ([]types.Dependency, []types.Dependency) {
 	mappingJsonLoader := loader.MappingJsonDependencyLoader{}
 	hardcodeLoader := loader.HardcodeDependencyLoader{}
 
@@ -83,47 +126,12 @@ func (c GenerateCommand) Run(args []string) int {
 	for _, dep := range depsMap {
 		deps = append(deps, dep)
 	}
-
-	// load example and generate hcl
-	//exampleFilepath := "C:\\Users\\henglu\\go\\src\\github.com\\Azure\\azure-rest-api-specs\\specification\\synapse\\resource-manager\\Microsoft.Synapse\\stable\\2020-12-01\\examples\\CreateOrUpdateSqlPoolWorkloadGroupMax.json"
-	log.Println("[INFO] generating testing files")
-	exampleFilepath := c.path
-	exampleResource, err := resource.NewResourceFromExample(exampleFilepath)
-	if err != nil {
-		log.Fatalf("[Error] error reading example file: %+v\n", err)
-	}
-
-	existDeps := helper.GetExistingDependencies(deps)
-	dependencyHcl := exampleResource.GetDependencyHcl(existDeps, deps)
-
-	finalHcl := dependencyHcl
-	if _, err := os.Stat("dependency.tf"); err != nil {
-		finalHcl = helper.GetCombinedHcl(helper.ProviderHcl, dependencyHcl)
-	}
-	err = appendFile("dependency.tf", finalHcl)
-	if err != nil {
-		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
-	}
-	log.Println("[INFO] dependency.tf generated")
-
-	testResourceHcl := exampleResource.GetHcl(dependencyHcl, c.useRawJsonPayload)
-	err = appendFile("testing.tf", testResourceHcl)
-	if err != nil {
-		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
-	}
-	log.Println("[INFO] testing.tf generated")
-	return 0
-}
-
-func appendFile(filename string, hclContent string) error {
-	content := hclContent
-	if _, err := os.Stat(filename); err == nil {
-		existingHcl, err := ioutil.ReadFile(filename)
-		if err != nil {
-			log.Printf("[WARN] reading %s: %+v", filename, err)
-		} else {
-			content = helper.GetCombinedHcl(string(existingHcl), content)
+	existDeps := hcl.LoadExistingDependencies()
+	for i := range existDeps {
+		ref := existDeps[i].ResourceType + "." + existDeps[i].ReferredProperty
+		if dep, ok := depsMap[ref]; ok {
+			existDeps[i].Pattern = dep.Pattern
 		}
 	}
-	return ioutil.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
+	return existDeps, deps
 }

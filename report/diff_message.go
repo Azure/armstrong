@@ -1,4 +1,4 @@
-package helper
+package report
 
 import (
 	"github.com/ms-henglu/armstrong/types"

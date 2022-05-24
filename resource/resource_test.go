@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"encoding/json"
 	"log"
 	"testing"
 
@@ -46,7 +47,7 @@ func Test_GetDependencyHcl(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	output := r.GetDependencyHcl(nil, deps)
+	output := r.DependencyHcl(nil, deps)
 	log.Printf("Test_GetDependencyHcl output: %s", output)
 	if len(output) == 0 {
 		t.Fatal("expect valid config, but got empty string")
@@ -69,8 +70,8 @@ func Test_GetParentReference(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	depHcl := r.GetDependencyHcl(nil, deps)
-	output := r.GetParentReference(depHcl)
+	depHcl := r.DependencyHcl(nil, deps)
+	output := r.FindParentReference(depHcl)
 	expect := "azurerm_machine_learning_workspace.test.id"
 	if output != expect {
 		t.Fatalf("expect %s but got %s", expect, output)
@@ -93,10 +94,35 @@ func Test_GetHcl(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	depHcl := r.GetDependencyHcl(nil, deps)
-	output := r.GetHcl(depHcl, true)
+	depHcl := r.DependencyHcl(nil, deps)
+	output := r.Hcl(depHcl, true)
 	log.Printf("Test_GetHcl output: %s", output)
 	if len(output) == 0 {
 		t.Fatal("expect valid config, but got empty string")
+	}
+}
+
+const inputJson = `
+{
+      "location": "eastus",
+      "properties": {
+        "computeType": "ComputeInstance",
+        "properties": {
+          "vmSize": "STANDARD_NC6",
+          "subnet": "test-subnet-resource-id",
+          "applicationSharingPolicy": "Personal",
+          "sshSettings": {
+            "sshPublicAccess": "Disabled"
+          }
+        }
+      }
+    }`
+
+func Test_GetKeyValueMappings(t *testing.T) {
+	var parameter interface{}
+	_ = json.Unmarshal([]byte(inputJson), &parameter)
+	outputs := resource.GetKeyValueMappings(parameter, "")
+	if len(outputs) != 6 {
+		t.Fatalf("expect %d mappings, but got %d", 6, len(outputs))
 	}
 }

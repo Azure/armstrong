@@ -1,10 +1,9 @@
-package resource_test
+package utils_test
 
 import (
 	"encoding/json"
+	"github.com/ms-henglu/armstrong/resource/utils"
 	"testing"
-
-	"github.com/ms-henglu/armstrong/resource"
 )
 
 const inputJson = `
@@ -23,21 +22,12 @@ const inputJson = `
       }
     }`
 
-func Test_GetKeyValueMappings(t *testing.T) {
-	var parameter interface{}
-	_ = json.Unmarshal([]byte(inputJson), &parameter)
-	outputs := resource.GetKeyValueMappings(parameter, "")
-	if len(outputs) != 6 {
-		t.Fatalf("expect %d mappings, but got %d", 6, len(outputs))
-	}
-}
-
 func Test_GetUpdatedBody_Removes(t *testing.T) {
 	var parameter interface{}
 	_ = json.Unmarshal([]byte(inputJson), &parameter)
 
 	removes := []string{".location"}
-	output := resource.GetUpdatedBody(parameter, nil, removes, "").(map[string]interface{})
+	output := utils.GetUpdatedBody(parameter, nil, removes, "").(map[string]interface{})
 	if output["location"] != nil {
 		t.Fatalf("expect nil but got %v", output["location"])
 	}
@@ -50,7 +40,7 @@ func Test_GetUpdatedBody_Replacements(t *testing.T) {
 	replacements := make(map[string]string)
 	subnetId := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1"
 	replacements[".properties.properties.subnet"] = subnetId
-	output := resource.GetUpdatedBody(parameter, replacements, nil, "").(map[string]interface{})
+	output := utils.GetUpdatedBody(parameter, replacements, nil, "").(map[string]interface{})
 	output = output["properties"].(map[string]interface{})
 	output = output["properties"].(map[string]interface{})
 	if output["subnet"].(string) != subnetId {
@@ -74,7 +64,7 @@ func Test_GetParentIdFromId(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		if output := resource.GetParentIdFromId(testcase.Input); output != testcase.Expect {
+		if output := utils.GetParentIdFromId(testcase.Input); output != testcase.Expect {
 			t.Fatalf("expect %v but got %v", testcase.Expect, output)
 		}
 	}

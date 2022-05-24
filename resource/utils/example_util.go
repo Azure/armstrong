@@ -1,36 +1,10 @@
-package resource
+package utils
 
 import (
 	"net/url"
 	"strconv"
 	"strings"
 )
-
-// GetKeyValueMappings returns a list of key and value of input
-func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependencyMapping {
-	if parameters == nil {
-		return []PropertyDependencyMapping{}
-	}
-	results := make([]PropertyDependencyMapping, 0)
-	switch param := parameters.(type) {
-	case map[string]interface{}:
-		for key, value := range param {
-			results = append(results, GetKeyValueMappings(value, path+"."+key)...)
-		}
-	case []interface{}:
-		for index, value := range param {
-			results = append(results, GetKeyValueMappings(value, path+"."+strconv.Itoa(index))...)
-		}
-	case string:
-		results = append(results, PropertyDependencyMapping{
-			ValuePath: path,
-			Value:     param,
-		})
-	default:
-
-	}
-	return results
-}
 
 func GetUpdatedBody(body interface{}, replacements map[string]string, removes []string, path string) interface{} {
 	if len(replacements) == 0 && len(removes) == 0 {
