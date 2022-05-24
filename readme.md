@@ -25,13 +25,13 @@ test        Update dependencies for tests and run tests
     1.  Generate testing files by running `armstrong generate -path path_to_swagger_example`.
         Here's an example:
         
-        `armstrong generate -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
+        `armstrong generate -path .\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.
         
-        Then `dependency.tf` and `testing.tf` will be generated.
+        Then `dependency.tf` and `testing.tf` will be generated. It also supports generate `body` with raw json format, by adding option `-raw`.
     2. Run API tests by running `armstrong test`. This command will set up dependencies and test the ARM resource API.
     3. There's an `auto` command, it can generate testing files, then run the tests and remove all resources if test is passed. Example:
     
-       `armstrong auto -path C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\machinelearningservices\resource-manager\Microsoft.MachineLearningServices\stable\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
+       `armstrong auto -path .\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`
 
 ## Troubleshooting
 1. Q: When use `test` commands, server side validation error happens.
@@ -47,6 +47,7 @@ test        Update dependencies for tests and run tests
 - [ ] Generate multiple test cases from given resource type and swagger file
 - [ ] Generate test cases containing all defined properties
 - [ ] Support complicated dependency analysis, ex: key vault id, key vault cert id
+- [x] Support `body` in both `jsonencode` format and raw json format.
 - [x] Improve accuracy in mapping between resourceId and azurerm resource type
 - [x] Improve accuracy in azurerm resource example configuration: example configuration must be valid
 - [x] Hide terraform logs and generate a more friendly report

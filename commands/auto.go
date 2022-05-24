@@ -10,15 +10,17 @@ import (
 )
 
 type AutoCommand struct {
-	Ui      cli.Ui
-	path    string
-	verbose bool
+	Ui                cli.Ui
+	path              string
+	verbose           bool
+	useRawJsonPayload bool
 }
 
 func (c *AutoCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("generate")
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
+	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in `body`")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }

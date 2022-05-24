@@ -94,7 +94,7 @@ func Test_GetHcl(t *testing.T) {
 		ReferredProperty:     "id",
 	})
 	depHcl := r.GetDependencyHcl(deps)
-	output := r.GetHcl(depHcl)
+	output := r.GetHcl(depHcl, true)
 	log.Printf("Test_GetHcl output: %s", output)
 	if len(output) == 0 {
 		t.Fatal("expect valid config, but got empty string")
