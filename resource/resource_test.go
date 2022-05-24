@@ -46,7 +46,7 @@ func Test_GetDependencyHcl(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	output := r.GetDependencyHcl(deps)
+	output := r.GetDependencyHcl(nil, deps)
 	log.Printf("Test_GetDependencyHcl output: %s", output)
 	if len(output) == 0 {
 		t.Fatal("expect valid config, but got empty string")
@@ -69,7 +69,7 @@ func Test_GetParentReference(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	depHcl := r.GetDependencyHcl(deps)
+	depHcl := r.GetDependencyHcl(nil, deps)
 	output := r.GetParentReference(depHcl)
 	expect := "azurerm_machine_learning_workspace.test.id"
 	if output != expect {
@@ -93,7 +93,7 @@ func Test_GetHcl(t *testing.T) {
 		ResourceType:         "azurerm_machine_learning_workspace",
 		ReferredProperty:     "id",
 	})
-	depHcl := r.GetDependencyHcl(deps)
+	depHcl := r.GetDependencyHcl(nil, deps)
 	output := r.GetHcl(depHcl, true)
 	log.Printf("Test_GetHcl output: %s", output)
 	if len(output) == 0 {

@@ -93,11 +93,13 @@ BODY`, jsonBody)
 		body = fmt.Sprintf(`jsonencode(%s)`, hclBody)
 	}
 	return fmt.Sprintf(`
-resource "azapi_resource" "test" {
-    name = "%s"
-	parent_id = %s
-	type = "%s@%s"
- 	body = %s
+resource "azapi_resource" "%[1]s" {
+	type = "%[3]s@%[4]s"
+    name = "%[1]s"
+	parent_id = %[2]s
+
+ 	body = %[5]s
+
     schema_validation_enabled = false
 }
 `, helper.GetRandomResourceName(), r.GetParentReference(dependencyHcl), helper.GetResourceType(r.ExampleId), r.ApiVersion, body)
@@ -108,6 +110,10 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath != "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")
+			if len(parts) == 3 {
+				replacements[mapping.ValuePath] = "${" + mapping.Reference + "}"
+				continue
+			}
 			resourceType := parts[0]
 			propertyName := parts[1]
 			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
@@ -127,6 +133,9 @@ func (r Resource) GetParentReference(dependencyHcl string) string {
 	for _, mapping := range r.PropertyDependencyMappings {
 		if mapping.ValuePath == "parent" && len(mapping.Reference) > 0 {
 			parts := strings.Split(mapping.Reference, ".")
+			if len(parts) == 3 {
+				return mapping.Reference
+			}
 			resourceType := parts[0]
 			propertyName := parts[1]
 			if target := helper.GetResourceFromHcl(dependencyHcl, resourceType); len(target) > 0 {
@@ -140,9 +149,21 @@ func (r Resource) GetParentReference(dependencyHcl string) string {
 	return r.ExampleId
 }
 
-func (r Resource) GetDependencyHcl(deps []types.Dependency) string {
+func (r Resource) GetDependencyHcl(existDeps []types.Dependency, deps []types.Dependency) string {
 	dependencyHcl := ""
 	for index, mapping := range r.PropertyDependencyMappings {
+		isDependencyExist := false
+		for _, dep := range existDeps {
+			if helper.IsValueMatchPattern(mapping.Value, dep.Pattern) {
+				isDependencyExist = true
+				log.Printf("[INFO] found existing dependency: %s", dep.Address)
+				r.PropertyDependencyMappings[index].Reference = dep.Address + "." + dep.ReferredProperty
+				break
+			}
+		}
+		if isDependencyExist {
+			continue
+		}
 		for _, dep := range deps {
 			if helper.IsValueMatchPattern(mapping.Value, dep.Pattern) {
 				log.Printf("[INFO] found dependency: %s", dep.ResourceType)
