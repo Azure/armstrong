@@ -71,7 +71,7 @@ PUT https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095
    X-Ms-Correlation-Request-Id: REDACTED
    --------------------------------------------------------------------------------
 {"location":"westeurope","properties":{"activeDeploymentName":"mydeployment1","fqdn":"myapp.mydomain.com","httpsOnly":false,"persistentDisk":{"mountPath":"/mypersistentdisk","sizeInGB":2},"public":true,"temporaryDisk":{"mountPath":"/mytemporarydisk","sizeInGB":2}}}
-   --------------------------------------------------------------------------------: timestamp=2022-05-17T16:21:59.365+0800
+   --------------------------------------------------------------------------------
 
 RESPONSE Status: 201 Created
    Azure-Asyncoperation: REDACTED
@@ -94,7 +94,7 @@ RESPONSE Status: 201 Created
    X-Rp-Server-Mvid: REDACTED
    --------------------------------------------------------------------------------
 {"properties":{"public":true,"provisioningState":"Creating","httpsOnly":false,"temporaryDisk":{"sizeInGB":2,"mountPath":"/mytemporarydisk"},"persistentDisk":{"sizeInGB":2,"mountPath":"/mypersistentdisk"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
-   --------------------------------------------------------------------------------: timestamp=2022-05-17T16:22:00.612+0800
+   --------------------------------------------------------------------------------
 
 
 GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
@@ -122,7 +122,7 @@ GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095
    X-Rp-Server-Mvid: REDACTED
    --------------------------------------------------------------------------------
 {"properties":{"public":false,"provisioningState":"Succeeded","fqdn":"acctest5486.azuremicroservices.io","httpsOnly":false,"createdTime":"2022-05-17T08:22:06.672Z","temporaryDisk":{"sizeInGB":5,"mountPath":"/tmp"},"persistentDisk":{"sizeInGB":0,"mountPath":"/persistent"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
-   --------------------------------------------------------------------------------: timestamp=2022-05-17T16:23:04.824+0800
+   --------------------------------------------------------------------------------
 
 ```
 
