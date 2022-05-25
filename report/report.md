@@ -4,7 +4,7 @@
 
 ${description}
 
-### Reference
+### Details
 
 1. ARM Fully-Qualified Resource Type
 ```
@@ -42,3 +42,7 @@ ${error_code_in_block}
 ```
 ${request_traces}
 ```
+
+### Links
+1. [Semantic and Model Violations Reference](https://github.com/Azure/azure-rest-api-specs/blob/main/documentation/Semantic-and-Model-Violations-Reference.md)
+2. [S360 action item generator for Swagger issues](https://aka.ms/swaggers360)

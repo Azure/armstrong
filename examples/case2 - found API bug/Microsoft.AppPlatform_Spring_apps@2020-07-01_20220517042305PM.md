@@ -62,8 +62,7 @@ ROUNDTRIP_MISSING_PROPERTY
 
 7. Request traces
 ```
-2022-05-17T16:21:59.365+0800 [DEBUG] provider.terraform-provider-azapi.exe: May 17 16:21:59.365003 Request: ==> OUTGOING REQUEST (Try=1)
-   PUT https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
+PUT https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
    Accept: application/json
    Authorization: REDACTED
    Content-Length: 265
@@ -74,16 +73,7 @@ ROUNDTRIP_MISSING_PROPERTY
 {"location":"westeurope","properties":{"activeDeploymentName":"mydeployment1","fqdn":"myapp.mydomain.com","httpsOnly":false,"persistentDisk":{"mountPath":"/mypersistentdisk","sizeInGB":2},"public":true,"temporaryDisk":{"mountPath":"/mytemporarydisk","sizeInGB":2}}}
    --------------------------------------------------------------------------------: timestamp=2022-05-17T16:21:59.365+0800
 
-2022-05-17T16:22:00.612+0800 [DEBUG] provider.terraform-provider-azapi.exe: May 17 16:22:00.612467 Response: ==> REQUEST/RESPONSE (Try=1/1.2473428s, OpTime=1.2473428s) -- RESPONSE RECEIVED
-   PUT https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
-   Accept: application/json
-   Authorization: REDACTED
-   Content-Length: 265
-   Content-Type: application/json
-   User-Agent: HashiCorp Terraform/1.1.4 (+https://www.terraform.io) Terraform Plugin SDK/2.8.0 terraform-provider-azapi/dev
-   X-Ms-Correlation-Request-Id: REDACTED
-   --------------------------------------------------------------------------------
-   RESPONSE Status: 201 Created
+RESPONSE Status: 201 Created
    Azure-Asyncoperation: REDACTED
    Cache-Control: no-cache
    Content-Length: 463
@@ -106,8 +96,8 @@ ROUNDTRIP_MISSING_PROPERTY
 {"properties":{"public":true,"provisioningState":"Creating","httpsOnly":false,"temporaryDisk":{"sizeInGB":2,"mountPath":"/mytemporarydisk"},"persistentDisk":{"sizeInGB":2,"mountPath":"/mypersistentdisk"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
    --------------------------------------------------------------------------------: timestamp=2022-05-17T16:22:00.612+0800
 
-2022-05-17T16:23:04.825+0800 [DEBUG] provider.terraform-provider-azapi.exe: May 17 16:23:04.824943 Response: ==> REQUEST/RESPONSE (Try=1/1.5209696s, OpTime=1.5209696s) -- RESPONSE RECEIVED
-   GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
+
+GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
    Accept: application/json
    Authorization: REDACTED
    User-Agent: HashiCorp Terraform/1.1.4 (+https://www.terraform.io) Terraform Plugin SDK/2.8.0 terraform-provider-azapi/dev
@@ -135,3 +125,7 @@ ROUNDTRIP_MISSING_PROPERTY
    --------------------------------------------------------------------------------: timestamp=2022-05-17T16:23:04.824+0800
 
 ```
+
+### Links
+1. [Semantic and Model Violations Reference](https://github.com/Azure/azure-rest-api-specs/blob/main/documentation/Semantic-and-Model-Violations-Reference.md)
+2. [S360 action item generator for Swagger issues](https://aka.ms/swaggers360)
