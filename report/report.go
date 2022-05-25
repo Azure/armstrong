@@ -50,15 +50,33 @@ func RequestTracesContent(id string, logs []types.RequestTrace) string {
 	content := ""
 	index := len(logs) - 1
 	if log, i := findLastLog(logs, id, "GET", "REQUEST/RESPONSE", index); i != -1 {
-		content = log.Content
+		st := strings.Index(log.Content, "GET https")
+		ed := strings.Index(log.Content, ": timestamp=")
+		trimContent := log.Content
+		if st < ed {
+			trimContent = log.Content[st:ed]
+		}
+		content = trimContent
 		index = i
 	}
 	if log, i := findLastLog(logs, id, "PUT", "REQUEST/RESPONSE", index); i != -1 {
-		content = log.Content + "\n" + content
+		st := strings.Index(log.Content, "RESPONSE Status")
+		ed := strings.Index(log.Content, ": timestamp=")
+		trimContent := log.Content
+		if st < ed {
+			trimContent = log.Content[st:ed]
+		}
+		content = trimContent + "\n\n\n" + content
 		index = i
 	}
 	if log, i := findLastLog(logs, id, "PUT", "OUTGOING REQUEST", index); i != -1 {
-		content = log.Content + "\n" + content
+		st := strings.Index(log.Content, "PUT https")
+		ed := strings.Index(log.Content, ": timestamp=")
+		trimContent := log.Content
+		if st < ed {
+			trimContent = log.Content[st:ed]
+		}
+		content = trimContent + "\n\n" + content
 	}
 	return content
 }
