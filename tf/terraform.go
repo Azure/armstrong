@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
-	"github.com/hashicorp/terraform-exec/tfinstall"
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
@@ -21,7 +20,7 @@ type Terraform struct {
 const planfile = "tfplan"
 
 func NewTerraform(logEnabled bool) (*Terraform, error) {
-	execPath, err := tfinstall.LookPath().ExecPath(context.TODO())
+	execPath, err := FindTerraform(context.TODO())
 	if err != nil {
 		return nil, err
 	}
