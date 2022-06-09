@@ -3,7 +3,7 @@
 ### Description
 
 I found differences between PUT request body and GET response:
-```
+```json
 {
     "location": "westeurope",
     "properties": {

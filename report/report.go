@@ -2,7 +2,6 @@ package report
 
 import (
 	_ "embed"
-	"fmt"
 	"strings"
 
 	"github.com/ms-henglu/armstrong/types"
@@ -22,14 +21,14 @@ func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 
 	operationId := "TODO\ne.g., VirtualMachines_Get"
 
-	description := fmt.Sprintf("I found differences between PUT request body and GET response:\n```\n%s\n```\n",
-		DiffMessageMarkdown(report.Change))
+	diffDescription := DiffMessageDescription(report.Change)
+	diffJson := DiffMessageMarkdown(report.Change)
 
 	errCodes := make([]string, 0)
-	if strings.Contains(description, "in response, expect") {
+	if strings.Contains(diffJson, "in response, expect") {
 		errCodes = append(errCodes, "ROUNDTRIP_INCONSISTENT_PROPERTY")
 	}
-	if strings.Contains(description, "is not returned from response") {
+	if strings.Contains(diffJson, "is not returned from response") {
 		errCodes = append(errCodes, "ROUNDTRIP_MISSING_PROPERTY")
 	}
 
@@ -42,7 +41,8 @@ func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 	content = strings.ReplaceAll(content, "${error_code_in_title}", strings.Join(errCodes, " && "))
 	content = strings.ReplaceAll(content, "${error_code_in_block}", strings.Join(errCodes, "\n"))
 	content = strings.ReplaceAll(content, "${request_traces}", requestTraces)
-	content = strings.ReplaceAll(content, "${description}", description)
+	content = strings.ReplaceAll(content, "${diff_description}", diffDescription)
+	content = strings.ReplaceAll(content, "${diff_json}", diffJson)
 	return content
 }
 

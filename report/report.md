@@ -2,7 +2,13 @@
 
 ### Description
 
-${description}
+I found differences between PUT request body and GET response:
+
+${diff_description}
+
+```json
+${diff_json}
+```
 
 ### Details
 
