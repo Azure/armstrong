@@ -19,7 +19,7 @@ type TestCommand struct {
 }
 
 func (command *TestCommand) flags() *flag.FlagSet {
-	fs := defaultFlagSet("version")
+	fs := defaultFlagSet("test")
 	fs.BoolVar(&command.verbose, "v", false, "whether show terraform logs")
 	fs.Usage = func() { command.Ui.Error(command.Help()) }
 	return fs

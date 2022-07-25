@@ -16,7 +16,7 @@ type SetupCommand struct {
 }
 
 func (c *SetupCommand) flags() *flag.FlagSet {
-	fs := defaultFlagSet("version")
+	fs := defaultFlagSet("setup")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
