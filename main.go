@@ -51,6 +51,11 @@ func main() {
 				Ui: ui,
 			}, nil
 		},
+		"validate": func() (cli.Command, error) {
+			return &commands.ValidateCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

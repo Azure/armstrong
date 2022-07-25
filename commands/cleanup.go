@@ -16,7 +16,7 @@ type CleanupCommand struct {
 }
 
 func (c *CleanupCommand) flags() *flag.FlagSet {
-	fs := defaultFlagSet("version")
+	fs := defaultFlagSet("cleanup")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
