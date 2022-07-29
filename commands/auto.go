@@ -50,13 +50,27 @@ func (c AutoCommand) Run(args []string) int {
 		c.Ui.Error(c.Help())
 		return 1
 	}
-	GenerateCommand{Ui: c.Ui}.Run(args)
-	args = make([]string, 0)
-	if c.verbose {
-		args = append(args, "-v")
-	}
-	TestCommand{Ui: c.Ui}.Run(args)
-	CleanupCommand{Ui: c.Ui}.Run(args)
+	return c.Execute()
+}
+
+func (c AutoCommand) Execute() int {
+	GenerateCommand{
+		Ui:                c.Ui,
+		workingDir:        c.workingDir,
+		path:              c.path,
+		overwrite:         c.overwrite,
+		useRawJsonPayload: c.useRawJsonPayload,
+	}.Execute()
+	TestCommand{
+		Ui:         c.Ui,
+		verbose:    c.verbose,
+		workingDir: c.workingDir,
+	}.Execute()
+	CleanupCommand{
+		Ui:         c.Ui,
+		verbose:    c.verbose,
+		workingDir: c.workingDir,
+	}.Execute()
 	log.Println("[INFO] Test passed!")
 	return 0
 }

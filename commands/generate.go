@@ -59,6 +59,10 @@ func (c GenerateCommand) Run(args []string) int {
 		c.Ui.Error(c.Help())
 		return 1
 	}
+	return c.Execute()
+}
+
+func (c GenerateCommand) Execute() int {
 	wd, err := os.Getwd()
 	if err != nil {
 		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))

@@ -43,7 +43,10 @@ func (c CleanupCommand) Run(args []string) int {
 		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
+	return c.Execute()
+}
 
+func (c CleanupCommand) Execute() int {
 	log.Println("[INFO] ----------- cleanup resources ---------")
 	wd, err := os.Getwd()
 	if err != nil {

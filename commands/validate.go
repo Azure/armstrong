@@ -16,38 +16,42 @@ type ValidateCommand struct {
 	workingDir string
 }
 
-func (command *ValidateCommand) flags() *flag.FlagSet {
+func (c *ValidateCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("validate")
-	fs.StringVar(&command.workingDir, "working-dir", "", "path to Terraform configuration files")
-	fs.Usage = func() { command.Ui.Error(command.Help()) }
+	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
+	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
 
-func (command ValidateCommand) Help() string {
+func (c ValidateCommand) Help() string {
 	helpText := `
 Usage: armstrong validate [-v] [-working-dir <path to Terraform configuration files>]
-` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
+` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
 }
 
-func (command ValidateCommand) Synopsis() string {
+func (c ValidateCommand) Synopsis() string {
 	return "Generates a speculative execution plan, showing what actions Terraform would take to apply the current configuration."
 }
 
-func (command ValidateCommand) Run(args []string) int {
-	f := command.flags()
+func (c ValidateCommand) Run(args []string) int {
+	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		command.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
+	return c.Execute()
+}
+
+func (c ValidateCommand) Execute() int {
 	wd, err := os.Getwd()
 	if err != nil {
-		command.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
 		return 1
 	}
-	if command.workingDir != "" {
-		wd = command.workingDir
+	if c.workingDir != "" {
+		wd = c.workingDir
 	}
 	terraform, err := tf.NewTerraform(wd, true)
 	if err != nil {
