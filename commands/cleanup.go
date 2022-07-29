@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -11,20 +13,22 @@ import (
 )
 
 type CleanupCommand struct {
-	Ui      cli.Ui
-	verbose bool
+	Ui         cli.Ui
+	verbose    bool
+	workingDir string
 }
 
 func (c *CleanupCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("cleanup")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
+	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
 
 func (c CleanupCommand) Help() string {
 	helpText := `
-Usage: armstrong cleanup [-v]
+Usage: armstrong cleanup [-v] [-working-dir <path to Terraform configuration files>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -40,9 +44,24 @@ func (c CleanupCommand) Run(args []string) int {
 		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
+	return c.Execute()
+}
 
+func (c CleanupCommand) Execute() int {
 	log.Println("[INFO] ----------- cleanup resources ---------")
-	terraform, err := tf.NewTerraform(c.verbose)
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
+	}
+	if c.workingDir != "" {
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
+	}
+	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}

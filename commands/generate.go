@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -19,6 +21,7 @@ import (
 type GenerateCommand struct {
 	Ui                cli.Ui
 	path              string
+	workingDir        string
 	useRawJsonPayload bool
 	overwrite         bool
 }
@@ -26,8 +29,9 @@ type GenerateCommand struct {
 func (c *GenerateCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("generate")
 
-	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
-	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in `body`")
+	fs.StringVar(&c.path, "path", "", "path to a swagger 'Create' example")
+	fs.StringVar(&c.workingDir, "working-dir", "", "output path to Terraform configuration files")
+	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in 'body'")
 	fs.BoolVar(&c.overwrite, "overwrite", false, "whether overwrite existing terraform configurations")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 
@@ -36,7 +40,7 @@ func (c *GenerateCommand) flags() *flag.FlagSet {
 
 func (c GenerateCommand) Help() string {
 	helpText := `
-Usage: armstrong generate -path <filepath to example>
+Usage: armstrong generate -path <path to a swagger 'Create' example> [-working-dir <output path to Terraform configuration files>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -49,18 +53,34 @@ func (c GenerateCommand) Synopsis() string {
 func (c GenerateCommand) Run(args []string) int {
 	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %+v", err))
 		return 1
 	}
 	if len(c.path) == 0 {
 		c.Ui.Error(c.Help())
 		return 1
 	}
-	if c.overwrite {
-		_ = os.Remove("testing.tf")
-		_ = os.Remove("dependency.tf")
+	return c.Execute()
+}
+
+func (c GenerateCommand) Execute() int {
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
 	}
-	err := ioutil.WriteFile("provider.tf", hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
+	if c.workingDir != "" {
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
+	}
+	if c.overwrite {
+		_ = os.Remove(path.Join(wd, "testing.tf"))
+		_ = os.Remove(path.Join(wd, "dependency.tf"))
+	}
+	err = ioutil.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
 	if err != nil {
 		log.Fatalf("[Error] error writing provider.tf: %+v\n", err)
 	}
@@ -79,14 +99,14 @@ func (c GenerateCommand) Run(args []string) int {
 	}
 
 	dependencyHcl := exampleResource.DependencyHcl(existDeps, deps)
-	err = appendFile("dependency.tf", dependencyHcl)
+	err = appendFile(path.Join(wd, "dependency.tf"), dependencyHcl)
 	if err != nil {
 		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
 	}
 	log.Println("[INFO] dependency.tf generated")
 
 	testResourceHcl := exampleResource.Hcl(dependencyHcl, c.useRawJsonPayload)
-	err = appendFile("testing.tf", testResourceHcl)
+	err = appendFile(path.Join(wd, "testing.tf"), testResourceHcl)
 	if err != nil {
 		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
 	}

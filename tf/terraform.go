@@ -19,12 +19,11 @@ type Terraform struct {
 
 const planfile = "tfplan"
 
-func NewTerraform(logEnabled bool) (*Terraform, error) {
+func NewTerraform(workingDirectory string, logEnabled bool) (*Terraform, error) {
 	execPath, err := FindTerraform(context.TODO())
 	if err != nil {
 		return nil, err
 	}
-	workingDirectory, _ := os.Getwd()
 	tf, err := tfexec.NewTerraform(workingDirectory, execPath)
 	if err != nil {
 		return nil, err

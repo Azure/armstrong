@@ -3,49 +3,69 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"github.com/ms-henglu/armstrong/report"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/mitchellh/cli"
+	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 )
 
 type TestCommand struct {
-	Ui      cli.Ui
-	verbose bool
+	Ui         cli.Ui
+	verbose    bool
+	workingDir string
 }
 
-func (command *TestCommand) flags() *flag.FlagSet {
+func (c *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
-	fs.BoolVar(&command.verbose, "v", false, "whether show terraform logs")
-	fs.Usage = func() { command.Ui.Error(command.Help()) }
+	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
+	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
+	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
 
-func (command TestCommand) Help() string {
+func (c TestCommand) Help() string {
 	helpText := `
-Usage: armstrong test [-v]
-` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
+Usage: armstrong test [-v] [-working-dir <path to Terraform configuration files>]
+` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
 }
 
-func (command TestCommand) Synopsis() string {
+func (c TestCommand) Synopsis() string {
 	return "Update dependencies for tests and run tests"
 }
 
-func (command TestCommand) Run(args []string) int {
-	f := command.flags()
+func (c TestCommand) Run(args []string) int {
+	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		command.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
+	return c.Execute()
+}
 
+func (c TestCommand) Execute() int {
 	log.Println("[INFO] ----------- run tests ---------")
-	terraform, err := tf.NewTerraform(command.verbose)
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
+	}
+	if c.workingDir != "" {
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
+	}
+	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}
@@ -60,20 +80,20 @@ func (command TestCommand) Run(args []string) int {
 	}
 
 	actions := tf.GetChanges(plan)
-	c, r, u, d := 0, 0, 0, 0
+	create, replace, update, delete := 0, 0, 0, 0
 	for _, action := range actions {
 		switch action {
 		case tf.ActionCreate:
-			c++
+			create++
 		case tf.ActionReplace:
-			r++
+			replace++
 		case tf.ActionUpdate:
-			u++
+			update++
 		case tf.ActionDelete:
-			d++
+			delete++
 		}
 	}
-	log.Printf("[INFO] found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", c+r+u+d, c, r, u, d)
+	log.Printf("[INFO] found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", create+replace+update+delete, create, replace, update, delete)
 	log.Println("[INFO] running apply command to provision test resource...")
 	err = terraform.Apply()
 	if err != nil {
@@ -93,7 +113,7 @@ func (command TestCommand) Run(args []string) int {
 	}
 
 	reports := tf.NewReports(plan)
-	logs, err := report.ParseLogs("./log.txt")
+	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
 		log.Printf("[ERROR] parsing log.txt: %+v", err)
 	}
@@ -102,7 +122,7 @@ func (command TestCommand) Run(args []string) int {
 			r.Address, report.DiffMessageTerraform(r.Change))
 		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", r.Address, report.DiffMessageReadable(r.Change))
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), time.Now().Format("20060102030405PM"))
-		err := ioutil.WriteFile(markdownFilename, []byte(report.MarkdownReport(r, logs)), 0644)
+		err := ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.MarkdownReport(r, logs)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
