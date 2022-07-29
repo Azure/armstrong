@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -57,7 +59,11 @@ func (c TestCommand) Execute() int {
 		return 1
 	}
 	if c.workingDir != "" {
-		wd = c.workingDir
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
@@ -107,7 +113,7 @@ func (c TestCommand) Execute() int {
 	}
 
 	reports := tf.NewReports(plan)
-	logs, err := report.ParseLogs("./log.txt")
+	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
 		log.Printf("[ERROR] parsing log.txt: %+v", err)
 	}
@@ -116,7 +122,7 @@ func (c TestCommand) Execute() int {
 			r.Address, report.DiffMessageTerraform(r.Change))
 		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", r.Address, report.DiffMessageReadable(r.Change))
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), time.Now().Format("20060102030405PM"))
-		err := ioutil.WriteFile(markdownFilename, []byte(report.MarkdownReport(r, logs)), 0644)
+		err := ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.MarkdownReport(r, logs)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {

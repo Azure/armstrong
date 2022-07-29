@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -69,7 +70,11 @@ func (c GenerateCommand) Execute() int {
 		return 1
 	}
 	if c.workingDir != "" {
-		wd = c.workingDir
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
 	}
 	if c.overwrite {
 		_ = os.Remove(path.Join(wd, "testing.tf"))

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -51,7 +52,11 @@ func (c ValidateCommand) Execute() int {
 		return 1
 	}
 	if c.workingDir != "" {
-		wd = c.workingDir
+		wd, err = filepath.Abs(c.workingDir)
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			return 1
+		}
 	}
 	terraform, err := tf.NewTerraform(wd, true)
 	if err != nil {
