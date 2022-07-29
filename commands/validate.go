@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -11,18 +12,20 @@ import (
 )
 
 type ValidateCommand struct {
-	Ui cli.Ui
+	Ui         cli.Ui
+	workingDir string
 }
 
 func (command *ValidateCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("validate")
+	fs.StringVar(&command.workingDir, "working-dir", "", "path to Terraform configuration files")
 	fs.Usage = func() { command.Ui.Error(command.Help()) }
 	return fs
 }
 
 func (command ValidateCommand) Help() string {
 	helpText := `
-Usage: armstrong validate [-v]
+Usage: armstrong validate [-v] [-working-dir <path to Terraform configuration files>]
 ` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
 
 	return strings.TrimSpace(helpText)
@@ -38,8 +41,15 @@ func (command ValidateCommand) Run(args []string) int {
 		command.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
-
-	terraform, err := tf.NewTerraform(true)
+	wd, err := os.Getwd()
+	if err != nil {
+		command.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
+	}
+	if command.workingDir != "" {
+		wd = command.workingDir
+	}
+	terraform, err := tf.NewTerraform(wd, true)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}

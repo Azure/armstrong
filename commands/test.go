@@ -3,31 +3,34 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"github.com/ms-henglu/armstrong/report"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/mitchellh/cli"
+	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 )
 
 type TestCommand struct {
-	Ui      cli.Ui
-	verbose bool
+	Ui         cli.Ui
+	verbose    bool
+	workingDir string
 }
 
 func (command *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&command.verbose, "v", false, "whether show terraform logs")
+	fs.StringVar(&command.workingDir, "working-dir", "", "path to Terraform configuration files")
 	fs.Usage = func() { command.Ui.Error(command.Help()) }
 	return fs
 }
 
 func (command TestCommand) Help() string {
 	helpText := `
-Usage: armstrong test [-v]
+Usage: armstrong test [-v] [-working-dir <path to Terraform configuration files>]
 ` + command.Synopsis() + "\n\n" + helpForFlags(command.flags())
 
 	return strings.TrimSpace(helpText)
@@ -45,7 +48,15 @@ func (command TestCommand) Run(args []string) int {
 	}
 
 	log.Println("[INFO] ----------- run tests ---------")
-	terraform, err := tf.NewTerraform(command.verbose)
+	wd, err := os.Getwd()
+	if err != nil {
+		command.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
+	}
+	if command.workingDir != "" {
+		wd = command.workingDir
+	}
+	terraform, err := tf.NewTerraform(wd, command.verbose)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}

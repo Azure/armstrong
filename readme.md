@@ -20,7 +20,7 @@ test        Update dependencies for tests and run tests
 ## How to use?
 1. Install this tool: `go install github.com/ms-henglu/armstrong`, or download it from [releases](https://github.com/ms-henglu/armstrong/releases).
 2. Generate terraform files and Test
-    1. Generate testing files by running `armstrong generate -path path_to_swagger_example`.
+    1. Generate testing files by running `armstrong generate -path {path to a swagger 'Create' example}`.
         Here's an example:
         
         `armstrong generate -path .\2021-07-01\examples\Compute\createOrUpdate\ComputeInstanceMinimal.json`.

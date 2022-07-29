@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -11,20 +12,22 @@ import (
 )
 
 type SetupCommand struct {
-	Ui      cli.Ui
-	verbose bool
+	Ui         cli.Ui
+	verbose    bool
+	workingDir string
 }
 
 func (c *SetupCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("setup")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
+	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
 
 func (c SetupCommand) Help() string {
 	helpText := `
-Usage: armstrong setup [-v]
+Usage: armstrong setup [-v] [-working-dir <path to Terraform configuration files>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -42,7 +45,15 @@ func (c SetupCommand) Run(args []string) int {
 	}
 
 	log.Println("[INFO] ----------- update resources ---------")
-	terraform, err := tf.NewTerraform(c.verbose)
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		return 1
+	}
+	if c.workingDir != "" {
+		wd = c.workingDir
+	}
+	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
 		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
 	}
