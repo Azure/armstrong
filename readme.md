@@ -15,6 +15,7 @@ cleanup     Clean up dependencies and testing resource
 generate    Generate testing files including terraform configuration for dependencies and testing resource.
 setup       Update dependencies for tests
 test        Update dependencies for tests and run tests
+validate    Generates a speculative execution plan, showing what actions Terraform would take to apply the current configuration
 ```
 
 ## How to use?
