@@ -20,8 +20,15 @@ steps:
 - task: PoliCheck@1
   displayName: Run PoliCheck
   inputs:
-    targetArgument: $(Build.SourcesDirectory)
-    result: $(Build.SourcesDirectory)/artifacts/result/PoliCheck.xml
+    inputType: 'Basic'
+    targetType: 'F'
+    targetArgument: '$(Build.SourcesDirectory)/'
+    result: 'PoliCheck.xml'
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/../.gdn/r'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)/artifacts'
 - task: PublishPipelineArtifact@0
   displayName: Save artifacts
   inputs:
