@@ -11,10 +11,9 @@ pool:
 
 steps:
 - checkout: self
-- task: CredScan@2
+- task: CredScan@3
   displayName: Run CredScan
   inputs:
-    toolMajorVersion: V2
     outputFormat: sarif
     scanFolder: SecurityTmp
     debugMode: false
