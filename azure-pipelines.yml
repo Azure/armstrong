@@ -11,7 +11,7 @@ pool:
 
 steps:
 - checkout: self
-- task: CredScan@3
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
   displayName: Run CredScan
   inputs:
     outputFormat: sarif
