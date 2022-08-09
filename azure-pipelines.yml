@@ -1,0 +1,27 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+- task: CredScan@2
+  displayName: Run CredScan
+  inputs:
+    toolMajorVersion: V2
+    outputFormat: sarif
+    scanFolder: SecurityTmp
+    debugMode: false
+    folderSuppression: false
+- task: PoliCheck@1
+  displayName: Run PoliCheck
+  inputs:
+    targetArgument: $(Build.SourcesDirectory)
+    result: $(Build.SourcesDirectory)/artifacts/result/PoliCheck.xml
+
