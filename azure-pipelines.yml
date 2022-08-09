@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
 - checkout: self
@@ -22,4 +22,8 @@ steps:
   inputs:
     targetArgument: $(Build.SourcesDirectory)
     result: $(Build.SourcesDirectory)/artifacts/result/PoliCheck.xml
-
+- task: PublishPipelineArtifact@0
+  displayName: Save artifacts
+  inputs:
+    artifactName: artifacts
+    targetPath: artifacts
