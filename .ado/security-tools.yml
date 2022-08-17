@@ -1,0 +1,42 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- checkout: self
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
+  displayName: Run CredScan
+  inputs:
+    outputFormat: sarif
+    debugMode: false
+    folderSuppression: false
+    suppressionsFile: '.ado/CredScanSuppressions.json'
+- task: PoliCheck@1
+  displayName: Run PoliCheck
+  inputs:
+    inputType: 'Basic'
+    targetType: 'F'
+    targetArgument: '$(Build.SourcesDirectory)/'
+    result: 'PoliCheck.xml'
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/../.gdn/r'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)/artifacts'
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/../_sdt/logs/PoliCheck'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)/artifacts'
+- task: PublishPipelineArtifact@0
+  displayName: Save artifacts
+  inputs:
+    artifactName: artifacts
+    targetPath: artifacts

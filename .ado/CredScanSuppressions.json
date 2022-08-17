@@ -1,0 +1,17 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+      {
+        "file": "\\hcl\\hcl_test.go",
+        "_justification": "The password is not used in real resource, it's for text only."
+      },
+      {
+        "file": "\\loader\\loader_hardcode.go",
+        "_justification": "Ths password is used in template."
+      },
+      {
+        "file": "\\loader\\mappings.json",
+        "_justification": "Ths password is used in template."
+      }
+    ]
+  }
