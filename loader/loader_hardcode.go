@@ -205,6 +205,12 @@ resource "azurerm_synapse_workspace" "example" {
 			ResourceType:         "azurerm_kusto_cluster_customer_managed_key",
 			ReferredProperty:     "id",
 		},
+		{
+			Pattern:              "",
+			ExampleConfiguration: "",
+			ResourceType:         "azurerm_databricks_workspace_customer_managed_key",
+			ReferredProperty:     "id",
+		},
 		// override role assignment
 		{
 			Pattern:              "",
