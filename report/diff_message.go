@@ -84,7 +84,7 @@ func compare(old interface{}, new interface{}, path string) []string {
 	case bool:
 		if newBool, ok := new.(bool); ok {
 			if newBool != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, old, new)}
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
 			}
 		} else {
 			return []string{fmt.Sprintf("%s: expect %v which is a bool, but got %v", path, old, new)}
@@ -92,7 +92,7 @@ func compare(old interface{}, new interface{}, path string) []string {
 	case string:
 		if newString, ok := new.(string); ok {
 			if newString != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, old, new)}
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
 			}
 		} else {
 			return []string{fmt.Sprintf("%s: expect %v which is a string, but got %v", path, old, new)}
@@ -100,7 +100,7 @@ func compare(old interface{}, new interface{}, path string) []string {
 	case float64:
 		if newValue, ok := new.(float64); ok {
 			if newValue != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, old, new)}
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
 			}
 		} else {
 			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, old, new)}
@@ -108,7 +108,7 @@ func compare(old interface{}, new interface{}, path string) []string {
 	case int64:
 		if newValue, ok := new.(int64); ok {
 			if newValue != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, old, new)}
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
 			}
 		} else {
 			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, old, new)}
