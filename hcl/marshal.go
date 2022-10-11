@@ -21,7 +21,7 @@ func MarshalIndent(input interface{}, prefix, indent string) string {
 		for _, key := range keys {
 			value := i[key]
 			wrapKey := key
-			if strings.Contains(key, "/") {
+			if strings.Contains(key, "/") || startsWithNumber(key) {
 				wrapKey = fmt.Sprintf(`"%s"`, key)
 			}
 			content += fmt.Sprintf("%s%s = %s\n", prefix+indent, wrapKey, MarshalIndent(value, prefix+indent, indent))
@@ -41,4 +41,11 @@ func MarshalIndent(input interface{}, prefix, indent string) string {
 	default:
 		return fmt.Sprintf("%v", i)
 	}
+}
+
+func startsWithNumber(input string) bool {
+	if len(input) == 0 {
+		return false
+	}
+	return input[0] >= '0' && input[0] <= '9'
 }
