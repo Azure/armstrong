@@ -88,7 +88,7 @@ func (c GenerateCommand) Execute() int {
 	log.Println("[INFO] ----------- generate dependency and test resource ---------")
 	// load dependencies
 	log.Println("[INFO] loading dependencies")
-	existDeps, deps := loadDependencies()
+	existDeps, deps := loadDependencies(wd)
 
 	// load example and generate hcl
 	log.Println("[INFO] generating testing files")
@@ -127,7 +127,7 @@ func appendFile(filename string, hclContent string) error {
 	return ioutil.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
 }
 
-func loadDependencies() ([]types.Dependency, []types.Dependency) {
+func loadDependencies(workingDir string) ([]types.Dependency, []types.Dependency) {
 	mappingJsonLoader := loader.MappingJsonDependencyLoader{}
 	hardcodeLoader := loader.HardcodeDependencyLoader{}
 
@@ -146,7 +146,7 @@ func loadDependencies() ([]types.Dependency, []types.Dependency) {
 	for _, dep := range depsMap {
 		deps = append(deps, dep)
 	}
-	existDeps := hcl.LoadExistingDependencies()
+	existDeps := hcl.LoadExistingDependencies(workingDir)
 	for i := range existDeps {
 		ref := existDeps[i].ResourceType + "." + existDeps[i].ReferredProperty
 		if dep, ok := depsMap[ref]; ok {
