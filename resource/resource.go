@@ -147,7 +147,7 @@ func (r Resource) FindParentReference(dependencyHcl string) string {
 			}
 		}
 	}
-	return r.ExampleId
+	return fmt.Sprintf(`"%s"`, utils.GetParentIdFromId(r.ExampleId))
 }
 
 func (r Resource) DependencyHcl(existDeps []types.Dependency, deps []types.Dependency) string {

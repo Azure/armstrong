@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -122,11 +121,10 @@ func RandomName() string {
 	return fmt.Sprintf("acctest%d", rand.Intn(10000))
 }
 
-func LoadExistingDependencies() []types.Dependency {
-	dir, _ := os.Getwd()
-	files, err := ioutil.ReadDir(dir)
+func LoadExistingDependencies(workingDir string) []types.Dependency {
+	files, err := ioutil.ReadDir(workingDir)
 	if err != nil {
-		log.Printf("[WARN] reading dir %s: %+v", dir, err)
+		log.Printf("[WARN] reading dir %s: %+v", workingDir, err)
 		return nil
 	}
 	existDeps := make([]types.Dependency, 0)
@@ -134,7 +132,7 @@ func LoadExistingDependencies() []types.Dependency {
 		if !strings.HasSuffix(file.Name(), ".tf") {
 			continue
 		}
-		src, err := ioutil.ReadFile(path.Join(dir, file.Name()))
+		src, err := ioutil.ReadFile(path.Join(workingDir, file.Name()))
 		if err != nil {
 			log.Printf("[WARN] reading file %s: %+v", file.Name(), err)
 			continue
