@@ -8,10 +8,13 @@ import (
 	"strconv"
 	"strings"
 
+	pluralize "github.com/gertd/go-pluralize"
 	"github.com/ms-henglu/armstrong/hcl"
 	"github.com/ms-henglu/armstrong/resource/utils"
 	"github.com/ms-henglu/armstrong/types"
 )
+
+var pluralizeClient = pluralize.NewClient()
 
 type Resource struct {
 	ApiVersion                 string
@@ -82,7 +85,7 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 	}, nil
 }
 
-func (r Resource) Hcl(dependencyHcl string, useRawJsonPayload bool) string {
+func (r Resource) Hcl(dependencyHcl string, addrs []string, useRawJsonPayload bool) string {
 	body := ""
 	if useRawJsonPayload {
 		jsonBody, _ := json.MarshalIndent(r.GetBody(dependencyHcl), "", "    ")
@@ -93,8 +96,10 @@ BODY`, jsonBody)
 		hclBody := hcl.MarshalIndent(r.GetBody(dependencyHcl), "", "  ")
 		body = fmt.Sprintf(`jsonencode(%s)`, hclBody)
 	}
+	resourceType := utils.GetResourceType(r.ExampleId)
+	label := newLabel(resourceType, addrs)
 	return fmt.Sprintf(`
-resource "azapi_resource" "%[1]s" {
+resource "azapi_resource" "%[6]s" {
 	type = "%[3]s@%[4]s"
     name = "%[1]s"
 	parent_id = %[2]s
@@ -103,7 +108,7 @@ resource "azapi_resource" "%[1]s" {
 
     schema_validation_enabled = false
 }
-`, hcl.RandomName(), r.FindParentReference(dependencyHcl), utils.GetResourceType(r.ExampleId), r.ApiVersion, body)
+`, hcl.RandomName(), r.FindParentReference(dependencyHcl), resourceType, r.ApiVersion, body, label)
 }
 
 func (r Resource) GetBody(dependencyHcl string) interface{} {
@@ -199,4 +204,31 @@ func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependen
 
 	}
 	return results
+}
+
+func newLabel(resourceType string, addrs []string) string {
+	idMap := make(map[string]bool)
+	for _, addr := range addrs {
+		if strings.HasPrefix(addr, "azapi_resource.") {
+			idMap[strings.TrimPrefix(addr, "azapi_resource.")] = true
+		}
+	}
+	parts := strings.Split(resourceType, "/")
+	label := "test"
+	if len(parts) != 0 {
+		label = parts[len(parts)-1]
+		label = pluralizeClient.Singular(label)
+	}
+	_, ok := idMap[label]
+	if !ok {
+		return label
+	}
+	for i := 2; i <= 100; i++ {
+		newLabel := fmt.Sprintf("%s%d", label, i)
+		_, ok = idMap[newLabel]
+		if !ok {
+			return newLabel
+		}
+	}
+	return label
 }

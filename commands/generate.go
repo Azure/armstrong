@@ -105,7 +105,12 @@ func (c GenerateCommand) Execute() int {
 	}
 	log.Println("[INFO] dependency.tf generated")
 
-	testResourceHcl := exampleResource.Hcl(dependencyHcl, c.useRawJsonPayload)
+	existDeps = hcl.LoadExistingDependencies(wd)
+	addrs := make([]string, 0)
+	for _, dep := range existDeps {
+		addrs = append(addrs, dep.Address)
+	}
+	testResourceHcl := exampleResource.Hcl(dependencyHcl, addrs, c.useRawJsonPayload)
 	err = appendFile(path.Join(wd, "testing.tf"), testResourceHcl)
 	if err != nil {
 		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)

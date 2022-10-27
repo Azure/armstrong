@@ -58,6 +58,9 @@ github.com/bgentry/go-netrc/netrc
 github.com/bgentry/speakeasy
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
+# github.com/gertd/go-pluralize v0.2.1
+## explicit
+github.com/gertd/go-pluralize
 # github.com/golang/protobuf v1.3.4
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/protoc-gen-go/descriptor
