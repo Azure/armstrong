@@ -107,6 +107,7 @@ resource "azapi_resource" "%[6]s" {
  	body = %[5]s
 
     schema_validation_enabled = false
+    ignore_missing_property = false
 }
 `, hcl.RandomName(), r.FindParentReference(dependencyHcl), resourceType, r.ApiVersion, body, label)
 }
