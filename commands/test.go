@@ -108,8 +108,31 @@ func (c TestCommand) Execute() int {
 	}
 
 	if len(tf.GetChanges(plan)) == 0 {
+		if state, err := terraform.Show(); err == nil {
+			passedReports := tf.NewPassedReportsFromState(state)
+			if len(passedReports) != 0 {
+				markdownFilename := fmt.Sprintf("passed_%s.md", time.Now().Format("20060102030405PM"))
+				err = ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
+				if err != nil {
+					log.Printf("[WARN] failed to save passed markdown report to %s: %+v", markdownFilename, err)
+				} else {
+					log.Printf("[INFO] passed markdown report saved to %s", markdownFilename)
+				}
+			}
+		}
 		log.Println("[INFO] Test passed!")
 		return 0
+	}
+
+	passedReports := tf.NewPassedReports(plan)
+	if len(passedReports) != 0 {
+		markdownFilename := fmt.Sprintf("partially_passed_%s.md", time.Now().Format("20060102030405PM"))
+		err = ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save partially passed markdown report to %s: %+v", markdownFilename, err)
+		} else {
+			log.Printf("[INFO] partially passed markdown report saved to %s", markdownFilename)
+		}
 	}
 
 	reports := tf.NewReports(plan)
