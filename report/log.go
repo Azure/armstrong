@@ -1,7 +1,7 @@
 package report
 
 import (
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -10,7 +10,7 @@ import (
 )
 
 func ParseLogs(filepath string) ([]types.RequestTrace, error) {
-	data, err := ioutil.ReadFile(filepath)
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package tf
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -34,7 +34,9 @@ func NewTerraform(workingDirectory string, logEnabled bool) (*Terraform, error) 
 		LogEnabled: logEnabled,
 	}
 	t.SetLogEnabled(true)
-	err = t.exec.SetLogPath(path.Join(workingDirectory, "log.txt"))
+	logPath := path.Join(workingDirectory, "log.txt")
+	_ = os.Remove(logPath)
+	err = t.exec.SetLogPath(logPath)
 	if err != nil {
 		return nil, err
 	}
@@ -47,9 +49,9 @@ func (t *Terraform) SetLogEnabled(enabled bool) {
 		t.exec.SetStderr(os.Stderr)
 		t.exec.SetLogger(log.New(os.Stdout, "", 0))
 	} else {
-		t.exec.SetStdout(ioutil.Discard)
-		t.exec.SetStderr(ioutil.Discard)
-		t.exec.SetLogger(log.New(ioutil.Discard, "", 0))
+		t.exec.SetStdout(io.Discard)
+		t.exec.SetStderr(io.Discard)
+		t.exec.SetLogger(log.New(io.Discard, "", 0))
 	}
 }
 

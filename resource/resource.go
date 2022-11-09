@@ -3,8 +3,8 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -30,7 +30,7 @@ type PropertyDependencyMapping struct {
 }
 
 func NewResourceFromExample(filepath string) (*Resource, error) {
-	exampleData, err := ioutil.ReadFile(filepath)
+	exampleData, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,6 @@ func (r Resource) GetBody(dependencyHcl string) interface{} {
 			}
 		}
 	}
-	replacements[".location"] = "westeurope"
 	removes := []string{".name"}
 	return utils.GetUpdatedBody(r.ExampleBody, replacements, removes, "")
 }

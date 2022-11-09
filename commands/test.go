@@ -3,7 +3,6 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -112,7 +111,7 @@ func (c TestCommand) Execute() int {
 			passedReports := tf.NewPassedReportsFromState(state)
 			if len(passedReports) != 0 {
 				markdownFilename := fmt.Sprintf("passed_%s.md", time.Now().Format("20060102030405PM"))
-				err = ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
+				err = os.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
 				if err != nil {
 					log.Printf("[WARN] failed to save passed markdown report to %s: %+v", markdownFilename, err)
 				} else {
@@ -127,7 +126,7 @@ func (c TestCommand) Execute() int {
 	passedReports := tf.NewPassedReports(plan)
 	if len(passedReports) != 0 {
 		markdownFilename := fmt.Sprintf("partially_passed_%s.md", time.Now().Format("20060102030405PM"))
-		err = ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
+		err = os.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save partially passed markdown report to %s: %+v", markdownFilename, err)
 		} else {
@@ -145,7 +144,7 @@ func (c TestCommand) Execute() int {
 			r.Address, report.DiffMessageTerraform(r.Change))
 		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", r.Address, report.DiffMessageReadable(r.Change))
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), time.Now().Format("20060102030405PM"))
-		err := ioutil.WriteFile(path.Join(wd, markdownFilename), []byte(report.MarkdownReport(r, logs)), 0644)
+		err := os.WriteFile(path.Join(wd, markdownFilename), []byte(report.MarkdownReport(r, logs)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
