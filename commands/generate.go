@@ -3,7 +3,6 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -80,7 +79,7 @@ func (c GenerateCommand) Execute() int {
 		_ = os.Remove(path.Join(wd, "testing.tf"))
 		_ = os.Remove(path.Join(wd, "dependency.tf"))
 	}
-	err = ioutil.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
+	err = os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
 	if err != nil {
 		log.Fatalf("[Error] error writing provider.tf: %+v\n", err)
 	}
@@ -122,14 +121,14 @@ func (c GenerateCommand) Execute() int {
 func appendFile(filename string, hclContent string) error {
 	content := hclContent
 	if _, err := os.Stat(filename); err == nil {
-		existingHcl, err := ioutil.ReadFile(filename)
+		existingHcl, err := os.ReadFile(filename)
 		if err != nil {
 			log.Printf("[WARN] reading %s: %+v", filename, err)
 		} else {
 			content = hcl.Combine(string(existingHcl), content)
 		}
 	}
-	return ioutil.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
+	return os.WriteFile(filename, hclwrite.Format([]byte(content)), 0644)
 }
 
 func loadDependencies(workingDir string) ([]types.Dependency, []types.Dependency) {

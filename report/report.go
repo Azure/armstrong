@@ -2,6 +2,7 @@ package report
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 
 	"github.com/ms-henglu/armstrong/types"
@@ -9,6 +10,9 @@ import (
 
 //go:embed report.md
 var reportTemplate string
+
+//go:embed passed_report.md
+var passedReportTemplate string
 
 func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 	parts := strings.Split(report.Type, "@")
@@ -43,6 +47,17 @@ func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 	content = strings.ReplaceAll(content, "${request_traces}", requestTraces)
 	content = strings.ReplaceAll(content, "${diff_description}", diffDescription)
 	content = strings.ReplaceAll(content, "${diff_json}", diffJson)
+	return content
+}
+
+func PassedMarkdownReport(reports []types.Report) string {
+	resourceTypes := make([]string, 0)
+	for _, report := range reports {
+		resourceTypes = append(resourceTypes, fmt.Sprintf("%s (%s)", report.Type, report.Address))
+	}
+
+	content := passedReportTemplate
+	content = strings.ReplaceAll(content, "${resource_type}", strings.Join(resourceTypes, "\n"))
 	return content
 }
 

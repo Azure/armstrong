@@ -2,9 +2,9 @@ package hcl
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -122,7 +122,7 @@ func RandomName() string {
 }
 
 func LoadExistingDependencies(workingDir string) []types.Dependency {
-	files, err := ioutil.ReadDir(workingDir)
+	files, err := os.ReadDir(workingDir)
 	if err != nil {
 		log.Printf("[WARN] reading dir %s: %+v", workingDir, err)
 		return nil
@@ -132,7 +132,7 @@ func LoadExistingDependencies(workingDir string) []types.Dependency {
 		if !strings.HasSuffix(file.Name(), ".tf") {
 			continue
 		}
-		src, err := ioutil.ReadFile(path.Join(workingDir, file.Name()))
+		src, err := os.ReadFile(path.Join(workingDir, file.Name()))
 		if err != nil {
 			log.Printf("[WARN] reading file %s: %+v", file.Name(), err)
 			continue

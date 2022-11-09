@@ -57,6 +57,9 @@ func NewReports(plan *tfjson.Plan) []types.Report {
 			if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
 				continue
 			}
+			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+				continue
+			}
 			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
 			afterMap, afterMapOk := resourceChange.Change.After.(map[string]interface{})
 			if !beforeMapOk || !afterMapOk {
@@ -71,7 +74,52 @@ func NewReports(plan *tfjson.Plan) []types.Report {
 					After:  afterMap["body"].(string),
 				},
 			})
+		}
+	}
+	return res
+}
 
+func NewPassedReportsFromState(state *tfjson.State) []types.Report {
+	results := make([]types.Report, 0)
+	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		return results
+	}
+	for _, res := range state.Values.RootModule.Resources {
+		if !strings.HasPrefix(res.Address, "azapi_") {
+			continue
+		}
+		resourceType := ""
+		if v, ok := res.AttributeValues["type"]; ok {
+			resourceType = v.(string)
+		}
+		results = append(results, types.Report{
+			Type:    resourceType,
+			Address: res.Address,
+		})
+	}
+	return results
+}
+
+func NewPassedReports(plan *tfjson.Plan) []types.Report {
+	res := make([]types.Report, 0)
+	if plan != nil {
+		for _, resourceChange := range plan.ResourceChanges {
+			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+				continue
+			}
+			if resourceChange == nil || resourceChange.Change == nil {
+				continue
+			}
+			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+				beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+				if !beforeMapOk {
+					continue
+				}
+				res = append(res, types.Report{
+					Type:    beforeMap["type"].(string),
+					Address: resourceChange.Address,
+				})
+			}
 		}
 	}
 	return res
