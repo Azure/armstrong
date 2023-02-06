@@ -2,19 +2,15 @@ package report
 
 import (
 	_ "embed"
-	"fmt"
 	"strings"
 
 	"github.com/ms-henglu/armstrong/types"
 )
 
-//go:embed report.md
-var reportTemplate string
+//go:embed diff_report.md
+var diffReportTemplate string
 
-//go:embed passed_report.md
-var passedReportTemplate string
-
-func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
+func DiffMarkdownReport(report types.Diff, logs []types.RequestTrace) string {
 	parts := strings.Split(report.Type, "@")
 	resourceType := ""
 	apiVersion := ""
@@ -38,7 +34,7 @@ func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 
 	requestTraces := RequestTracesContent(report.Id, logs)
 
-	content := reportTemplate
+	content := diffReportTemplate
 	content = strings.ReplaceAll(content, "${resource_type}", resourceType)
 	content = strings.ReplaceAll(content, "${api_version}", apiVersion)
 	content = strings.ReplaceAll(content, "${operation_id}", operationId)
@@ -47,17 +43,6 @@ func MarkdownReport(report types.Report, logs []types.RequestTrace) string {
 	content = strings.ReplaceAll(content, "${request_traces}", requestTraces)
 	content = strings.ReplaceAll(content, "${diff_description}", diffDescription)
 	content = strings.ReplaceAll(content, "${diff_json}", diffJson)
-	return content
-}
-
-func PassedMarkdownReport(reports []types.Report) string {
-	resourceTypes := make([]string, 0)
-	for _, report := range reports {
-		resourceTypes = append(resourceTypes, fmt.Sprintf("%s (%s)", report.Type, report.Address))
-	}
-
-	content := passedReportTemplate
-	content = strings.ReplaceAll(content, "${resource_type}", strings.Join(resourceTypes, "\n"))
 	return content
 }
 

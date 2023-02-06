@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 type TestCommand struct {
@@ -94,11 +95,12 @@ func (c TestCommand) Execute() int {
 	}
 	log.Printf("[INFO] found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", create+replace+update+delete, create, replace, update, delete)
 	log.Println("[INFO] running apply command to provision test resource...")
-	err = terraform.Apply()
-	if err != nil {
-		log.Fatalf("[Error] error running terraform apply: %+v\n", err)
+	applyErr := terraform.Apply()
+	if applyErr != nil {
+		log.Printf("[Error] error running terraform apply: %+v\n", applyErr)
+	} else {
+		log.Println("[INFO] test resource has been provisioned")
 	}
-	log.Println("[INFO] test resource has been provisioned")
 
 	log.Println("[INFO] running plan command to verify test resource...")
 	plan, err = terraform.Plan()
@@ -106,52 +108,88 @@ func (c TestCommand) Execute() int {
 		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
 	}
 
-	if len(tf.GetChanges(plan)) == 0 {
+	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
+	reportDir = path.Join(wd, reportDir)
+	err = os.Mkdir(reportDir, 0777)
+	if err != nil {
+		log.Fatalf("[Error] error creating report dir %s: %+v", reportDir, err)
+	}
+
+	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
 		if state, err := terraform.Show(); err == nil {
-			passedReports := tf.NewPassedReportsFromState(state)
-			if len(passedReports) != 0 {
-				markdownFilename := fmt.Sprintf("passed_%s.md", time.Now().Format("20060102030405PM"))
-				err = os.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
-				if err != nil {
-					log.Printf("[WARN] failed to save passed markdown report to %s: %+v", markdownFilename, err)
-				} else {
-					log.Printf("[INFO] passed markdown report saved to %s", markdownFilename)
-				}
-			}
+			passReport := tf.NewPassReportFromState(state)
+			storePassReport(passReport, reportDir, "all_passed_report.md")
+			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
+			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
+		} else {
+			log.Fatalf("[Error] error showing terraform state: %+v", err)
 		}
-		log.Println("[INFO] Test passed!")
 		return 0
 	}
 
-	passedReports := tf.NewPassedReports(plan)
-	if len(passedReports) != 0 {
-		markdownFilename := fmt.Sprintf("partially_passed_%s.md", time.Now().Format("20060102030405PM"))
-		err = os.WriteFile(path.Join(wd, markdownFilename), []byte(report.PassedMarkdownReport(passedReports)), 0644)
-		if err != nil {
-			log.Printf("[WARN] failed to save partially passed markdown report to %s: %+v", markdownFilename, err)
-		} else {
-			log.Printf("[INFO] partially passed markdown report saved to %s", markdownFilename)
-		}
-	}
-
-	reports := tf.NewReports(plan)
 	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
 		log.Printf("[ERROR] parsing log.txt: %+v", err)
 	}
-	for _, r := range reports {
-		log.Printf("[INFO] found differences between response and configuration:\n\naddress: %s\n\n%s\n",
-			r.Address, report.DiffMessageTerraform(r.Change))
-		log.Printf("[INFO] report:\n\naddresss: %s\n\n%s\n", r.Address, report.DiffMessageReadable(r.Change))
-		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), time.Now().Format("20060102030405PM"))
-		err := os.WriteFile(path.Join(wd, markdownFilename), []byte(report.MarkdownReport(r, logs)), 0644)
+
+	errorReport := types.ErrorReport{}
+	if applyErr != nil {
+		errorReport = tf.NewErrorReport(applyErr, logs)
+		storeErrorReport(errorReport, reportDir)
+	}
+
+	diffReport := tf.NewDiffReport(plan, logs)
+	storeDiffReport(diffReport, reportDir)
+
+	passReport := tf.NewPassReport(plan)
+	storePassReport(passReport, reportDir, "partially_passed_report.md")
+
+	log.Println("[INFO] ---------------- Summary ----------------")
+	log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
+	if len(errorReport.Errors) != 0 {
+		log.Printf("[INFO] %d errors when creating the testing resources.", len(errorReport.Errors))
+	}
+	if len(diffReport.Diffs) != 0 {
+		log.Printf("[INFO] %d API issues.", len(diffReport.Diffs))
+	}
+	log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
+	return 1
+}
+
+func storePassReport(passReport types.PassReport, reportDir string, reportName string) {
+	if len(passReport.Resources) != 0 {
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+		} else {
+			log.Printf("[INFO] markdown report saved to %s", reportName)
+		}
+	}
+}
+
+func storeErrorReport(errorReport types.ErrorReport, reportDir string) {
+	for _, r := range errorReport.Errors {
+		log.Printf("[WARN] found an error when create %s, address: azapi_resource.%s\n", r.Type, r.Label)
+		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
+		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.ErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
 			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
 		}
 	}
+}
 
-	log.Fatalf("[ERROR] found %v API issues", len(reports))
-	return 1
+func storeDiffReport(diffReport types.DiffReport, reportDir string) {
+	for _, r := range diffReport.Diffs {
+		log.Printf("[WARN] found differences between response and configuration:\n\naddress: %s\n\n%s\n", r.Address, report.DiffMessageTerraform(r.Change))
+		log.Printf("[INFO] report:\n\naddresss: %s\t%s\n", r.Address, report.DiffMessageReadable(r.Change))
+		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), strings.TrimPrefix(r.Address, "azapi_resource."))
+		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.DiffMarkdownReport(r, diffReport.Logs)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
+		} else {
+			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
+		}
+	}
 }

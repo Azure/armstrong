@@ -9,13 +9,13 @@ import (
 	"github.com/nsf/jsondiff"
 )
 
-func DiffMessageTerraform(diff types.Diff) string {
+func DiffMessageTerraform(diff types.Change) string {
 	option := jsondiff.DefaultConsoleOptions()
 	_, msg := jsondiff.Compare([]byte(diff.Before), []byte(diff.After), &option)
 	return msg
 }
 
-func DiffMessageReadable(diff types.Diff) string {
+func DiffMessageReadable(diff types.Change) string {
 	option := jsondiff.Options{
 		Added:                 jsondiff.Tag{Begin: "\033[0;32m", End: " is not returned from response\033[0m"},
 		Removed:               jsondiff.Tag{Begin: "\033[0;31m", End: "\033[0m"},
@@ -30,7 +30,7 @@ func DiffMessageReadable(diff types.Diff) string {
 	return msg
 }
 
-func DiffMessageMarkdown(diff types.Diff) string {
+func DiffMessageMarkdown(diff types.Change) string {
 	option := jsondiff.Options{
 		Added:                 jsondiff.Tag{Begin: "", End: " is not returned from response"},
 		Removed:               jsondiff.Tag{Begin: "", End: ""},
@@ -45,7 +45,7 @@ func DiffMessageMarkdown(diff types.Diff) string {
 	return msg
 }
 
-func DiffMessageDescription(diff types.Diff) string {
+func DiffMessageDescription(diff types.Change) string {
 	var before, after interface{}
 	_ = json.Unmarshal([]byte(diff.Before), &before)
 	_ = json.Unmarshal([]byte(diff.After), &after)
