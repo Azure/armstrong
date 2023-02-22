@@ -109,8 +109,10 @@ func (c TestCommand) Execute() int {
 	}
 
 	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
+	reportDir = strings.ReplaceAll(reportDir, ":", "")
+	reportDir = strings.ReplaceAll(reportDir, " ", "_")
 	reportDir = path.Join(wd, reportDir)
-	err = os.Mkdir(reportDir, 0777)
+	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
 		log.Fatalf("[Error] error creating report dir %s: %+v", reportDir, err)
 	}
