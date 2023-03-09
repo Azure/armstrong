@@ -9,7 +9,7 @@ Command
 
 Logs
 
-1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/case3%20-%20complicated%20dependency/dependency.tf) and [testing.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/case3%20-%20complicated%20dependency/testing.tf).
+1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/demos/case3%20-%20complicated%20dependency/dependency.tf) and [testing.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/demos/case3%20-%20complicated%20dependency/testing.tf).
 ```
 2021/11/24 15:47:11 [INFO] ----------- generate dependency and test resource ---------
 2021/11/24 15:47:11 [INFO] loading dependencies
