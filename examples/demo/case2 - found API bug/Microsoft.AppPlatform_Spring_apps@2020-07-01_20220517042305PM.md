@@ -62,7 +62,7 @@ ROUNDTRIP_MISSING_PROPERTY
 
 7. Request traces
 ```
-PUT https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
+PUT https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
    Accept: application/json
    Authorization: REDACTED
    Content-Length: 265
@@ -93,11 +93,11 @@ RESPONSE Status: 201 Created
    X-Ms-Routing-Request-Id: REDACTED
    X-Rp-Server-Mvid: REDACTED
    --------------------------------------------------------------------------------
-{"properties":{"public":true,"provisioningState":"Creating","httpsOnly":false,"temporaryDisk":{"sizeInGB":2,"mountPath":"/mytemporarydisk"},"persistentDisk":{"sizeInGB":2,"mountPath":"/mypersistentdisk"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
+{"properties":{"public":true,"provisioningState":"Creating","httpsOnly":false,"temporaryDisk":{"sizeInGB":2,"mountPath":"/mytemporarydisk"},"persistentDisk":{"sizeInGB":2,"mountPath":"/mypersistentdisk"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/{subscription_id}/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
    --------------------------------------------------------------------------------
 
 
-GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
+GET https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675?api-version=2020-07-01
    Accept: application/json
    Authorization: REDACTED
    User-Agent: HashiCorp Terraform/1.1.4 (+https://www.terraform.io) Terraform Plugin SDK/2.8.0 terraform-provider-azapi/dev
@@ -121,7 +121,7 @@ GET https://management.azure.com/subscriptions/85b3dbca-5974-4067-9669-67a141095
    X-Ms-Routing-Request-Id: REDACTED
    X-Rp-Server-Mvid: REDACTED
    --------------------------------------------------------------------------------
-{"properties":{"public":false,"provisioningState":"Succeeded","fqdn":"acctest5486.azuremicroservices.io","httpsOnly":false,"createdTime":"2022-05-17T08:22:06.672Z","temporaryDisk":{"sizeInGB":5,"mountPath":"/tmp"},"persistentDisk":{"sizeInGB":0,"mountPath":"/persistent"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
+{"properties":{"public":false,"provisioningState":"Succeeded","fqdn":"acctest5486.azuremicroservices.io","httpsOnly":false,"createdTime":"2022-05-17T08:22:06.672Z","temporaryDisk":{"sizeInGB":5,"mountPath":"/tmp"},"persistentDisk":{"sizeInGB":0,"mountPath":"/persistent"}},"type":"Microsoft.AppPlatform/Spring/apps","identity":null,"location":"westeurope","id":"/subscriptions/{subscription_id}/resourceGroups/acctest5486/providers/Microsoft.AppPlatform/Spring/acctest5486/apps/acctest7675","name":"acctest7675"}
    --------------------------------------------------------------------------------
 
 ```
