@@ -4,7 +4,7 @@
 
 I found differences between PUT request body and GET response:
 
-- .properties.associatedInboundConnections: expect 0 in length, but got 1
+- .properties.associatedInboundConnections: expect 1 in length, but got 0
 
 ```json
 {
