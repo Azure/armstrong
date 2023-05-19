@@ -17,15 +17,17 @@ import (
 )
 
 type TestCommand struct {
-	Ui         cli.Ui
-	verbose    bool
-	workingDir string
+	Ui          cli.Ui
+	verbose     bool
+	workingDir  string
+	swaggerPath string
 }
 
 func (c *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
+	fs.StringVar(&c.swaggerPath, "swagger-path", "", "swagger file relative path for tested resources, for example, specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
@@ -123,6 +125,12 @@ func (c TestCommand) Execute() int {
 			storePassReport(passReport, reportDir, "all_passed_report.md")
 			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
+
+			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
+			if err != nil {
+				log.Fatalf("[Error] error produce coverage report: %+v", err)
+			}
+			storeCoverageReport(coverageReport, reportDir, "coverage_report.md")
 		} else {
 			log.Fatalf("[Error] error showing terraform state: %+v", err)
 		}
@@ -161,6 +169,17 @@ func (c TestCommand) Execute() int {
 func storePassReport(passReport types.PassReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+		} else {
+			log.Printf("[INFO] markdown report saved to %s", reportName)
+		}
+	}
+}
+
+func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
+	if len(coverageReport.Coverages) != 0 {
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.CoverageMarkdownReport(coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {

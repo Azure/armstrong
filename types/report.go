@@ -1,5 +1,12 @@
 package types
 
+import (
+	"fmt"
+	"log"
+
+	"github.com/ms-henglu/armstrong/coverage"
+)
+
 type PassReport struct {
 	Resources []Resource
 }
@@ -7,6 +14,11 @@ type PassReport struct {
 type Resource struct {
 	Type    string
 	Address string
+}
+
+type CoverageReport struct {
+	CommitId  string
+	Coverages map[string]map[string]bool
 }
 
 type DiffReport struct {
@@ -36,4 +48,29 @@ type Error struct {
 	Type    string
 	Label   string
 	Message string
+}
+
+func (c CoverageReport) AddCoverageFromState(resourceId, swaggerPath string, jsonBody map[string]interface{}) error {
+	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromId(resourceId, swaggerPath)
+	if err != nil {
+		return fmt.Errorf("error find the path for %s in swagger file %s:%s", resourceId, swaggerPath, err)
+	}
+
+	log.Printf("matched API path %s\n", *apiPath)
+
+	expanded, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	if err != nil {
+		return fmt.Errorf("error expand model %s property:%s", *modelName, err)
+	}
+
+	lookupTable := map[string]bool{}
+	if coverageTable, ok := c.Coverages[*apiPath]; ok {
+		lookupTable = coverageTable
+	}
+	discriminatorTable := map[string]string{}
+	coverage.Flatten(*expanded, "", lookupTable, discriminatorTable)
+	coverage.MarkCovered(jsonBody, "", lookupTable, discriminatorTable)
+	c.Coverages[*apiPath] = lookupTable
+
+	return nil
 }

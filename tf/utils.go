@@ -1,6 +1,7 @@
 package tf
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -134,6 +135,42 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 		}
 	}
 	return out
+}
+
+func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (types.CoverageReport, error) {
+	out := types.CoverageReport{
+		Coverages: make(map[string]map[string]bool, 0),
+	}
+	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		return out, nil
+	}
+	for _, res := range state.Values.RootModule.Resources {
+		if !strings.HasPrefix(res.Address, "azapi_") {
+			continue
+		}
+
+		id := ""
+		if v, ok := res.AttributeValues["id"]; ok {
+			id = v.(string)
+		}
+
+		jsonBody := map[string]interface{}{}
+		if body, ok := res.AttributeValues["body"].(string); ok {
+			err := json.Unmarshal([]byte(body), &jsonBody)
+			if err != nil {
+				return out, err
+			}
+		}
+
+		// TODO: add auto index swagger file
+		if swaggerPath != "" {
+			err := out.AddCoverageFromState(id, swaggerPath, jsonBody)
+			if err != nil {
+				return out, err
+			}
+		}
+	}
+	return out, nil
 }
 
 func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
