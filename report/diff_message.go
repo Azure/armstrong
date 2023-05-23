@@ -53,65 +53,78 @@ func DiffMessageDescription(diff types.Change) string {
 	return strings.Join(diffs, "\n")
 }
 
-func compare(old interface{}, new interface{}, path string) []string {
-	if new == nil {
-		return []string{fmt.Sprintf("%s: expect %v, but got null", path, old)}
+// compare two json objects, return the difference in string array
+// path is the path of the json object
+// got is the value returned from the api
+// expect is the expected value which is defined in the config file
+func compare(got interface{}, expect interface{}, path string) []string {
+	if expect == nil && got == nil {
+		return []string{}
 	}
-	switch oldValue := old.(type) {
+	if expect == nil {
+		return []string{fmt.Sprintf("%s: expect null, but got %v", path, got)}
+	}
+	if got == nil {
+		return []string{fmt.Sprintf("%s = %v: not returned from response", path, expect)}
+	}
+	switch expectValue := expect.(type) {
 	case map[string]interface{}:
-		if newMap, ok := new.(map[string]interface{}); ok {
+		if gotMap, ok := got.(map[string]interface{}); ok {
 			res := make([]string, 0)
-			for key, value := range oldValue {
-				res = append(res, compare(value, newMap[key], fmt.Sprintf("%s.%s", path, key))...)
+			for key, value := range expectValue {
+				res = append(res, compare(gotMap[key], value, fmt.Sprintf("%s.%s", path, key))...)
 			}
 			return res
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is a map, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is a map, but got %v", path, expect, got)}
 		}
 	case []interface{}:
-		if newArr, ok := new.([]interface{}); ok {
-			if len(oldValue) != len(newArr) {
-				return []string{fmt.Sprintf("%s: expect %d in length, but got %d", path, len(oldValue), len(newArr))}
+		if gotArr, ok := got.([]interface{}); ok {
+			if len(gotArr) != len(expectValue) {
+				return []string{fmt.Sprintf("%s: expect %d in length, but got %d", path, len(expectValue), len(gotArr))}
 			}
 			res := make([]string, 0)
-			for index := range oldValue {
-				res = append(res, compare(oldValue[index], newArr[index], fmt.Sprintf("%s.%d", path, index))...)
+			for index := range expectValue {
+				res = append(res, compare(gotArr[index], expectValue[index], fmt.Sprintf("%s.%d", path, index))...)
 			}
 			return res
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is an array, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is an array, but got %v", path, expect, got)}
 		}
 	case bool:
-		if newBool, ok := new.(bool); ok {
-			if newBool != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
+		if gotBool, ok := got.(bool); ok {
+			if gotBool != expectValue {
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, expect, got)}
 			}
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is a bool, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is a bool, but got %v", path, expect, got)}
 		}
 	case string:
-		if newString, ok := new.(string); ok {
-			if newString != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
+		if gotString, ok := got.(string); ok {
+			if gotString != expectValue {
+				if strings.EqualFold(gotString, expectValue) {
+					return []string{fmt.Sprintf("%s: the values are not equal case-sensitively, expect %v, but got %v", path, expect, got)}
+				}
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, expect, got)}
 			}
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is a string, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is a string, but got %v", path, expect, got)}
 		}
 	case float64:
-		if newValue, ok := new.(float64); ok {
-			if newValue != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
+		if gotFloat, ok := got.(float64); ok {
+			if gotFloat != expectValue {
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, expect, got)}
 			}
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, expect, got)}
 		}
 	case int64:
-		if newValue, ok := new.(int64); ok {
-			if newValue != oldValue {
-				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, new, old)}
+		if gotInt, ok := got.(int64); ok {
+			if gotInt != expectValue {
+				return []string{fmt.Sprintf("%s: expect %v, but got %v", path, expect, got)}
 			}
 		} else {
-			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, old, new)}
+			return []string{fmt.Sprintf("%s: expect %v which is a number, but got %v", path, expect, got)}
 		}
 	}
 	return nil
