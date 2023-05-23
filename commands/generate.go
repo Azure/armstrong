@@ -76,8 +76,8 @@ func (c GenerateCommand) Execute() int {
 		}
 	}
 	if c.overwrite {
-		_ = os.Remove(path.Join(wd, "testing.tf"))
-		_ = os.Remove(path.Join(wd, "dependency.tf"))
+		_ = os.RemoveAll(path.Join(wd, "testing.tf"))
+		_ = os.RemoveAll(path.Join(wd, "dependency.tf"))
 	}
 	err = os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
 	if err != nil {
