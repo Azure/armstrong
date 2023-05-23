@@ -148,7 +148,7 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 		if lastIndex := strings.LastIndex(e, "------"); lastIndex != -1 {
 			errorMessage = errorMessage[0:lastIndex]
 		}
-		if matches := regexp.MustCompile(`ResourceId \\"(.+)\\" \/ Api Version \\"(.+)\\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
+		if matches := regexp.MustCompile(`ResourceId \\?\"(.+)\\?\" \/ Api Version \\?\"(.+)\\?\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
 			id = matches[0][1]
 			apiVersion = matches[0][2]
 		}
