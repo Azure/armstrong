@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-openapi/loads"
+	openapispec "github.com/go-openapi/spec"
 	"github.com/magodo/azure-rest-api-index/azidx"
 )
 
@@ -24,7 +25,7 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 		return nil, nil, nil, err
 	}
 
-	log.Println(azureRepo.SpecRootDir)
+	log.Printf("[INFO]azure-rest-api-specs root dir: %s\n", azureRepo.SpecRootDir)
 	index, err := azidx.BuildIndex(azureRepo.SpecRootDir, "")
 	if err != nil {
 		return nil, nil, nil, err
@@ -57,7 +58,7 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 		return nil, nil, nil, err
 	}
 
-	swaggerPath := ref.GetURL().Path
+	swaggerPath := filepath.Join(azureRepo.SpecRootDir, ref.GetURL().Path)
 	doc, err := loads.JSONSpec(swaggerPath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("loading swagger spec: %+v", err)
@@ -65,10 +66,15 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 
 	spec := doc.Spec()
 
+	operation, err := openapispec.ResolvePathItemWithBase(spec, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: ref.GetURL().Path})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	pointerTokens := ref.GetPointer().DecodedTokens()
 	apiPath := pointerTokens[1]
-	path := spec.Paths.Paths[apiPath]
-	operation := path.Put
+	//path := spec.Paths.Paths[apiPath]
+	//operation := path.Put
 	var modelName string
 	for _, param := range operation.Parameters {
 		if param.In == "body" {

@@ -50,10 +50,19 @@ type Error struct {
 	Message string
 }
 
-func (c CoverageReport) AddCoverageFromState(resourceId, swaggerPath string, jsonBody map[string]interface{}) error {
-	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromId(resourceId, swaggerPath)
-	if err != nil {
-		return fmt.Errorf("error find the path for %s in swagger file %s:%s", resourceId, swaggerPath, err)
+func (c CoverageReport) AddCoverageFromState(resourceId, swaggerPath, apiVersion string, jsonBody map[string]interface{}) error {
+	var apiPath, modelName, modelSwaggerPath *string
+	var err error
+	if swaggerPath != "" {
+		apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromId(resourceId, swaggerPath)
+		if err != nil {
+			return fmt.Errorf("error find the path for %s in swagger file %s:%s", resourceId, swaggerPath, err)
+		}
+	} else {
+		apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
+		if err != nil {
+			return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
+		}
 	}
 
 	log.Printf("matched API path %s\n", *apiPath)

@@ -8,3 +8,6 @@ internal/schemas/providers.tf
 internal/schemas/schemas_gen.go
 internal/schemas/data/
 terraform-ls
+
+# never upload the build to git
+armstrong

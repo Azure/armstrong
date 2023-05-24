@@ -35,6 +35,12 @@ func SpecListFromReadmeMD(b []byte) ([]string, error) {
 			}
 			for _, p := range info.InputFile {
 				p = filepath.Clean(strings.Replace(p, "$(this-folder)", ".", -1))
+
+				// Some poor readme defines the spec path in Windows path format, convert them then..
+				if !strings.Contains(p, "/") && strings.Contains(p, `\`) {
+					p = strings.Replace(p, `\`, "/", -1)
+				}
+
 				specSet[p] = struct{}{}
 			}
 			// rest the states

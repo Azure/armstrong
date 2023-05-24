@@ -195,8 +195,8 @@ github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348 h1:MtvEpTB6LX3v
 github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
 github.com/magodo/armid v0.0.0-20230511151020-27880e5961c3 h1:ob6vk6PlChZvutcxcLnmPH/VNmJEuwz+TmCYCVtJqeA=
 github.com/magodo/armid v0.0.0-20230511151020-27880e5961c3/go.mod h1:rR8E7zfGMbmfnSQvrkFiWYdhrfTqsVSltelnZB09BwA=
-github.com/magodo/azure-rest-api-index v0.0.0-20230519024016-8e6e64811a75 h1:hD05uB5Qc8/qWjwu7m8VZeLb4FwYfQnbizf5gHe3JWE=
-github.com/magodo/azure-rest-api-index v0.0.0-20230519024016-8e6e64811a75/go.mod h1:oV3jg32E0FTnyzfPck4Mmxff9xX2en5b+VhsLpBWk8E=
+github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f h1:Ah7TXxbR3vhZqeI9kaoHwmmUFxv4rMVJ+YuW1BLd3To=
+github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f/go.mod h1:oV3jg32E0FTnyzfPck4Mmxff9xX2en5b+VhsLpBWk8E=
 github.com/magodo/workerpool v0.0.0-20230119025400-40192d2716ea h1:QK7gPkX5ubzDLTImfsSvAlVv/n/x1smVkeYpECA0mPo=
 github.com/magodo/workerpool v0.0.0-20230119025400-40192d2716ea/go.mod h1:oI7XLq0SfJZISAwYhT7DHmi1Fqbr1Q8ZE8gegIe7iAI=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=

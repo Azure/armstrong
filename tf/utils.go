@@ -162,12 +162,17 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (types.
 			}
 		}
 
-		// TODO: add auto index swagger file
-		if swaggerPath != "" {
-			err := out.AddCoverageFromState(id, swaggerPath, jsonBody)
-			if err != nil {
-				return out, err
+		apiVersion := ""
+		if resourceType, ok := res.AttributeValues["type"].(string); ok {
+			apiVersion = strings.Split(resourceType, "@")[1]
+			if !regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}$`).MatchString(apiVersion) {
+				return out, fmt.Errorf("could not parse apiVersion from resourceType: %s", resourceType)
 			}
+		}
+
+		err := out.AddCoverageFromState(id, swaggerPath, apiVersion, jsonBody)
+		if err != nil {
+			return out, err
 		}
 	}
 	return out, nil

@@ -307,7 +307,7 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/magodo/armid v0.0.0-20230511151020-27880e5961c3
 ## explicit; go 1.18
 github.com/magodo/armid
-# github.com/magodo/azure-rest-api-index v0.0.0-20230519024016-8e6e64811a75
+# github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f
 ## explicit; go 1.20
 github.com/magodo/azure-rest-api-index/azidx
 github.com/magodo/azure-rest-api-index/azidx/specpath

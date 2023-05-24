@@ -126,11 +126,13 @@ func (c TestCommand) Execute() int {
 			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
 
+			log.Printf("[INFO] producing coverage report...")
 			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
 			if err != nil {
 				log.Fatalf("[Error] error produce coverage report: %+v", err)
 			}
 			storeCoverageReport(coverageReport, reportDir, "coverage_report.md")
+			log.Printf("[INFO] coverage report has been saved in the report directory: %s, please check.", reportDir)
 		} else {
 			log.Fatalf("[Error] error showing terraform state: %+v", err)
 		}

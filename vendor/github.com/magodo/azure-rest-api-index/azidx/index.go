@@ -24,7 +24,6 @@ import (
 type FlattenOpIndex map[OpLocator]OperationRefs
 
 type Index struct {
-	Specdir           string `json:"specdir"`
 	Commit            string `json:"commit,omitempty"`
 	ResourceProviders `json:"resource_providers"`
 }
@@ -176,7 +175,6 @@ func BuildIndex(specdir string, dedupFile string) (*Index, error) {
 	}
 
 	index := &Index{
-		Specdir:           specdir,
 		Commit:            commit,
 		ResourceProviders: rps,
 	}
@@ -224,8 +222,8 @@ func collectSpecs(rootdir string) ([]string, error) {
 	return speclist, nil
 }
 
-func buildOpsIndex(rootdir string, deduplicator Deduplicator, specs []string) (FlattenOpIndex, error) {
-	rootdir, err := filepath.Abs(rootdir)
+func buildOpsIndex(specdir string, deduplicator Deduplicator, specs []string) (FlattenOpIndex, error) {
+	specdir, err := filepath.Abs(specdir)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +241,7 @@ func buildOpsIndex(rootdir string, deduplicator Deduplicator, specs []string) (F
 	for _, spec := range specs {
 		spec := spec
 		wp.AddTask(func() (interface{}, error) {
-			m, err := parseSpec(rootdir, spec)
+			m, err := parseSpec(specdir, spec)
 			if err != nil {
 				return nil, fmt.Errorf("parsing spec %s: %v", spec, err)
 			}
@@ -288,7 +286,7 @@ func buildOpsIndex(rootdir string, deduplicator Deduplicator, specs []string) (F
 	for k, refs := range dups {
 		var candidateRefs []jsonreference.Ref
 		for _, ref := range refs {
-			pinfo, err := specpath.SpecPathInfo(rootdir, ref.GetURL().Path)
+			pinfo, err := specpath.SpecPathInfo(ref.GetURL().Path)
 			if err != nil {
 				return nil, fmt.Errorf("new spec path info: %v", err)
 			}
@@ -372,7 +370,7 @@ func buildOpsIndex(rootdir string, deduplicator Deduplicator, specs []string) (F
 }
 
 // parseSpec parses one Swagger spec and returns back a operation index for this spec
-func parseSpec(rootdir, p string) (FlattenOpIndex, error) {
+func parseSpec(specdir, p string) (FlattenOpIndex, error) {
 	doc, err := loads.Spec(p)
 	if err != nil {
 		return nil, fmt.Errorf("loading spec: %v", err)
@@ -390,7 +388,16 @@ func parseSpec(rootdir, p string) (FlattenOpIndex, error) {
 		return nil, fmt.Errorf(`spec has no "Info.Version"`)
 	}
 
-	pinfo, err := specpath.SpecPathInfo(rootdir, p)
+	absSpecPath, err := filepath.Abs(p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get abs path for %s: %v", p, err)
+	}
+	relSpecPath, err := filepath.Rel(specdir, absSpecPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rel path for %s: %v", p, err)
+	}
+
+	pinfo, err := specpath.SpecPathInfo(relSpecPath)
 	if err != nil {
 		return nil, fmt.Errorf("new spec path info: %v", err)
 	}
@@ -483,12 +490,7 @@ func parseSpec(rootdir, p string) (FlattenOpIndex, error) {
 				}
 				rt = "/" + strings.Join(rts, "/")
 
-				absSpecPath, err := filepath.Abs(p)
-				if err != nil {
-					return nil, fmt.Errorf("failed to get abs path for %s: %v", p, err)
-				}
-
-				opRef := jsonreference.MustCreateRef(absSpecPath + "#/paths/" + jsonpointer.Escape(path) + "/" + strings.ToLower(string(opKind)))
+				opRef := jsonreference.MustCreateRef(relSpecPath + "#/paths/" + jsonpointer.Escape(path) + "/" + strings.ToLower(string(opKind)))
 
 				pathPatternStr := PathPatternStr(strings.ToUpper(pathPattern.String()))
 
