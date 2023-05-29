@@ -10,40 +10,28 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromIdFromIndex("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR", "2022-06-01")
+	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromIdFromIndex(
+		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
+		"2022-06-01",
+		"/home/wangta/.cache/armstrong/azure-rest-api-specs/specification",
+		false,
+	)
 	if err != nil {
 		t.Error(err)
 	}
-	apiPath = apiPath
 	fmt.Println(*apiPath, *modelName, *modelSwaggerPath)
 
-	expand, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
 		t.Error(err)
 	}
 
-	out, err := json.MarshalIndent(expand, "", "\t")
+	out, err := json.MarshalIndent(model, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
 	out = out
-	//fmt.Println("expand", string(out))
-
-	lookupTable := map[string]bool{}
-	discriminatorTable := map[string]string{}
-	coverage.Flatten(*expand, "", lookupTable, discriminatorTable)
-
-	out, err = json.MarshalIndent(lookupTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	//fmt.Println("lookupTable", string(out))
-
-	out, err = json.MarshalIndent(discriminatorTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	//fmt.Println("discriminatorTable", string(out))
+	//fmt.Println("model", string(out))
 
 	rawRequestJson := `
 	{
@@ -157,23 +145,10 @@ func TestIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	coverage.MarkCovered(body, "", lookupTable, discriminatorTable)
-
-	out, err = json.MarshalIndent(lookupTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	//fmt.Println("coveredTable", string(out))
+	coverage.MarkCovered(body, model)
 
 	var covered, uncovered []string
-	for k, v := range lookupTable {
-		if v {
-			covered = append(covered, k)
-		} else {
-			uncovered = append(uncovered, k)
-		}
-
-	}
+	coverage.SplitCovered(model, &covered, &uncovered)
 
 	sort.Strings(covered)
 	out, err = json.MarshalIndent(covered, "", "\t")
@@ -190,6 +165,6 @@ func TestIndex(t *testing.T) {
 
 	fmt.Println("uncoveredList", string(out))
 
-	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(lookupTable))
+	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(covered)+len(uncovered))
 
 }

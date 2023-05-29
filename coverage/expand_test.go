@@ -19,30 +19,30 @@ func TestLoad(t *testing.T) {
 
 	fmt.Println(*apiPath, *modelName, *modelSwaggerPath)
 
-	expand, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
 		t.Error(err)
 	}
 
-	out, err := json.MarshalIndent(expand, "", "\t")
+	out, err := json.MarshalIndent(model, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println("expand", string(out))
+	fmt.Println("model", string(out))
 
-	lookupTable := map[string]bool{}
-	discriminatorTable := map[string]string{}
-	coverage.Flatten(*expand, "", lookupTable, discriminatorTable)
-
-	out, err = json.MarshalIndent(lookupTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println("lookupTable", string(out))
-
-	out, err = json.MarshalIndent(discriminatorTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println("discriminatorTable", string(out))
+	//lookupTable := map[string]bool{}
+	//discriminatorTable := map[string]string{}
+	//coverage.Flatten(*model, "", lookupTable, discriminatorTable)
+	//
+	//out, err = json.MarshalIndent(lookupTable, "", "\t")
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//fmt.Println("lookupTable", string(out))
+	//
+	//out, err = json.MarshalIndent(discriminatorTable, "", "\t")
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//fmt.Println("discriminatorTable", string(out))
 }

@@ -2,65 +2,111 @@ package coverage
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
+	"log"
 )
 
-func MarkCovered(root interface{}, path string, lookupTable map[string]bool, discriminatorTable map[string]string) {
-	if root == nil {
+func MarkCovered(root interface{}, model *Model) {
+	if root == nil || model == nil || model.IsReadOnly {
 		return
 	}
 
-	if _, ok := lookupTable[path]; ok {
-		lookupTable[path] = true
-	}
+	model.IsCovered = true
 
 	// https://pkg.go.dev/encoding/json#Unmarshal
 	switch value := root.(type) {
 	case string:
-		if _, exist := lookupTable[path+"()"]; exist {
-			lookupTable[path+"()"] = true
-			lookupTable[path+"("+value+")"] = true
+		if model.Enum != nil {
+			if _, ok := (*model.Enum)[value]; !ok {
+				log.Println(fmt.Errorf("unexpected enum value %s in %s", value, model.Identifier))
+			}
+
+			(*model.Enum)[value] = true
 		}
 
 	case bool:
-		lookupTable[path+"()"] = true
-		lookupTable[path+"("+strconv.FormatBool(value)+")"] = true
+		(*model.Bool)[value] = true
 
 	case float64:
 
 	case []interface{}:
-		path += "[]"
-		lookupTable[path] = true
+		if model.Item == nil {
+			log.Println(fmt.Errorf("unexpected array in %s", model.Identifier))
+		}
+
 		for _, item := range value {
-			MarkCovered(item, path, lookupTable, discriminatorTable)
+			MarkCovered(item, model.Item)
 		}
 
 	case map[string]interface{}:
-		discriminator, ok := discriminatorTable[path]
-		if ok {
-			step := ""
+		if model.Discriminator != nil {
 			for k, v := range value {
-				if k == discriminator {
-					step = "{" + discriminator + "(" + v.(string) + ")}"
+				if k == *model.Discriminator {
+					if _, ok := (*model.Variants)[v.(string)]; !ok {
+						log.Println(fmt.Errorf("unexpected variants %s in %s", v.(string), model.Identifier))
+					}
+					MarkCovered(value, (*model.Variants)[v.(string)])
 					break
 				}
 			}
-			if step == "" {
-				panic(fmt.Errorf("block %s has no discriminator %s", value, discriminator))
-			}
-			path += step
-			lookupTable[path] = true
 		}
 
 		for k, v := range value {
-			if strings.Contains(k, ".") {
-				k = "\"" + k + "\""
+			if _, ok := (*model.Properties)[k]; !ok {
+				log.Println(fmt.Errorf("unexpected key %s in %s", k, model.Identifier))
 			}
-			MarkCovered(v, strings.TrimLeft(path+"."+k, "."), lookupTable, discriminatorTable)
+			MarkCovered(v, (*model.Properties)[k])
 		}
 
 	default:
 		panic(fmt.Errorf("unexpect type %T for json unmarshaled value", value))
 	}
+}
+
+func SplitCovered(model *Model, covered, uncovered *[]string) {
+	if model == nil || model.IsReadOnly {
+		return
+	}
+
+	if model.IsCovered {
+		*covered = append(*covered, model.Identifier)
+	} else {
+		*uncovered = append(*uncovered, model.Identifier)
+	}
+
+	if model.Properties != nil {
+		for _, v := range *model.Properties {
+			SplitCovered(v, covered, uncovered)
+		}
+	}
+
+	if model.Variants != nil {
+		for _, v := range *model.Variants {
+			SplitCovered(v, covered, uncovered)
+		}
+	}
+
+	if model.Item != nil {
+		SplitCovered(model.Item, covered, uncovered)
+	}
+
+	if model.Enum != nil {
+		for k, isCovered := range *model.Enum {
+			if isCovered {
+				*covered = append(*covered, fmt.Sprintf("%s(%v)", model.Identifier, k))
+			} else {
+				*uncovered = append(*uncovered, fmt.Sprintf("%s(%v)", model.Identifier, k))
+			}
+		}
+	}
+
+	if model.Bool != nil {
+		for k, isCovered := range *model.Bool {
+			if isCovered {
+				*covered = append(*covered, fmt.Sprintf("%s(%t)", model.Identifier, k))
+			} else {
+				*uncovered = append(*uncovered, fmt.Sprintf("%s(%t)", model.Identifier, k))
+			}
+		}
+	}
+
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/ms-henglu/armstrong/coverage"
 	"github.com/ms-henglu/armstrong/resource/utils"
 	"github.com/ms-henglu/armstrong/types"
 )
@@ -137,9 +138,9 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (types.CoverageReport, error) {
+func NewCoverageReportFromState(state *tfjson.State, swaggerRepoDir string, refreshIndex bool) (types.CoverageReport, error) {
 	out := types.CoverageReport{
-		Coverages: make(map[string]map[string]bool, 0),
+		Coverages: make(map[string]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
 		return out, nil
@@ -170,7 +171,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (types.
 			}
 		}
 
-		err := out.AddCoverageFromState(id, swaggerPath, apiVersion, jsonBody)
+		err := out.AddCoverageFromState(id, swaggerRepoDir, apiVersion, jsonBody, refreshIndex)
 		if err != nil {
 			return out, err
 		}

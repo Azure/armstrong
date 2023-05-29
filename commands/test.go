@@ -17,17 +17,19 @@ import (
 )
 
 type TestCommand struct {
-	Ui          cli.Ui
-	verbose     bool
-	workingDir  string
-	swaggerPath string
+	Ui             cli.Ui
+	verbose        bool
+	workingDir     string
+	swaggerRepoDir string
+	refreshIndex   bool
 }
 
 func (c *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
-	fs.StringVar(&c.swaggerPath, "swagger-path", "", "swagger file relative path for tested resources, for example, specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json")
+	fs.StringVar(&c.swaggerRepoDir, "swagger-repo-dir", "", "swagger file relative path for tested resources, for example, '/home/wangta/.cache/armstrong/azure-rest-api-specs/specification'")
+	fs.BoolVar(&c.refreshIndex, "refresh-index", false, "whether refresh swagger index file")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 	return fs
 }
@@ -127,7 +129,7 @@ func (c TestCommand) Execute() int {
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
 
 			log.Printf("[INFO] producing coverage report...")
-			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
+			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerRepoDir, c.refreshIndex)
 			if err != nil {
 				log.Fatalf("[Error] error produce coverage report: %+v", err)
 			}

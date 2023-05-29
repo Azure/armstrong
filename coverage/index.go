@@ -1,53 +1,61 @@
 package coverage
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/go-openapi/loads"
 	openapispec "github.com/go-openapi/spec"
 	"github.com/magodo/azure-rest-api-index/azidx"
 )
 
-func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string, *string, error) {
+func getIndex(azureRepoDir string, refreshIndex bool) (*azidx.Index, error) {
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		log.Fatal(err)
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	baseDir := filepath.Join(cacheDir, "armstrong")
-	azureRepo, err := NewAzureRepo(baseDir)
+	indexFilePath := filepath.Join(cacheDir, "armstrong", "index.json")
+	if _, err := os.Stat(indexFilePath); err != nil || refreshIndex {
+		log.Printf("[INFO]azure-rest-api-specs root dir: %s\n", azureRepoDir)
+		index, err := azidx.BuildIndex(azureRepoDir, "")
+		if err != nil {
+			return nil, err
+		}
+
+		b, err := json.MarshalIndent(index, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+
+		err = os.WriteFile(indexFilePath, b, 0644)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	b, err := os.ReadFile(indexFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("reading index file %s: %v", indexFilePath, err)
+	}
+	var index azidx.Index
+	if err := json.Unmarshal(b, &index); err != nil {
+		return nil, fmt.Errorf("unmarshal index file: %v", err)
+	}
+	return &index, nil
+}
+
+func PathPatternFromIdFromIndex(resourceId, apiVersion, azureRepoDir string, refreshIndex bool) (*string, *string, *string, error) {
+	index, err := getIndex(azureRepoDir, refreshIndex)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	log.Printf("[INFO]azure-rest-api-specs root dir: %s\n", azureRepo.SpecRootDir)
-	index, err := azidx.BuildIndex(azureRepo.SpecRootDir, "")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	//b, err := json.MarshalIndent(index, "", "  ")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//outputFile := filepath.Join(cacheDir, "armstrong", "index.json")
-	//err = os.WriteFile(outputFile, b, 0644)
-	//if err != nil {
-	//	return nil, nil, nil, err
-	//}
-	//b, err := os.ReadFile(outputFile)
-	//if err != nil {
-	//	return fmt.Errorf("reading index file %s: %v", outputFile, err)
-	//}
-	//var index azidx.Index
-	//if err := json.Unmarshal(b, &index); err != nil {
-	//	return fmt.Errorf("unmarshal index file: %v", err)
-	//}
 	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
 	uRL, err := url.Parse(resourceURL)
 	if err != nil {
@@ -58,30 +66,22 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 		return nil, nil, nil, err
 	}
 
-	swaggerPath := filepath.Join(azureRepo.SpecRootDir, ref.GetURL().Path)
-	doc, err := loads.JSONSpec(swaggerPath)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("loading swagger spec: %+v", err)
-	}
+	swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
+	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 
-	spec := doc.Spec()
-
-	operation, err := openapispec.ResolvePathItemWithBase(spec, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: ref.GetURL().Path})
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	pointerTokens := ref.GetPointer().DecodedTokens()
 	apiPath := pointerTokens[1]
-	//path := spec.Paths.Paths[apiPath]
-	//operation := path.Put
+
 	var modelName string
 	for _, param := range operation.Parameters {
 		if param.In == "body" {
 			var modelRelativePath string
 			modelName, modelRelativePath = SchemaInfoFromRef(param.Schema.Ref)
 			if modelRelativePath != "" {
-				//fmt.Println("modelRelativePath", modelRelativePath)
 				swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
 			}
 		}

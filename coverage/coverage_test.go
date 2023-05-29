@@ -23,139 +23,10 @@ func TestCoverage(t *testing.T) {
 	apiPath = apiPath
 	//fmt.Println(*apiPath, *modelName, *modelSwaggerPath)
 
-	expand, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
 		t.Error(err)
 	}
-
-	out, err := json.MarshalIndent(expand, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	out = out
-	//fmt.Println("expand", string(out))
-
-	lookupTable := map[string]bool{}
-	discriminatorTable := map[string]string{}
-	coverage.Flatten(*expand, "", lookupTable, discriminatorTable)
-
-	out, err = json.MarshalIndent(lookupTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	//fmt.Println("lookupTable", string(out))
-
-	out, err = json.MarshalIndent(discriminatorTable, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	//fmt.Println("discriminatorTable", string(out))
-
-	//	rawRequestJson := `
-	//{
-	//  "location": "eastus",
-	//  "properties": {
-	//	"dataSources": {
-	//	  "performanceCounters": [
-	//		{
-	//		  "name": "cloudTeamCoreCounters",
-	//		  "streams": [
-	//			"Microsoft-Perf"
-	//		  ],
-	//		  "samplingFrequencyInSeconds": 15,
-	//		  "counterSpecifiers": [
-	//			"\\Processor(_Total)\\% Processor Time",
-	//			"\\Memory\\Committed Bytes",
-	//			"\\LogicalDisk(_Total)\\Free Megabytes",
-	//			"\\PhysicalDisk(_Total)\\Avg. Disk Queue Length"
-	//		  ]
-	//		},
-	//		{
-	//		  "name": "appTeamExtraCounters",
-	//		  "streams": [
-	//			"Microsoft-Perf"
-	//		  ],
-	//		  "samplingFrequencyInSeconds": 30,
-	//		  "counterSpecifiers": [
-	//			"\\Process(_Total)\\Thread Count"
-	//		  ]
-	//		}
-	//	  ],
-	//	  "windowsEventLogs": [
-	//		{
-	//		  "name": "cloudSecurityTeamEvents",
-	//		  "streams": [
-	//			"Microsoft-WindowsEvent"
-	//		  ],
-	//		  "xPathQueries": [
-	//			"Security!"
-	//		  ]
-	//		},
-	//		{
-	//		  "name": "appTeam1AppEvents",
-	//		  "streams": [
-	//			"Microsoft-WindowsEvent"
-	//		  ],
-	//		  "xPathQueries": [
-	//			"System![System[(Level = 1 or Level = 2 or Level = 3)]]",
-	//			"Application!*[System[(Level = 1 or Level = 2 or Level = 3)]]"
-	//		  ]
-	//		}
-	//	  ],
-	//	  "syslog": [
-	//		{
-	//		  "name": "cronSyslog",
-	//		  "streams": [
-	//			"Microsoft-Syslog"
-	//		  ],
-	//		  "facilityNames": [
-	//			"cron"
-	//		  ],
-	//		  "logLevels": [
-	//			"Debug",
-	//			"Critical",
-	//			"Emergency"
-	//		  ]
-	//		},
-	//		{
-	//		  "name": "syslogBase",
-	//		  "streams": [
-	//			"Microsoft-Syslog"
-	//		  ],
-	//		  "facilityNames": [
-	//			"syslog"
-	//		  ],
-	//		  "logLevels": [
-	//			"Alert",
-	//			"Critical",
-	//			"Emergency"
-	//		  ]
-	//		}
-	//	  ]
-	//	},
-	//	"destinations": {
-	//	  "logAnalytics": [
-	//		{
-	//		  "workspaceResourceId": "/subscriptions/703362b3-f278-4e4b-9179-c76eaf41ffc2/resourceGroups/myResourceGroup/providers/Microsoft.OperationalInsights/workspaces/centralTeamWorkspace",
-	//		  "name": "centralWorkspace"
-	//		}
-	//	  ]
-	//	},
-	//	"dataFlows": [
-	//	  {
-	//		"streams": [
-	//		  "Microsoft-Perf",
-	//		  "Microsoft-Syslog",
-	//		  "Microsoft-WindowsEvent"
-	//		],
-	//		"destinations": [
-	//		  "centralWorkspace"
-	//		]
-	//	  }
-	//	]
-	//  }
-	//}
-	//`
 
 	rawRequestJson := `
 {
@@ -179,23 +50,16 @@ func TestCoverage(t *testing.T) {
 		t.Error(err)
 	}
 
-	coverage.MarkCovered(body, "", lookupTable, discriminatorTable)
+	coverage.MarkCovered(body, model)
 
-	out, err = json.MarshalIndent(lookupTable, "", "\t")
+	out, err := json.MarshalIndent(*model, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
-	//fmt.Println("coveredTable", string(out))
+	fmt.Println("model", string(out))
 
 	var covered, uncovered []string
-	for k, v := range lookupTable {
-		if v {
-			covered = append(covered, k)
-		} else {
-			uncovered = append(uncovered, k)
-		}
-
-	}
+	coverage.SplitCovered(model, &covered, &uncovered)
 
 	sort.Strings(covered)
 	out, err = json.MarshalIndent(covered, "", "\t")
@@ -212,5 +76,5 @@ func TestCoverage(t *testing.T) {
 
 	fmt.Println("uncoveredList", string(out))
 
-	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(lookupTable))
+	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(covered)+len(uncovered))
 }

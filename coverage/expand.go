@@ -10,19 +10,22 @@ import (
 	openapispec "github.com/go-openapi/spec"
 )
 
-type Property struct {
-	ChildrenProperties *map[string]Property `json:"children_properties,omitempty"`
-	Discriminator      *string              `json:"discriminator,omitempty"`
-	Enum               *[]interface{}       `json:"enum,omitempty"`
-	Format             *string              `json:"format,omitempty"`
-	IsReadOnly         bool                 `json:"is_read_only,omitempty"`
-	IsRequired         bool                 `json:"is_required,omitempty"`
-	Item               *Property            `json:"item,omitempty"`
-	Type               *string              `json:"type,omitempty"`
-	Variants           *map[string]Property `json:"variants,omitempty"`
+type Model struct {
+	Bool          *map[bool]bool     `json:"Bool,omitempty"`
+	Discriminator *string            `json:"Discriminator,omitempty"`
+	Enum          *map[string]bool   `json:"Enum,omitempty"`
+	Format        *string            `json:"Format,omitempty"`
+	Identifier    string             `json:"Identifier,omitempty"`
+	IsCovered     bool               `json:"IsCovered"`
+	IsReadOnly    bool               `json:"IsReadOnly,omitempty"`
+	IsRequired    bool               `json:"IsRequired,omitempty"`
+	Item          *Model             `json:"Item,omitempty"`
+	Properties    *map[string]*Model `json:"Properties,omitempty"`
+	Type          *string            `json:"Type,omitempty"`
+	Variants      *map[string]*Model `json:"Variants,omitempty"`
 }
 
-func Expand(modelName, swaggerPath string) (*Property, error) {
+func Expand(modelName, swaggerPath string) (*Model, error) {
 	doc, err := loads.JSONSpec(swaggerPath)
 	if err != nil {
 		return nil, err
@@ -57,18 +60,25 @@ func Expand(modelName, swaggerPath string) (*Property, error) {
 		}
 	}
 
-	output := expandSchema(modelSchema, swaggerPath, modelName, spec, allOfs, map[string]interface{}{})
+	output := expandSchema(modelSchema, swaggerPath, modelName, "#", spec, allOfs, map[string]interface{}{})
 
-	return &output, nil
+	return output, nil
 }
 
-func expandSchema(input openapispec.Schema, swaggerPath, modelName string, root interface{}, allOfs map[string][]string, resolvedDiscriminator map[string]interface{}) Property {
-	output := Property{}
+func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier string, root interface{}, allOfs map[string][]string, resolvedDiscriminator map[string]interface{}) *Model {
+	output := Model{Identifier: identifier}
 
 	//fmt.Println("expand schema for", swaggerPath, modelName)
 
 	if len(input.SchemaProps.Type) > 0 {
 		output.Type = &input.SchemaProps.Type[0]
+		if *output.Type == "bool" {
+			boolMap := make(map[bool]bool)
+			boolMap[true] = false
+			boolMap[false] = false
+
+			output.Bool = &boolMap
+		}
 	}
 	if input.SchemaProps.Format != "" {
 		output.Format = &input.SchemaProps.Format
@@ -77,7 +87,12 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName string, root 
 		output.IsReadOnly = input.SwaggerSchemaProps.ReadOnly
 	}
 	if input.SchemaProps.Enum != nil {
-		output.Enum = &input.SchemaProps.Enum
+		enumMap := make(map[string]bool)
+		for _, v := range input.SchemaProps.Enum {
+			enumMap[v.(string)] = false
+		}
+
+		output.Enum = &enumMap
 	}
 
 	// expand ref
@@ -101,7 +116,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName string, root 
 			root = doc.Spec()
 		}
 
-		return expandSchema(*resolved, swaggerPath, modelName, root, allOfs, resolvedDiscriminator)
+		return expandSchema(*resolved, swaggerPath, modelName, identifier, root, allOfs, resolvedDiscriminator)
 	}
 
 	// expand variants
@@ -110,15 +125,16 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName string, root 
 		if !hasResolvedDiscriminator {
 			resolvedDiscriminator[modelName] = nil
 			//fmt.Println("expand variants", modelName)
-			variants := make(map[string]Property)
+			variants := make(map[string]*Model)
 
 			vars, ok := allOfs[modelName]
 			for ok && len(vars) > 0 {
 				vars2 := []string{}
 				for _, v2 := range vars {
 					schema2 := root.(*openapispec.Swagger).Definitions[v2]
-					resolved := expandSchema(schema2, swaggerPath, v2, root, allOfs, resolvedDiscriminator)
-					variants[schema2.VendorExtensible.Extensions["x-ms-discriminator-value"].(string)] = resolved
+					variantName := schema2.VendorExtensible.Extensions["x-ms-discriminator-value"].(string)
+					resolved := expandSchema(schema2, swaggerPath, v2, identifier+"{"+variantName+"}", root, allOfs, resolvedDiscriminator)
+					variants[variantName] = resolved
 					if vv, ok := allOfs[v2]; ok {
 						vars2 = append(vars2, vv...)
 					}
@@ -131,50 +147,50 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName string, root 
 	}
 
 	// expand properties
-	childrenProperties := make(map[string]Property)
+	properties := make(map[string]*Model)
 	for k, v := range input.Properties {
 		//fmt.Println("expand properties", k)
-		childrenProperties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), root, allOfs, resolvedDiscriminator)
+		properties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), identifier+"."+k, root, allOfs, resolvedDiscriminator)
 	}
 
 	// expand composition
 	for _, v := range input.AllOf {
 		//fmt.Println("expand composition", v.Ref.String())
-		allOf := expandSchema(v, swaggerPath, fmt.Sprintf("%s.allOf", modelName), root, allOfs, resolvedDiscriminator)
-		if allOf.ChildrenProperties != nil {
-			for k, v := range *allOf.ChildrenProperties {
-				childrenProperties[k] = v
+		allOf := expandSchema(v, swaggerPath, fmt.Sprintf("%s.allOf", modelName), identifier, root, allOfs, resolvedDiscriminator)
+		if allOf.Properties != nil {
+			for k, v := range *allOf.Properties {
+				properties[k] = v
 			}
 		}
 	}
 
-	if len(childrenProperties) > 0 {
+	if len(properties) > 0 {
 		for _, v := range input.SchemaProps.Required {
-			p := childrenProperties[v]
+			p := properties[v]
 			p.IsRequired = true
 		}
-		output.ChildrenProperties = &childrenProperties
+		output.Properties = &properties
 	}
 
 	// expand items
 	if input.Items != nil {
 		//fmt.Println("expand items", input.Items.Schema.Ref.String())
-		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s.[0]", modelName), root, allOfs, resolvedDiscriminator)
-		output.Item = &item
+		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s[]", modelName), identifier+"[]", root, allOfs, resolvedDiscriminator)
+		output.Item = item
 	}
 
-	return output
+	return &output
 }
 
-func Flatten(property Property, path string, lookupTable map[string]bool, discriminatorTable map[string]string) {
+func Flatten(property *Model, path string, lookupTable map[string]bool, discriminatorTable map[string]string) {
 	if property.IsReadOnly {
 		return
 	}
 
 	lookupTable[path] = false
 
-	if property.ChildrenProperties != nil {
-		for k, v := range *property.ChildrenProperties {
+	if property.Properties != nil {
+		for k, v := range *property.Properties {
 			if strings.Contains(k, ".") {
 				k = "\"" + k + "\""
 			}
@@ -190,13 +206,13 @@ func Flatten(property Property, path string, lookupTable map[string]bool, discri
 	}
 
 	if property.Item != nil {
-		Flatten(*property.Item, strings.TrimLeft(path+"[]", "."), lookupTable, discriminatorTable)
+		Flatten(property.Item, strings.TrimLeft(path+"[]", "."), lookupTable, discriminatorTable)
 	}
 
 	if property.Enum != nil {
 		lookupTable[path+"()"] = false
-		for _, v := range *property.Enum {
-			lookupTable[path+"("+v.(string)+")"] = false
+		for k, v := range *property.Enum {
+			lookupTable[path+"("+k+")"] = v
 		}
 	}
 

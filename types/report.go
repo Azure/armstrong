@@ -18,7 +18,7 @@ type Resource struct {
 
 type CoverageReport struct {
 	CommitId  string
-	Coverages map[string]map[string]bool
+	Coverages map[string]*coverage.Model
 }
 
 type DiffReport struct {
@@ -50,36 +50,27 @@ type Error struct {
 	Message string
 }
 
-func (c CoverageReport) AddCoverageFromState(resourceId, swaggerPath, apiVersion string, jsonBody map[string]interface{}) error {
+func (c CoverageReport) AddCoverageFromState(resourceId, swaggerRepoDir, apiVersion string, jsonBody map[string]interface{}, refreshIndex bool) error {
 	var apiPath, modelName, modelSwaggerPath *string
 	var err error
-	if swaggerPath != "" {
-		apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromId(resourceId, swaggerPath)
-		if err != nil {
-			return fmt.Errorf("error find the path for %s in swagger file %s:%s", resourceId, swaggerPath, err)
-		}
-	} else {
-		apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
-		if err != nil {
-			return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
-		}
-	}
 
-	log.Printf("matched API path %s\n", *apiPath)
-
-	expanded, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion, swaggerRepoDir, refreshIndex)
 	if err != nil {
-		return fmt.Errorf("error expand model %s property:%s", *modelName, err)
+		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
+
 	}
 
-	lookupTable := map[string]bool{}
-	if coverageTable, ok := c.Coverages[*apiPath]; ok {
-		lookupTable = coverageTable
+	log.Printf("matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
+
+	if _, ok := c.Coverages[*apiPath]; !ok {
+		expanded, err := coverage.Expand(*modelName, *modelSwaggerPath)
+		if err != nil {
+			return fmt.Errorf("error expand model %s property:%s", *modelName, err)
+		}
+
+		c.Coverages[*apiPath] = expanded
 	}
-	discriminatorTable := map[string]string{}
-	coverage.Flatten(*expanded, "", lookupTable, discriminatorTable)
-	coverage.MarkCovered(jsonBody, "", lookupTable, discriminatorTable)
-	c.Coverages[*apiPath] = lookupTable
+	coverage.MarkCovered(jsonBody, c.Coverages[*apiPath])
 
 	return nil
 }
