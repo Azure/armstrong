@@ -62,15 +62,16 @@ func (c CoverageReport) AddCoverageFromState(resourceId, swaggerRepoDir, apiVers
 
 	log.Printf("matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
 
-	if _, ok := c.Coverages[*apiPath]; !ok {
+	versionedPath := fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion)
+	if _, ok := c.Coverages[versionedPath]; !ok {
 		expanded, err := coverage.Expand(*modelName, *modelSwaggerPath)
 		if err != nil {
 			return fmt.Errorf("error expand model %s property:%s", *modelName, err)
 		}
 
-		c.Coverages[*apiPath] = expanded
+		c.Coverages[versionedPath] = expanded
 	}
-	coverage.MarkCovered(jsonBody, c.Coverages[*apiPath])
+	coverage.MarkCovered(jsonBody, c.Coverages[versionedPath])
 
 	return nil
 }

@@ -13,8 +13,7 @@ import (
 //go:embed coverage_report.md
 var coverageReportTemplate string
 
-func CoverageMarkdownReport(report types.CoverageReport) string {
-
+func CoverageMarkdownReport2(report types.CoverageReport) string {
 	content := coverageReportTemplate
 
 	coverages := []string{}
@@ -34,20 +33,88 @@ func CoverageMarkdownReport(report types.CoverageReport) string {
 	return content
 }
 
-func CoverageMarkdownReport2(report types.CoverageReport) string {
-
+func CoverageMarkdownReport(report types.CoverageReport) string {
 	content := coverageReportTemplate
 
-	coverages := []string{}
+	var coverages []string
 	count := 0
 	for k, v := range report.Coverages {
 		count++
-		var covered, uncovered []string
-		coverage.ComputeCoverage(v)
 
-		coverages = append(coverages, fmt.Sprintf("%v. %s\ncovered:%v total:%v\n\ncovered properties:\n- %s\n\nuncovered properties:\n\n- %s\n",
-			count, k, len(covered), len(covered)+len(uncovered), strings.Join(covered, "\n- "), strings.Join(uncovered, "\n- ")))
+		coverages = append(coverages, fmt.Sprintf("<blockquote><details open><summary>%s</summary><blockquote>\n\n%v\n\n</blockquote></details>\n</blockquote>", k, strings.Join(generateReport(v), "\n\n")))
+
 	}
+	sort.Strings(coverages)
 	content = strings.ReplaceAll(content, "${coverage}", strings.Join(coverages, "\n"))
 	return content
+}
+
+func generateReport(model *coverage.Model) []string {
+	out := make([]string, 0)
+
+	if model.Enum != nil {
+		for k, isCovered := range *model.Enum {
+			out = append(out, getEnumerableReport(k, isCovered))
+		}
+	}
+
+	if model.Bool != nil {
+		for k, isCovered := range *model.Bool {
+			out = append(out, getEnumerableReport(fmt.Sprintf("%v", k), isCovered))
+		}
+	}
+
+	if model.Item != nil {
+		return generateReport(model.Item)
+	}
+
+	if model.Variants != nil {
+		for k, v := range *model.Variants {
+			out = append(out, getChildReport(k, v))
+		}
+	}
+
+	if model.Properties != nil {
+		for k, v := range *model.Properties {
+			if v.IsReadOnly {
+				continue
+			}
+
+			out = append(out, getChildReport(k, v))
+		}
+	}
+
+	return out
+}
+
+func getEnumerableReport(name string, isCovered bool) string {
+	return fmt.Sprintf("- <span %v>value=%v</span>", getStyle(isCovered), name)
+}
+
+func getChildReport(name string, model *coverage.Model) string {
+	childReport := generateReport(model)
+	var color, report string
+
+	color = getStyle(model.IsFullyCovered)
+
+	if model.TotalCount == 1 {
+		// leaf property
+		report = fmt.Sprintf("- <span %v>%v</span>", color, name)
+	} else if len(childReport) == 0 {
+		// leaf property with enum or bool type
+		report = fmt.Sprintf("- <span %v>%v(%v/%v)</span>", color, name, model.CoveredCount, model.TotalCount)
+	} else {
+		// non-leaf property
+		sort.Strings(childReport)
+		report = fmt.Sprintf("<details><summary><span %v>%v(%v/%v)</span></summary><blockquote>\n\n%v\n\n</blockquote></details>", color, name, model.CoveredCount, model.TotalCount, strings.Join(childReport, "\n\n"))
+	}
+
+	return report
+}
+
+func getStyle(isCovered bool) string {
+	if isCovered {
+		return ""
+	}
+	return "style=\"color:red\""
 }

@@ -16,7 +16,7 @@ type Model struct {
 	Enum           *map[string]bool   `json:"Enum,omitempty"`
 	Format         *string            `json:"Format,omitempty"`
 	Identifier     string             `json:"Identifier,omitempty"`
-	IsCovered      bool               `json:"IsCovered"`
+	IsAnyCovered   bool               `json:"IsAnyCovered"`
 	IsFullyCovered bool               `json:"IsFullyCovered,omitempty"`
 	CoveredCount   int                `json:"CoveredCount,omitempty"`
 	TotalCount     int                `json:"TotalCount,omitempty"`

@@ -10,7 +10,7 @@ func MarkCovered(root interface{}, model *Model) {
 		return
 	}
 
-	model.IsCovered = true
+	model.IsAnyCovered = true
 
 	// https://pkg.go.dev/encoding/json#Unmarshal
 	switch value := root.(type) {
@@ -48,13 +48,13 @@ func MarkCovered(root interface{}, model *Model) {
 					break
 				}
 			}
-		}
-
-		for k, v := range value {
-			if _, ok := (*model.Properties)[k]; !ok {
-				log.Println(fmt.Errorf("unexpected key %s in %s", k, model.Identifier))
+		} else {
+			for k, v := range value {
+				if _, ok := (*model.Properties)[k]; !ok {
+					log.Println(fmt.Errorf("unexpected key %s in %s", k, model.Identifier))
+				}
+				MarkCovered(v, (*model.Properties)[k])
 			}
-			MarkCovered(v, (*model.Properties)[k])
 		}
 
 	default:
@@ -66,6 +66,9 @@ func ComputeCoverage(model *Model) (int, int) {
 	if model == nil || model.IsReadOnly {
 		return 0, 0
 	}
+
+	// first assume is leaf property
+	model.TotalCount = 1
 
 	if model.Enum != nil {
 		model.TotalCount = len(*model.Enum)
@@ -107,14 +110,13 @@ func ComputeCoverage(model *Model) (int, int) {
 		}
 	}
 
-	if model.TotalCount == 0 {
-		model.CoveredCount, model.TotalCount = model.CoveredCount+1, model.TotalCount+1
+	if model.TotalCount == 1 && model.IsAnyCovered {
+		model.CoveredCount = 1
 	}
 
-	model.IsFullyCovered = model.CoveredCount == model.TotalCount
+	model.IsFullyCovered = model.TotalCount > 0 && model.CoveredCount == model.TotalCount
 
 	return model.CoveredCount, model.TotalCount
-
 }
 
 func SplitCovered(model *Model, covered, uncovered *[]string) {
@@ -122,7 +124,7 @@ func SplitCovered(model *Model, covered, uncovered *[]string) {
 		return
 	}
 
-	if model.IsCovered {
+	if model.IsAnyCovered {
 		*covered = append(*covered, model.Identifier)
 	} else {
 		*uncovered = append(*uncovered, model.Identifier)

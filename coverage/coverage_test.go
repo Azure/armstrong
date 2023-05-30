@@ -3,10 +3,15 @@ package coverage_test
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"path"
 	"sort"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/coverage"
+	"github.com/ms-henglu/armstrong/report"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 func TestCoverage(t *testing.T) {
@@ -78,4 +83,23 @@ func TestCoverage(t *testing.T) {
 	fmt.Println("uncoveredList", string(out))
 
 	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(covered)+len(uncovered))
+
+	coverageReport := types.CoverageReport{
+		Coverages: map[string]*coverage.Model{
+			*apiPath: model,
+		},
+	}
+
+	storeCoverageReport(coverageReport, ".", "coverage_report.md")
+}
+
+func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
+	if len(coverageReport.Coverages) != 0 {
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.CoverageMarkdownReport(coverageReport)), 0644)
+		if err != nil {
+			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+		} else {
+			log.Printf("[INFO] markdown report saved to %s", reportName)
+		}
+	}
 }
