@@ -11,18 +11,21 @@ import (
 )
 
 type Model struct {
-	Bool          *map[bool]bool     `json:"Bool,omitempty"`
-	Discriminator *string            `json:"Discriminator,omitempty"`
-	Enum          *map[string]bool   `json:"Enum,omitempty"`
-	Format        *string            `json:"Format,omitempty"`
-	Identifier    string             `json:"Identifier,omitempty"`
-	IsCovered     bool               `json:"IsCovered"`
-	IsReadOnly    bool               `json:"IsReadOnly,omitempty"`
-	IsRequired    bool               `json:"IsRequired,omitempty"`
-	Item          *Model             `json:"Item,omitempty"`
-	Properties    *map[string]*Model `json:"Properties,omitempty"`
-	Type          *string            `json:"Type,omitempty"`
-	Variants      *map[string]*Model `json:"Variants,omitempty"`
+	Bool           *map[bool]bool     `json:"Bool,omitempty"`
+	Discriminator  *string            `json:"Discriminator,omitempty"`
+	Enum           *map[string]bool   `json:"Enum,omitempty"`
+	Format         *string            `json:"Format,omitempty"`
+	Identifier     string             `json:"Identifier,omitempty"`
+	IsCovered      bool               `json:"IsCovered"`
+	IsFullyCovered bool               `json:"IsFullyCovered,omitempty"`
+	CoveredCount   int                `json:"CoveredCount,omitempty"`
+	TotalCount     int                `json:"TotalCount,omitempty"`
+	IsReadOnly     bool               `json:"IsReadOnly,omitempty"`
+	IsRequired     bool               `json:"IsRequired,omitempty"`
+	Item           *Model             `json:"Item,omitempty"`
+	Properties     *map[string]*Model `json:"Properties,omitempty"`
+	Type           *string            `json:"Type,omitempty"`
+	Variants       *map[string]*Model `json:"Variants,omitempty"`
 }
 
 func Expand(modelName, swaggerPath string) (*Model, error) {

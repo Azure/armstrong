@@ -62,6 +62,61 @@ func MarkCovered(root interface{}, model *Model) {
 	}
 }
 
+func ComputeCoverage(model *Model) (int, int) {
+	if model == nil || model.IsReadOnly {
+		return 0, 0
+	}
+
+	if model.Enum != nil {
+		model.TotalCount = len(*model.Enum)
+		for _, isCovered := range *model.Enum {
+			if isCovered {
+				model.CoveredCount++
+			}
+		}
+	}
+
+	if model.Bool != nil {
+		model.TotalCount = 2
+		for _, isCovered := range *model.Bool {
+			if isCovered {
+				model.CoveredCount++
+			}
+		}
+	}
+
+	if model.Item != nil {
+		covered, total := ComputeCoverage(model.Item)
+		model.CoveredCount += covered
+		model.TotalCount += total
+	}
+
+	if model.Variants != nil {
+		for _, v := range *model.Variants {
+			covered, total := ComputeCoverage(v)
+			model.CoveredCount += covered
+			model.TotalCount += total
+		}
+	}
+
+	if model.Properties != nil {
+		for _, v := range *model.Properties {
+			covered, total := ComputeCoverage(v)
+			model.CoveredCount += covered
+			model.TotalCount += total
+		}
+	}
+
+	if model.TotalCount == 0 {
+		model.CoveredCount, model.TotalCount = model.CoveredCount+1, model.TotalCount+1
+	}
+
+	model.IsFullyCovered = model.CoveredCount == model.TotalCount
+
+	return model.CoveredCount, model.TotalCount
+
+}
+
 func SplitCovered(model *Model, covered, uncovered *[]string) {
 	if model == nil || model.IsReadOnly {
 		return

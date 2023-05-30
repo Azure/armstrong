@@ -51,6 +51,7 @@ func TestCoverage(t *testing.T) {
 	}
 
 	coverage.MarkCovered(body, model)
+	coverage.ComputeCoverage(model)
 
 	out, err := json.MarshalIndent(*model, "", "\t")
 	if err != nil {
