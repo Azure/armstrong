@@ -152,11 +152,15 @@ func LoadExistingDependencies(workingDir string) []types.Dependency {
 				if labels[0] == "azapi_resource" {
 					pattern = GetAzApiResourceIdPattern(block)
 				}
+				address := strings.Join(labels, ".")
+				if block.Type() == "data" {
+					address = "data." + address
+				}
 				existDeps = append(existDeps, types.Dependency{
 					Pattern:          pattern,
 					ResourceType:     labels[0],
 					ReferredProperty: "id",
-					Address:          strings.Join(labels, "."),
+					Address:          address,
 				})
 			}
 		}
@@ -189,6 +193,7 @@ terraform {
 
 provider "azurerm" {
   features {}
+  skip_provider_registration = false
 }
 
 provider "azapi" {

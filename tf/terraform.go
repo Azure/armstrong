@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -57,12 +56,7 @@ func (t *Terraform) SetLogEnabled(enabled bool) {
 
 func (t *Terraform) Init() error {
 	if _, err := os.Stat(".terraform"); os.IsNotExist(err) {
-		err := t.exec.Init(context.Background(), tfexec.Upgrade(false))
-		// ignore the error if can't find azapi
-		if err != nil && strings.Contains(err.Error(), "Azure/azapi: provider registry registry.terraform.io does not have") {
-			return nil
-		}
-		return err
+		return t.exec.Init(context.Background(), tfexec.Upgrade(false))
 	}
 	log.Println("[INFO] skip running init command because .terraform folder exist")
 	return nil
@@ -94,4 +88,8 @@ func (t *Terraform) Apply() error {
 
 func (t *Terraform) Destroy() error {
 	return t.exec.Destroy(context.TODO())
+}
+
+func (t *Terraform) Validate() (*tfjson.ValidateOutput, error) {
+	return t.exec.Validate(context.TODO())
 }

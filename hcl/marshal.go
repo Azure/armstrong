@@ -23,6 +23,8 @@ func MarshalIndent(input interface{}, prefix, indent string) string {
 			wrapKey := key
 			if strings.Contains(key, "/") || startsWithNumber(key) {
 				wrapKey = fmt.Sprintf(`"%s"`, key)
+			} else if strings.HasPrefix(key, "${") && strings.HasSuffix(key, "}") {
+				wrapKey = fmt.Sprintf("(%s)", key[2:len(key)-1])
 			}
 			content += fmt.Sprintf("%s%s = %s\n", prefix+indent, wrapKey, MarshalIndent(value, prefix+indent, indent))
 		}

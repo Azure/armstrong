@@ -8,8 +8,8 @@ import (
 	"github.com/ms-henglu/armstrong/types"
 )
 
-func TestResource_NewResourceFromExample(t *testing.T) {
-	r, err := resource.NewResourceFromExample("./testdata/example.json")
+func TestDataSource_NewDataSourceFromExample(t *testing.T) {
+	r, err := resource.NewDataSourceFromExample("testdata/data_source_example.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,14 +24,10 @@ func TestResource_NewResourceFromExample(t *testing.T) {
 	if r.ExampleId != expectExampleId {
 		t.Fatalf("expect exampleId %s, but got %s", expectExampleId, r.ExampleId)
 	}
-
-	if len(r.PropertyDependencyMappings) != 16 {
-		t.Fatalf("expect PropertyDependencyMappings length %v, but got %v", 16, len(r.PropertyDependencyMappings))
-	}
 }
 
-func TestResource_RequiredDependencies(t *testing.T) {
-	r, err := resource.NewResourceFromExample("./testdata/example.json")
+func TestDataSource_RequiredDependencies(t *testing.T) {
+	r, err := resource.NewDataSourceFromExample("./testdata/data_source_example.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,8 +43,8 @@ func TestResource_RequiredDependencies(t *testing.T) {
 		ReferredProperty:     "id",
 	})
 	output := r.RequiredDependencies(nil, deps)
-	log.Printf("Test_GetDependencyHcl output: %s", output)
+	log.Printf("TestDataSource_RequiredDependencies output: %v", output)
 	if len(output) == 0 {
-		t.Fatal("expect valid config, but got empty string")
+		t.Fatal("expect required dependencies, but got empty")
 	}
 }
