@@ -3,9 +3,9 @@ package coverage
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"io"
+	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -13,36 +13,20 @@ import (
 	"github.com/magodo/azure-rest-api-index/azidx"
 )
 
-func getIndex(azureRepoDir string, refreshIndex bool) (*azidx.Index, error) {
-	cacheDir, err := os.UserCacheDir()
+func getIndex() (*azidx.Index, error) {
+	indexUrl := "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
+	resp, err := http.Get(indexUrl)
 	if err != nil {
-		log.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("get index file (%v): %v", indexUrl, err)
 	}
 
-	indexFilePath := filepath.Join(cacheDir, "armstrong", "index.json")
-	if _, err := os.Stat(indexFilePath); err != nil || refreshIndex {
-		log.Printf("[INFO]azure-rest-api-specs root dir: %s\n", azureRepoDir)
-		index, err := azidx.BuildIndex(azureRepoDir, "")
-		if err != nil {
-			return nil, err
-		}
+	defer resp.Body.Close()
 
-		b, err := json.MarshalIndent(index, "", "  ")
-		if err != nil {
-			return nil, err
-		}
-
-		err = os.WriteFile(indexFilePath, b, 0644)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	b, err := os.ReadFile(indexFilePath)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading index file %s: %v", indexFilePath, err)
+		return nil, fmt.Errorf("read index file: %v", err)
 	}
+
 	var index azidx.Index
 	if err := json.Unmarshal(b, &index); err != nil {
 		return nil, fmt.Errorf("unmarshal index file: %v", err)
@@ -50,8 +34,8 @@ func getIndex(azureRepoDir string, refreshIndex bool) (*azidx.Index, error) {
 	return &index, nil
 }
 
-func PathPatternFromIdFromIndex(resourceId, apiVersion, azureRepoDir string, refreshIndex bool) (*string, *string, *string, error) {
-	index, err := getIndex(azureRepoDir, refreshIndex)
+func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string, *string, error) {
+	index, err := getIndex()
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -66,8 +50,9 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion, azureRepoDir string, ref
 		return nil, nil, nil, err
 	}
 
-	swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
-	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
+	azureRepoUrl := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
+	swaggerPath := filepath.Join(azureRepoUrl, ref.GetURL().Path)
+	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoUrl + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 
 	if err != nil {
 		return nil, nil, nil, err
@@ -86,6 +71,8 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion, azureRepoDir string, ref
 			}
 		}
 	}
+
+	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
 
 	return &apiPath, &modelName, &swaggerPath, nil
 }

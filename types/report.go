@@ -50,11 +50,11 @@ type Error struct {
 	Message string
 }
 
-func (c CoverageReport) AddCoverageFromState(resourceId, swaggerRepoDir, apiVersion string, jsonBody map[string]interface{}, refreshIndex bool) error {
+func (c CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jsonBody map[string]interface{}) error {
 	var apiPath, modelName, modelSwaggerPath *string
 	var err error
 
-	apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion, swaggerRepoDir, refreshIndex)
+	apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
 	if err != nil {
 		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
 

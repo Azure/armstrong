@@ -258,7 +258,6 @@ func PathPatternFromId(resourceId, swaggerPath string) (*string, *string, *strin
 	spec := doc.Spec()
 
 	var apiPath, modelName string
-	modelSwaggerPath := swaggerPath
 
 	if spec.Paths != nil {
 	pathLoop:
@@ -283,6 +282,7 @@ func PathPatternFromId(resourceId, swaggerPath string) (*string, *string, *strin
 			}
 		}
 	}
+	strings.Replace(swaggerPath, "https:/", "https://", 1)
 
-	return &apiPath, &modelName, &modelSwaggerPath, nil
+	return &apiPath, &modelName, &swaggerPath, nil
 }

@@ -13,8 +13,6 @@ type AutoCommand struct {
 	Ui                cli.Ui
 	path              string
 	workingDir        string
-	swaggerRepoDir    string
-	refreshIndex      bool
 	verbose           bool
 	useRawJsonPayload bool
 	overwrite         bool
@@ -24,8 +22,6 @@ func (c *AutoCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("auto")
 	fs.StringVar(&c.path, "path", "", "filepath of rest api to create arm resource example")
 	fs.StringVar(&c.workingDir, "working-dir", "", "output path to Terraform configuration files")
-	fs.StringVar(&c.swaggerRepoDir, "swagger-path", "", "swagger file relative path for tested resources, for example, specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json")
-	fs.BoolVar(&c.refreshIndex, "refresh-index", false, "whether refresh swagger index file")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in 'body'")
 	fs.BoolVar(&c.overwrite, "overwrite", false, "whether overwrite existing terraform configurations")
@@ -66,11 +62,9 @@ func (c AutoCommand) Execute() int {
 		useRawJsonPayload: c.useRawJsonPayload,
 	}.Execute()
 	TestCommand{
-		Ui:             c.Ui,
-		verbose:        c.verbose,
-		workingDir:     c.workingDir,
-		swaggerRepoDir: c.swaggerRepoDir,
-		refreshIndex:   c.refreshIndex,
+		Ui:         c.Ui,
+		verbose:    c.verbose,
+		workingDir: c.workingDir,
 	}.Execute()
 	CleanupCommand{
 		Ui:         c.Ui,

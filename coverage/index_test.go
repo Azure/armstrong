@@ -13,8 +13,6 @@ func TestIndex(t *testing.T) {
 	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromIdFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		"2022-06-01",
-		"/home/wangta/.cache/armstrong/azure-rest-api-specs/specification",
-		false,
 	)
 	if err != nil {
 		t.Error(err)

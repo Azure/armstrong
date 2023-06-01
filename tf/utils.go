@@ -138,7 +138,7 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State, swaggerRepoDir string, refreshIndex bool) (types.CoverageReport, error) {
+func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, error) {
 	out := types.CoverageReport{
 		Coverages: make(map[string]*coverage.Model, 0),
 	}
@@ -171,7 +171,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerRepoDir string, refr
 			}
 		}
 
-		err := out.AddCoverageFromState(id, swaggerRepoDir, apiVersion, jsonBody, refreshIndex)
+		err := out.AddCoverageFromState(id, apiVersion, jsonBody)
 		if err != nil {
 			return out, err
 		}
