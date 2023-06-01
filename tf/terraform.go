@@ -58,7 +58,7 @@ func (t *Terraform) Init() error {
 	if _, err := os.Stat(".terraform"); os.IsNotExist(err) {
 		return t.exec.Init(context.Background(), tfexec.Upgrade(false))
 	}
-	log.Println("[INFO] skip running init command because .terraform folder exist")
+	log.Println("[INFO] skip running init command because .terraform folder exists")
 	return nil
 }
 
