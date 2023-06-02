@@ -1,826 +1,160 @@
 ## Armstrong Test Coverage
 
-<blockquote><details open><summary>/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Media/mediaServices/{accountName}/transforms/{transformName}</summary><blockquote>
+The coverage is computed based on https://github.com/Azure/azure-rest-api-specs/tree/5b3850bd74011e78b25de17bccd4040c8f4cd7ff
 
-<details><summary><span style="color:red">properties(3/339)</span></summary><blockquote>
+<blockquote><details open><summary>/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}?api-version=2022-06-01</summary><blockquote>
 
-- <span >description</span>
+<details open><summary><span style="color:red">body(22/177)</summary><blockquote>
 
-<details><summary><span style="color:red">outputs(2/337)</span></summary><blockquote>
+- <span >location</span>
 
-<details><summary><span style="color:red">onError(0/2)</span></summary><blockquote>
+- <span style="color:red">tags</span>
 
-- <span style="color:red">value=ContinueJob</span>
+<details><summary><span style="color:red">identity(0/6)</span></summary><blockquote>
 
-- <span style="color:red">value=StopProcessingJob</span>
+- <span style="color:red">userAssignedIdentities</span>
 
-</blockquote></details>
-
-<details><summary><span style="color:red">preset(2/330)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-<details><summary><span style="color:red">#Microsoft.Media.AudioAnalyzerPreset(0/6)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">audioLanguage</span>
-
-- <span style="color:red">experimentalOptions</span>
-
-<details><summary><span style="color:red">mode(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=Basic</span>
-
-- <span style="color:red">value=Standard</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.BuiltInStandardEncoderPreset(2/31)</span></summary><blockquote>
-
-- <span >@odata.type</span>
-
-<details><summary><span style="color:red">configurations(0/12)</span></summary><blockquote>
-
-- <span style="color:red">keyFrameIntervalInSeconds</span>
-
-- <span style="color:red">maxBitrateBps</span>
-
-- <span style="color:red">maxHeight</span>
-
-- <span style="color:red">maxLayers</span>
-
-- <span style="color:red">minBitrateBps</span>
-
-- <span style="color:red">minHeight</span>
-
-<details><summary><span style="color:red">complexity(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Balanced</span>
-
-- <span style="color:red">value=Quality</span>
-
-- <span style="color:red">value=Speed</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">interleaveOutput(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=InterleavedOutput</span>
-
-- <span style="color:red">value=NonInterleavedOutput</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">presetName(1/17)</span></summary><blockquote>
-
-- <span >value=AdaptiveStreaming</span>
-
-- <span style="color:red">value=AACGoodQualityAudio</span>
-
-- <span style="color:red">value=ContentAwareEncoding</span>
-
-- <span style="color:red">value=ContentAwareEncodingExperimental</span>
-
-- <span style="color:red">value=CopyAllBitrateNonInterleaved</span>
-
-- <span style="color:red">value=DDGoodQualityAudio</span>
-
-- <span style="color:red">value=H264MultipleBitrate1080p</span>
-
-- <span style="color:red">value=H264MultipleBitrate720p</span>
-
-- <span style="color:red">value=H264MultipleBitrateSD</span>
-
-- <span style="color:red">value=H264SingleBitrate1080p</span>
-
-- <span style="color:red">value=H264SingleBitrate720p</span>
-
-- <span style="color:red">value=H264SingleBitrateSD</span>
-
-- <span style="color:red">value=H265AdaptiveStreaming</span>
-
-- <span style="color:red">value=H265ContentAwareEncoding</span>
-
-- <span style="color:red">value=H265SingleBitrate1080p</span>
-
-- <span style="color:red">value=H265SingleBitrate4K</span>
-
-- <span style="color:red">value=H265SingleBitrate720p</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.FaceDetectorPreset(0/13)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">experimentalOptions</span>
-
-<details><summary><span style="color:red">blurType(0/5)</span></summary><blockquote>
-
-- <span style="color:red">value=Black</span>
-
-- <span style="color:red">value=Box</span>
-
-- <span style="color:red">value=High</span>
-
-- <span style="color:red">value=Low</span>
-
-- <span style="color:red">value=Med</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">mode(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Analyze</span>
-
-- <span style="color:red">value=Combined</span>
-
-- <span style="color:red">value=Redact</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">resolution(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=SourceResolution</span>
-
-- <span style="color:red">value=StandardDefinition</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.StandardEncoderPreset(0/269)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">experimentalOptions</span>
-
-<details><summary><span style="color:red">codecs(0/170)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">label</span>
-
-<details><summary><span style="color:red">#Microsoft.Media.AacAudio(0/9)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">bitrate</span>
-
-- <span style="color:red">channels</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">samplingRate</span>
-
-<details><summary><span style="color:red">profile(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=AacLc</span>
-
-- <span style="color:red">value=HeAacV1</span>
-
-- <span style="color:red">value=HeAacV2</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.Audio(0/6)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">bitrate</span>
-
-- <span style="color:red">channels</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">samplingRate</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.CopyAudio(0/3)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">label</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.CopyVideo(0/3)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">label</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.DDAudio(0/6)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">bitrate</span>
-
-- <span style="color:red">channels</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">samplingRate</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.H264Video(0/41)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">keyFrameInterval</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">sceneChangeDetection</span>
-
-<details><summary><span style="color:red">complexity(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Balanced</span>
-
-- <span style="color:red">value=Quality</span>
-
-- <span style="color:red">value=Speed</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">layers(0/23)</span></summary><blockquote>
-
-- <span style="color:red">adaptiveBFrame</span>
-
-- <span style="color:red">bFrames</span>
-
-- <span style="color:red">bitrate</span>
-
-- <span style="color:red">bufferWindow</span>
-
-- <span style="color:red">crf</span>
-
-- <span style="color:red">frameRate</span>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">level</span>
-
-- <span style="color:red">maxBitrate</span>
-
-- <span style="color:red">referenceFrames</span>
-
-- <span style="color:red">slices</span>
-
-- <span style="color:red">width</span>
-
-<details><summary><span style="color:red">entropyMode(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=Cabac</span>
-
-- <span style="color:red">value=Cavlc</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">profile(0/6)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Baseline</span>
-
-- <span style="color:red">value=High422</span>
-
-- <span style="color:red">value=High444</span>
-
-- <span style="color:red">value=High</span>
-
-- <span style="color:red">value=Main</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">rateControlMode(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=ABR</span>
-
-- <span style="color:red">value=CBR</span>
-
-- <span style="color:red">value=CRF</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=AutoFit</span>
-
-- <span style="color:red">value=AutoSize</span>
+<details><summary><span style="color:red">type(0/4)</span></summary><blockquote>
 
 - <span style="color:red">value=None</span>
 
-</blockquote></details>
+- <span style="color:red">value=SystemAssigned,UserAssigned</span>
 
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
+- <span style="color:red">value=SystemAssigned</span>
 
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Cfr</span>
-
-- <span style="color:red">value=Passthrough</span>
-
-- <span style="color:red">value=Vfr</span>
+- <span style="color:red">value=UserAssigned</span>
 
 </blockquote></details>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">#Microsoft.Media.H265Video(0/33)</span></summary><blockquote>
+<details><summary><span style="color:red">kind(0/2)</span></summary><blockquote>
 
-- <span style="color:red">@odata.type</span>
+- <span style="color:red">value=Linux</span>
 
-- <span style="color:red">keyFrameInterval</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">sceneChangeDetection</span>
-
-<details><summary><span style="color:red">complexity(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Balanced</span>
-
-- <span style="color:red">value=Quality</span>
-
-- <span style="color:red">value=Speed</span>
+- <span style="color:red">value=Windows</span>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">layers(0/18)</span></summary><blockquote>
+<details><summary><span style="color:red">properties(21/166)</span></summary><blockquote>
 
-- <span style="color:red">adaptiveBFrame</span>
+- <span style="color:red">dataCollectionEndpointId</span>
 
-- <span style="color:red">bFrames</span>
+- <span style="color:red">description</span>
 
-- <span style="color:red">bitrate</span>
+- <span style="color:red">streamDeclarations</span>
 
-- <span style="color:red">bufferWindow</span>
+<details><summary><span style="color:red">dataFlows(4/13)</span></summary><blockquote>
 
-- <span style="color:red">crf</span>
+- <span style="color:red">builtInTransform</span>
 
-- <span style="color:red">frameRate</span>
+- <span style="color:red">destinations(1/2)</span>
 
-- <span style="color:red">height</span>
+- <span style="color:red">outputStream</span>
 
-- <span style="color:red">label</span>
+- <span style="color:red">transformKql</span>
 
-- <span style="color:red">level</span>
+<details><summary><span style="color:red">streams(3/6)</span></summary><blockquote>
 
-- <span style="color:red">maxBitrate</span>
+- <span >value=Microsoft-Perf</span>
 
-- <span style="color:red">referenceFrames</span>
+- <span >value=Microsoft-Syslog</span>
 
-- <span style="color:red">slices</span>
+- <span >value=Microsoft-WindowsEvent</span>
 
-- <span style="color:red">width</span>
+- <span style="color:red">value=Microsoft-Event</span>
 
-<details><summary><span style="color:red">profile(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Main10</span>
-
-- <span style="color:red">value=Main</span>
+- <span style="color:red">value=Microsoft-InsightsMetrics</span>
 
 </blockquote></details>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
+<details><summary><span style="color:red">dataSources(15/115)</span></summary><blockquote>
 
-- <span style="color:red">value=AutoFit</span>
+<details><summary><span style="color:red">dataImports(0/5)</span></summary><blockquote>
 
-- <span style="color:red">value=AutoSize</span>
+<details><summary><span style="color:red">eventHub(0/4)</span></summary><blockquote>
 
-- <span style="color:red">value=None</span>
+- <span style="color:red">consumerGroup</span>
 
-</blockquote></details>
+- <span style="color:red">name</span>
 
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Cfr</span>
-
-- <span style="color:red">value=Passthrough</span>
-
-- <span style="color:red">value=Vfr</span>
+- <span style="color:red">stream</span>
 
 </blockquote></details>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">#Microsoft.Media.Image(0/14)</span></summary><blockquote>
+<details><summary><span style="color:red">extensions(0/13)</span></summary><blockquote>
 
-- <span style="color:red">@odata.type</span>
+- <span style="color:red">extensionName</span>
 
-- <span style="color:red">keyFrameInterval</span>
+- <span style="color:red">extensionSettings</span>
 
-- <span style="color:red">label</span>
+- <span style="color:red">inputDataSources(0/2)</span>
 
-- <span style="color:red">range</span>
+- <span style="color:red">name</span>
 
-- <span style="color:red">start</span>
+<details><summary><span style="color:red">streams(0/6)</span></summary><blockquote>
 
-- <span style="color:red">step</span>
+- <span style="color:red">value=Microsoft-Event</span>
 
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
+- <span style="color:red">value=Microsoft-InsightsMetrics</span>
 
-- <span style="color:red">value=AutoFit</span>
+- <span style="color:red">value=Microsoft-Perf</span>
 
-- <span style="color:red">value=AutoSize</span>
+- <span style="color:red">value=Microsoft-Syslog</span>
 
-- <span style="color:red">value=None</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Cfr</span>
-
-- <span style="color:red">value=Passthrough</span>
-
-- <span style="color:red">value=Vfr</span>
+- <span style="color:red">value=Microsoft-WindowsEvent</span>
 
 </blockquote></details>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">#Microsoft.Media.JpgImage(0/21)</span></summary><blockquote>
+<details><summary><span style="color:red">iisLogs(0/7)</span></summary><blockquote>
 
-- <span style="color:red">@odata.type</span>
+- <span style="color:red">logDirectories(0/2)</span>
 
-- <span style="color:red">keyFrameInterval</span>
+- <span style="color:red">name</span>
 
-- <span style="color:red">label</span>
-
-- <span style="color:red">range</span>
-
-- <span style="color:red">spriteColumn</span>
-
-- <span style="color:red">start</span>
-
-- <span style="color:red">step</span>
-
-<details><summary><span style="color:red">layers(0/6)</span></summary><blockquote>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">quality</span>
-
-- <span style="color:red">width</span>
+- <span style="color:red">streams(0/2)</span>
 
 </blockquote></details>
 
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
+<details><summary><span style="color:red">logFiles(0/19)</span></summary><blockquote>
 
-- <span style="color:red">value=AutoFit</span>
+- <span style="color:red">filePatterns(0/2)</span>
 
-- <span style="color:red">value=AutoSize</span>
+- <span style="color:red">format</span>
 
-- <span style="color:red">value=None</span>
+- <span style="color:red">name</span>
 
-</blockquote></details>
+- <span style="color:red">streams(0/2)</span>
 
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
+<details><summary><span style="color:red">settings(0/11)</span></summary><blockquote>
 
-- <span style="color:red">value=Auto</span>
+<details><summary><span style="color:red">text(0/10)</span></summary><blockquote>
 
-- <span style="color:red">value=Cfr</span>
+<details><summary><span style="color:red">recordStartTimestampFormat(0/9)</span></summary><blockquote>
 
-- <span style="color:red">value=Passthrough</span>
+- <span style="color:red">value=ISO 8601</span>
 
-- <span style="color:red">value=Vfr</span>
+- <span style="color:red">value=M/D/YYYY HH:MM:SS AM/PM</span>
 
-</blockquote></details>
+- <span style="color:red">value=MMM d hh:mm:ss</span>
 
-</blockquote></details>
+- <span style="color:red">value=Mon DD, YYYY HH:MM:SS</span>
 
-<details><summary><span style="color:red">#Microsoft.Media.PngImage(0/19)</span></summary><blockquote>
+- <span style="color:red">value=YYYY-MM-DD HH:MM:SS</span>
 
-- <span style="color:red">@odata.type</span>
+- <span style="color:red">value=dd/MMM/yyyy:HH:mm:ss zzz</span>
 
-- <span style="color:red">keyFrameInterval</span>
+- <span style="color:red">value=ddMMyy HH:mm:ss</span>
 
-- <span style="color:red">label</span>
+- <span style="color:red">value=yyMMdd HH:mm:ss</span>
 
-- <span style="color:red">range</span>
-
-- <span style="color:red">start</span>
-
-- <span style="color:red">step</span>
-
-<details><summary><span style="color:red">layers(0/5)</span></summary><blockquote>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">label</span>
-
-- <span style="color:red">width</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=AutoFit</span>
-
-- <span style="color:red">value=AutoSize</span>
-
-- <span style="color:red">value=None</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Cfr</span>
-
-- <span style="color:red">value=Passthrough</span>
-
-- <span style="color:red">value=Vfr</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.Video(0/11)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">keyFrameInterval</span>
-
-- <span style="color:red">label</span>
-
-<details><summary><span style="color:red">stretchMode(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=AutoFit</span>
-
-- <span style="color:red">value=AutoSize</span>
-
-- <span style="color:red">value=None</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">syncMode(0/4)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=Cfr</span>
-
-- <span style="color:red">value=Passthrough</span>
-
-- <span style="color:red">value=Vfr</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">filters(0/62)</span></summary><blockquote>
-
-<details><summary><span style="color:red">crop(0/5)</span></summary><blockquote>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">left</span>
-
-- <span style="color:red">top</span>
-
-- <span style="color:red">width</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">deinterlace(0/6)</span></summary><blockquote>
-
-<details><summary><span style="color:red">mode(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=AutoPixelAdaptive</span>
-
-- <span style="color:red">value=Off</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">parity(0/3)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=BottomFieldFirst</span>
-
-- <span style="color:red">value=TopFieldFirst</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">fadeIn(0/4)</span></summary><blockquote>
-
-- <span style="color:red">duration</span>
-
-- <span style="color:red">fadeColor</span>
-
-- <span style="color:red">start</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">fadeOut(0/4)</span></summary><blockquote>
-
-- <span style="color:red">duration</span>
-
-- <span style="color:red">fadeColor</span>
-
-- <span style="color:red">start</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">overlays(0/36)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">audioGainLevel</span>
-
-- <span style="color:red">end</span>
-
-- <span style="color:red">fadeInDuration</span>
-
-- <span style="color:red">fadeOutDuration</span>
-
-- <span style="color:red">inputLabel</span>
-
-- <span style="color:red">start</span>
-
-<details><summary><span style="color:red">#Microsoft.Media.AudioOverlay(0/8)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">audioGainLevel</span>
-
-- <span style="color:red">end</span>
-
-- <span style="color:red">fadeInDuration</span>
-
-- <span style="color:red">fadeOutDuration</span>
-
-- <span style="color:red">inputLabel</span>
-
-- <span style="color:red">start</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.VideoOverlay(0/19)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">audioGainLevel</span>
-
-- <span style="color:red">end</span>
-
-- <span style="color:red">fadeInDuration</span>
-
-- <span style="color:red">fadeOutDuration</span>
-
-- <span style="color:red">inputLabel</span>
-
-- <span style="color:red">opacity</span>
-
-- <span style="color:red">start</span>
-
-<details><summary><span style="color:red">cropRectangle(0/5)</span></summary><blockquote>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">left</span>
-
-- <span style="color:red">top</span>
-
-- <span style="color:red">width</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">position(0/5)</span></summary><blockquote>
-
-- <span style="color:red">height</span>
-
-- <span style="color:red">left</span>
-
-- <span style="color:red">top</span>
-
-- <span style="color:red">width</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">rotation(0/6)</span></summary><blockquote>
-
-- <span style="color:red">value=Auto</span>
-
-- <span style="color:red">value=None</span>
-
-- <span style="color:red">value=Rotate0</span>
-
-- <span style="color:red">value=Rotate180</span>
-
-- <span style="color:red">value=Rotate270</span>
-
-- <span style="color:red">value=Rotate90</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">formats(0/34)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-<details><summary><span style="color:red">#Microsoft.Media.ImageFormat(0/3)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.JpgFormat(0/3)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.Mp4Format(0/7)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-<details><summary><span style="color:red">outputFiles(0/4)</span></summary><blockquote>
-
-- <span style="color:red">labels(0/2)</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.MultiBitrateFormat(0/7)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-<details><summary><span style="color:red">outputFiles(0/4)</span></summary><blockquote>
-
-- <span style="color:red">labels(0/2)</span>
-
-</blockquote></details>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.PngFormat(0/3)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">#Microsoft.Media.TransportStreamFormat(0/7)</span></summary><blockquote>
-
-- <span style="color:red">@odata.type</span>
-
-- <span style="color:red">filenamePattern</span>
-
-<details><summary><span style="color:red">outputFiles(0/4)</span></summary><blockquote>
-
-- <span style="color:red">labels(0/2)</span>
+- <span style="color:red">value=yyyy-MM-ddTHH:mm:ssK</span>
 
 </blockquote></details>
 
@@ -830,43 +164,221 @@
 
 </blockquote></details>
 
-<details><summary><span style="color:red">#Microsoft.Media.VideoAnalyzerPreset(0/9)</span></summary><blockquote>
+<details><summary><span style="color:red">performanceCounters(4/9)</span></summary><blockquote>
 
-- <span style="color:red">@odata.type</span>
+- <span >name</span>
 
-- <span style="color:red">audioLanguage</span>
+- <span >samplingFrequencyInSeconds</span>
 
-- <span style="color:red">experimentalOptions</span>
+- <span style="color:red">counterSpecifiers(1/2)</span>
 
-<details><summary><span style="color:red">insightsToExtract(0/3)</span></summary><blockquote>
+<details><summary><span style="color:red">streams(1/3)</span></summary><blockquote>
 
-- <span style="color:red">value=AllInsights</span>
+- <span >value=Microsoft-Perf</span>
 
-- <span style="color:red">value=AudioInsightsOnly</span>
-
-- <span style="color:red">value=VideoInsightsOnly</span>
-
-</blockquote></details>
-
-<details><summary><span style="color:red">mode(0/2)</span></summary><blockquote>
-
-- <span style="color:red">value=Basic</span>
-
-- <span style="color:red">value=Standard</span>
+- <span style="color:red">value=Microsoft-InsightsMetrics</span>
 
 </blockquote></details>
 
 </blockquote></details>
 
+<details><summary><span style="color:red">platformTelemetry(0/5)</span></summary><blockquote>
+
+- <span style="color:red">name</span>
+
+- <span style="color:red">streams(0/2)</span>
+
 </blockquote></details>
 
-<details><summary><span style="color:red">relativePriority(0/3)</span></summary><blockquote>
+<details><summary><span style="color:red">prometheusForwarder(0/6)</span></summary><blockquote>
 
-- <span style="color:red">value=High</span>
+- <span style="color:red">labelIncludeFilter</span>
 
-- <span style="color:red">value=Low</span>
+- <span style="color:red">name</span>
 
-- <span style="color:red">value=Normal</span>
+<details><summary><span style="color:red">streams(0/2)</span></summary><blockquote>
+
+- <span style="color:red">value=Microsoft-PrometheusMetrics</span>
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">syslog(8/37)</span></summary><blockquote>
+
+- <span >name</span>
+
+<details><summary><span style="color:red">facilityNames(2/22)</span></summary><blockquote>
+
+- <span >value=cron</span>
+
+- <span >value=syslog</span>
+
+- <span style="color:red">value=*</span>
+
+- <span style="color:red">value=auth</span>
+
+- <span style="color:red">value=authpriv</span>
+
+- <span style="color:red">value=daemon</span>
+
+- <span style="color:red">value=kern</span>
+
+- <span style="color:red">value=local0</span>
+
+- <span style="color:red">value=local1</span>
+
+- <span style="color:red">value=local2</span>
+
+- <span style="color:red">value=local3</span>
+
+- <span style="color:red">value=local4</span>
+
+- <span style="color:red">value=local5</span>
+
+- <span style="color:red">value=local6</span>
+
+- <span style="color:red">value=local7</span>
+
+- <span style="color:red">value=lpr</span>
+
+- <span style="color:red">value=mail</span>
+
+- <span style="color:red">value=mark</span>
+
+- <span style="color:red">value=news</span>
+
+- <span style="color:red">value=user</span>
+
+- <span style="color:red">value=uucp</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">logLevels(4/10)</span></summary><blockquote>
+
+- <span >value=Alert</span>
+
+- <span >value=Critical</span>
+
+- <span >value=Debug</span>
+
+- <span >value=Emergency</span>
+
+- <span style="color:red">value=*</span>
+
+- <span style="color:red">value=Error</span>
+
+- <span style="color:red">value=Info</span>
+
+- <span style="color:red">value=Notice</span>
+
+- <span style="color:red">value=Warning</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">streams(1/2)</span></summary><blockquote>
+
+- <span >value=Microsoft-Syslog</span>
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">windowsEventLogs(3/8)</span></summary><blockquote>
+
+- <span >name</span>
+
+- <span style="color:red">xPathQueries(1/2)</span>
+
+<details><summary><span style="color:red">streams(1/3)</span></summary><blockquote>
+
+- <span >value=Microsoft-WindowsEvent</span>
+
+- <span style="color:red">value=Microsoft-Event</span>
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">windowsFirewallLogs(0/5)</span></summary><blockquote>
+
+- <span style="color:red">name</span>
+
+- <span style="color:red">streams(0/2)</span>
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">destinations(2/34)</span></summary><blockquote>
+
+<details><summary><span style="color:red">azureMonitorMetrics(0/2)</span></summary><blockquote>
+
+- <span style="color:red">name</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">eventHubs(0/4)</span></summary><blockquote>
+
+- <span style="color:red">eventHubResourceId</span>
+
+- <span style="color:red">name</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">eventHubsDirect(0/4)</span></summary><blockquote>
+
+- <span style="color:red">eventHubResourceId</span>
+
+- <span style="color:red">name</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">logAnalytics(2/4)</span></summary><blockquote>
+
+- <span >name</span>
+
+- <span >workspaceResourceId</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">monitoringAccounts(0/4)</span></summary><blockquote>
+
+- <span style="color:red">accountResourceId</span>
+
+- <span style="color:red">name</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">storageAccounts(0/5)</span></summary><blockquote>
+
+- <span style="color:red">containerName</span>
+
+- <span style="color:red">name</span>
+
+- <span style="color:red">storageAccountResourceId</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">storageBlobsDirect(0/5)</span></summary><blockquote>
+
+- <span style="color:red">containerName</span>
+
+- <span style="color:red">name</span>
+
+- <span style="color:red">storageAccountResourceId</span>
+
+</blockquote></details>
+
+<details><summary><span style="color:red">storageTablesDirect(0/5)</span></summary><blockquote>
+
+- <span style="color:red">name</span>
+
+- <span style="color:red">storageAccountResourceId</span>
+
+- <span style="color:red">tableName</span>
+
+</blockquote></details>
 
 </blockquote></details>
 

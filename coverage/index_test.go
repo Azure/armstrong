@@ -7,17 +7,19 @@ import (
 	"testing"
 
 	"github.com/ms-henglu/armstrong/coverage"
+	"github.com/ms-henglu/armstrong/types"
 )
 
 func TestIndex(t *testing.T) {
-	apiPath, modelName, modelSwaggerPath, err := coverage.PathPatternFromIdFromIndex(
+	apiVersion := "2022-06-01"
+	apiPath, modelName, modelSwaggerPath, commitId, err := coverage.PathPatternFromIdFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
-		"2022-06-01",
+		apiVersion,
 	)
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(*apiPath, *modelName, *modelSwaggerPath)
+	fmt.Println(*apiPath, *modelName, *modelSwaggerPath, *commitId)
 
 	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
@@ -116,7 +118,7 @@ func TestIndex(t *testing.T) {
 		"destinations": {
 		  "logAnalytics": [
 			{
-			  "workspaceResourceId": "/subscriptions/703362b3-f278-4e4b-9179-c76eaf41ffc2/resourceGroups/myResourceGroup/providers/Microsoft.OperationalInsights/workspaces/centralTeamWorkspace",
+			  "workspaceResourceId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.OperationalInsights/workspaces/centralTeamWorkspace",
 			  "name": "centralWorkspace"
 			}
 		  ]
@@ -164,5 +166,15 @@ func TestIndex(t *testing.T) {
 	fmt.Println("uncoveredList", string(out))
 
 	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(covered)+len(uncovered))
+
+	coverage.ComputeCoverage(model)
+	coverageReport := types.CoverageReport{
+		CommitId: *commitId,
+		Coverages: map[string]*coverage.Model{
+			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+		},
+	}
+
+	storeCoverageReport(coverageReport, ".", "coverage_report.md")
 
 }

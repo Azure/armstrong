@@ -41,10 +41,23 @@ func CoverageMarkdownReport(report types.CoverageReport) string {
 	for k, v := range report.Coverages {
 		count++
 
-		coverages = append(coverages, fmt.Sprintf("<blockquote><details open><summary>%s</summary><blockquote>\n\n%v\n\n</blockquote></details>\n</blockquote>", k, strings.Join(generateReport(v), "\n\n")))
+		reportDetail := generateReport(v)
+		sort.Strings(reportDetail)
+
+		coverages = append(coverages, fmt.Sprintf(`<blockquote><details open><summary>%s</summary><blockquote>
+
+<details open><summary><span %v>body(%v/%v)</summary><blockquote>
+
+%v
+
+</blockquote></details>
+
+</blockquote></details>
+</blockquote>`, k, getStyle(v.IsFullyCovered), v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
 
 	}
 	sort.Strings(coverages)
+	content = strings.ReplaceAll(content, "${specs-commit-id}", report.CommitId)
 	content = strings.ReplaceAll(content, "${coverage}", strings.Join(coverages, "\n"))
 	return content
 }
@@ -106,14 +119,18 @@ func getChildReport(name string, model *coverage.Model) string {
 	} else {
 		// non-leaf property
 		sort.Strings(childReport)
-		report = fmt.Sprintf("<details><summary><span %v>%v(%v/%v)</span></summary><blockquote>\n\n%v\n\n</blockquote></details>", color, name, model.CoveredCount, model.TotalCount, strings.Join(childReport, "\n\n"))
+		report = fmt.Sprintf(`<details><summary><span %v>%v(%v/%v)</span></summary><blockquote>
+
+%v
+
+</blockquote></details>`, color, name, model.CoveredCount, model.TotalCount, strings.Join(childReport, "\n\n"))
 	}
 
 	return report
 }
 
-func getStyle(isCovered bool) string {
-	if isCovered {
+func getStyle(isFullyCovered bool) string {
+	if isFullyCovered {
 		return ""
 	}
 	return "style=\"color:red\""

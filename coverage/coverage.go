@@ -16,21 +16,27 @@ func MarkCovered(root interface{}, model *Model) {
 	switch value := root.(type) {
 	case string:
 		if model.Enum != nil {
+			if model.Enum == nil {
+				log.Printf("[Error] unexpected enum %s in %s\n", value, model.Identifier)
+			}
 			if _, ok := (*model.Enum)[value]; !ok {
-				log.Println(fmt.Errorf("unexpected enum value %s in %s", value, model.Identifier))
+				log.Printf("[WARN] unexpected enum %s in %s\n", value, model.Identifier)
 			}
 
 			(*model.Enum)[value] = true
 		}
 
 	case bool:
+		if model.Bool == nil {
+			log.Printf("[Error] unexpected bool %v in %v\n", value, model.Identifier)
+		}
 		(*model.Bool)[value] = true
 
 	case float64:
 
 	case []interface{}:
 		if model.Item == nil {
-			log.Println(fmt.Errorf("unexpected array in %s", model.Identifier))
+			log.Printf("[Error] unexpected array in %s\n", model.Identifier)
 		}
 
 		for _, item := range value {
@@ -41,20 +47,30 @@ func MarkCovered(root interface{}, model *Model) {
 		if model.Discriminator != nil {
 			for k, v := range value {
 				if k == *model.Discriminator {
+					if model.Variants == nil {
+						log.Printf("[Error] unexpected discriminator %s in %s\n", k, model.Identifier)
+					}
 					if _, ok := (*model.Variants)[v.(string)]; !ok {
-						log.Println(fmt.Errorf("unexpected variants %s in %s", v.(string), model.Identifier))
+						log.Printf("[Error] unexpected variant %s in %s\n", v.(string), model.Identifier)
 					}
 					MarkCovered(value, (*model.Variants)[v.(string)])
 					break
 				}
 			}
-		} else {
-			for k, v := range value {
-				if _, ok := (*model.Properties)[k]; !ok {
-					log.Println(fmt.Errorf("unexpected key %s in %s", k, model.Identifier))
+		}
+		for k, v := range value {
+			if model.Properties == nil {
+				if !model.HasAdditionalProperties && model.Discriminator == nil {
+					log.Printf("[Error] unexpected key %s in %s\n", k, model.Identifier)
 				}
-				MarkCovered(v, (*model.Properties)[k])
+				return
 			}
+			if _, ok := (*model.Properties)[k]; !ok {
+				if !model.HasAdditionalProperties && model.Discriminator == nil {
+					log.Printf("[Error] unexpected key %s in %s\n", k, model.Identifier)
+				}
+			}
+			MarkCovered(v, (*model.Properties)[k])
 		}
 
 	default:

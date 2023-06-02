@@ -50,17 +50,19 @@ type Error struct {
 	Message string
 }
 
-func (c CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jsonBody map[string]interface{}) error {
-	var apiPath, modelName, modelSwaggerPath *string
+func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jsonBody map[string]interface{}) error {
+	var apiPath, modelName, modelSwaggerPath, commitId *string
 	var err error
 
-	apiPath, modelName, modelSwaggerPath, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
+	apiPath, modelName, modelSwaggerPath, commitId, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
 	if err != nil {
 		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
 
 	}
 
-	log.Printf("matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
+	c.CommitId = *commitId
+
+	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
 
 	versionedPath := fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion)
 	if _, ok := c.Coverages[versionedPath]; !ok {
@@ -72,6 +74,7 @@ func (c CoverageReport) AddCoverageFromState(resourceId, apiVersion string, json
 		c.Coverages[versionedPath] = expanded
 	}
 	coverage.MarkCovered(jsonBody, c.Coverages[versionedPath])
+	coverage.ComputeCoverage(c.Coverages[versionedPath])
 
 	return nil
 }

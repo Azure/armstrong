@@ -84,13 +84,6 @@ func TestCoverage(t *testing.T) {
 
 	fmt.Printf("covered:%v, uncoverd: %v, total: %v\n", len(covered), len(uncovered), len(covered)+len(uncovered))
 
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			*apiPath: model,
-		},
-	}
-
-	storeCoverageReport(coverageReport, ".", "coverage_report.md")
 }
 
 func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {

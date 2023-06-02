@@ -11,21 +11,22 @@ import (
 )
 
 type Model struct {
-	Bool           *map[bool]bool     `json:"Bool,omitempty"`
-	Discriminator  *string            `json:"Discriminator,omitempty"`
-	Enum           *map[string]bool   `json:"Enum,omitempty"`
-	Format         *string            `json:"Format,omitempty"`
-	Identifier     string             `json:"Identifier,omitempty"`
-	IsAnyCovered   bool               `json:"IsAnyCovered"`
-	IsFullyCovered bool               `json:"IsFullyCovered,omitempty"`
-	CoveredCount   int                `json:"CoveredCount,omitempty"`
-	TotalCount     int                `json:"TotalCount,omitempty"`
-	IsReadOnly     bool               `json:"IsReadOnly,omitempty"`
-	IsRequired     bool               `json:"IsRequired,omitempty"`
-	Item           *Model             `json:"Item,omitempty"`
-	Properties     *map[string]*Model `json:"Properties,omitempty"`
-	Type           *string            `json:"Type,omitempty"`
-	Variants       *map[string]*Model `json:"Variants,omitempty"`
+	Bool                    *map[bool]bool     `json:"Bool,omitempty"`
+	Discriminator           *string            `json:"Discriminator,omitempty"`
+	Enum                    *map[string]bool   `json:"Enum,omitempty"`
+	Format                  *string            `json:"Format,omitempty"`
+	Identifier              string             `json:"Identifier,omitempty"`
+	IsAnyCovered            bool               `json:"IsAnyCovered"`
+	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
+	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
+	CoveredCount            int                `json:"CoveredCount,omitempty"`
+	TotalCount              int                `json:"TotalCount,omitempty"`
+	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
+	IsRequired              bool               `json:"IsRequired,omitempty"`
+	Item                    *Model             `json:"Item,omitempty"`
+	Properties              *map[string]*Model `json:"Properties,omitempty"`
+	Type                    *string            `json:"Type,omitempty"`
+	Variants                *map[string]*Model `json:"Variants,omitempty"`
 }
 
 func Expand(modelName, swaggerPath string) (*Model, error) {
@@ -43,14 +44,14 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 
 	allOfs := map[string][]string{}
 	for k, v := range spec.Definitions {
-		if v.VendorExtensible.Extensions["x-ms-discriminator-value"] != nil && len(v.SchemaProps.AllOf) > 0 {
-			for _, v2 := range v.SchemaProps.AllOf {
+		if v.Extensions["x-ms-discriminator-value"] != nil && len(v.AllOf) > 0 {
+			for _, v2 := range v.AllOf {
 				if v2.Ref.String() != "" {
 					resolved, err := openapispec.ResolveRefWithBase(spec, &v2.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
 					if err != nil {
 						panic(err)
 					}
-					if resolved.VendorExtensible.Extensions["x-ms-discriminator-value"] != nil || resolved.SwaggerSchemaProps.Discriminator != "" {
+					if resolved.Extensions["x-ms-discriminator-value"] != nil || resolved.Discriminator != "" {
 						modelName, _ := SchemaInfoFromRef(v2.Ref)
 						if allOfs[modelName] == nil {
 							allOfs[modelName] = []string{k}
@@ -73,9 +74,9 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 
 	//fmt.Println("expand schema for", swaggerPath, modelName)
 
-	if len(input.SchemaProps.Type) > 0 {
-		output.Type = &input.SchemaProps.Type[0]
-		if *output.Type == "bool" {
+	if len(input.Type) > 0 {
+		output.Type = &input.Type[0]
+		if *output.Type == "boolean" {
 			boolMap := make(map[bool]bool)
 			boolMap[true] = false
 			boolMap[false] = false
@@ -83,15 +84,22 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 			output.Bool = &boolMap
 		}
 	}
-	if input.SchemaProps.Format != "" {
-		output.Format = &input.SchemaProps.Format
+
+	if input.AdditionalProperties != nil {
+		output.HasAdditionalProperties = true
 	}
-	if input.SwaggerSchemaProps.ReadOnly {
-		output.IsReadOnly = input.SwaggerSchemaProps.ReadOnly
+
+	if input.Format != "" {
+		output.Format = &input.Format
 	}
-	if input.SchemaProps.Enum != nil {
+
+	if input.ReadOnly {
+		output.IsReadOnly = input.ReadOnly
+	}
+
+	if input.Enum != nil {
 		enumMap := make(map[string]bool)
-		for _, v := range input.SchemaProps.Enum {
+		for _, v := range input.Enum {
 			enumMap[v.(string)] = false
 		}
 
@@ -123,7 +131,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 	}
 
 	// expand variants
-	if input.SwaggerSchemaProps.Discriminator != "" {
+	if input.Discriminator != "" {
 		_, hasResolvedDiscriminator := resolvedDiscriminator[modelName]
 		if !hasResolvedDiscriminator {
 			resolvedDiscriminator[modelName] = nil
@@ -135,7 +143,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 				vars2 := []string{}
 				for _, v2 := range vars {
 					schema2 := root.(*openapispec.Swagger).Definitions[v2]
-					variantName := schema2.VendorExtensible.Extensions["x-ms-discriminator-value"].(string)
+					variantName := schema2.Extensions["x-ms-discriminator-value"].(string)
 					resolved := expandSchema(schema2, swaggerPath, v2, identifier+"{"+variantName+"}", root, allOfs, resolvedDiscriminator)
 					variants[variantName] = resolved
 					if vv, ok := allOfs[v2]; ok {
@@ -144,7 +152,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 				}
 				vars = vars2
 			}
-			output.Discriminator = &input.SwaggerSchemaProps.Discriminator
+			output.Discriminator = &input.Discriminator
 			output.Variants = &variants
 		}
 	}
@@ -168,7 +176,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 	}
 
 	if len(properties) > 0 {
-		for _, v := range input.SchemaProps.Required {
+		for _, v := range input.Required {
 			p := properties[v]
 			p.IsRequired = true
 		}
