@@ -1,6 +1,6 @@
 ## Armstrong Test Coverage
 
-The coverage is computed based on https://github.com/Azure/azure-rest-api-specs/tree/5b3850bd74011e78b25de17bccd4040c8f4cd7ff
+The coverage is computed based on https://github.com/Azure/azure-rest-api-specs/tree/1c598e61adeff6930d8bce5dac374b3f8c6f1c54
 
 <blockquote><details open><summary>/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}?api-version=2022-06-01</summary><blockquote>
 

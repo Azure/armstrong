@@ -3,6 +3,7 @@ package coverage
 import (
 	"fmt"
 	"log"
+	"strconv"
 )
 
 func MarkCovered(root interface{}, model *Model) {
@@ -30,7 +31,7 @@ func MarkCovered(root interface{}, model *Model) {
 		if model.Bool == nil {
 			log.Printf("[Error] unexpected bool %v in %v\n", value, model.Identifier)
 		}
-		(*model.Bool)[value] = true
+		(*model.Bool)[strconv.FormatBool(value)] = true
 
 	case float64:
 
@@ -175,9 +176,9 @@ func SplitCovered(model *Model, covered, uncovered *[]string) {
 	if model.Bool != nil {
 		for k, isCovered := range *model.Bool {
 			if isCovered {
-				*covered = append(*covered, fmt.Sprintf("%s(%t)", model.Identifier, k))
+				*covered = append(*covered, fmt.Sprintf("%s(%v)", model.Identifier, k))
 			} else {
-				*uncovered = append(*uncovered, fmt.Sprintf("%s(%t)", model.Identifier, k))
+				*uncovered = append(*uncovered, fmt.Sprintf("%s(%v)", model.Identifier, k))
 			}
 		}
 	}

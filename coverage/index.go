@@ -14,7 +14,7 @@ import (
 	"github.com/magodo/azure-rest-api-index/azidx"
 )
 
-func getIndex() (*azidx.Index, error) {
+func GetIndex() (*azidx.Index, error) {
 	indexUrl := "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
 	resp, err := http.Get(indexUrl)
 	if err != nil {
@@ -36,7 +36,7 @@ func getIndex() (*azidx.Index, error) {
 }
 
 func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string, *string, *string, error) {
-	index, err := getIndex()
+	index, err := GetIndex()
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

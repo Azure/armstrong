@@ -11,7 +11,7 @@ import (
 )
 
 type Model struct {
-	Bool                    *map[bool]bool     `json:"Bool,omitempty"`
+	Bool                    *map[string]bool   `json:"Bool,omitempty"`
 	Discriminator           *string            `json:"Discriminator,omitempty"`
 	Enum                    *map[string]bool   `json:"Enum,omitempty"`
 	Format                  *string            `json:"Format,omitempty"`
@@ -77,9 +77,9 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 	if len(input.Type) > 0 {
 		output.Type = &input.Type[0]
 		if *output.Type == "boolean" {
-			boolMap := make(map[bool]bool)
-			boolMap[true] = false
-			boolMap[false] = false
+			boolMap := make(map[string]bool)
+			boolMap["true"] = false
+			boolMap["false"] = false
 
 			output.Bool = &boolMap
 		}
