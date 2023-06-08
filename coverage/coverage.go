@@ -20,11 +20,13 @@ func MarkCovered(root interface{}, model *Model) {
 			if model.Enum == nil {
 				log.Printf("[Error] unexpected enum %s in %s\n", value, model.Identifier)
 			}
-			if _, ok := (*model.Enum)[value]; !ok {
+
+			strValue := fmt.Sprintf("%v", value)
+			if _, ok := (*model.Enum)[strValue]; !ok {
 				log.Printf("[WARN] unexpected enum %s in %s\n", value, model.Identifier)
 			}
 
-			(*model.Enum)[value] = true
+			(*model.Enum)[strValue] = true
 		}
 
 	case bool:
