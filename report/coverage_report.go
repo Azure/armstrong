@@ -21,7 +21,7 @@ func CoverageMarkdownReport2(report types.CoverageReport) string {
 	for k, v := range report.Coverages {
 		count++
 		var covered, uncovered []string
-		coverage.SplitCovered(v, &covered, &uncovered)
+		v.SplitCovered(&covered, &uncovered)
 
 		sort.Strings(covered)
 		sort.Strings(uncovered)
@@ -46,7 +46,7 @@ func CoverageMarkdownReport(report types.CoverageReport) string {
 
 		coverages = append(coverages, fmt.Sprintf(`<blockquote><details open><summary>%s</summary><blockquote>
 
-<details open><summary><span %v>body(%v/%v)</summary><blockquote>
+<details open><summary><span %v>body(%v/%v)</span></summary><blockquote>
 
 %v
 

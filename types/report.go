@@ -54,7 +54,7 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jso
 	var apiPath, modelName, modelSwaggerPath, commitId *string
 	var err error
 
-	apiPath, modelName, modelSwaggerPath, commitId, err = coverage.PathPatternFromIdFromIndex(resourceId, apiVersion)
+	apiPath, modelName, modelSwaggerPath, commitId, err = coverage.GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {
 		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
 
@@ -73,8 +73,8 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jso
 
 		c.Coverages[versionedPath] = expanded
 	}
-	coverage.MarkCovered(jsonBody, c.Coverages[versionedPath])
-	coverage.ComputeCoverage(c.Coverages[versionedPath])
+	c.Coverages[versionedPath].MarkCovered(jsonBody)
+	c.Coverages[versionedPath].CountCoverage()
 
 	return nil
 }

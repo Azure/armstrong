@@ -2,7 +2,6 @@ package coverage
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -11,24 +10,7 @@ import (
 	openapispec "github.com/go-openapi/spec"
 )
 
-type Model struct {
-	Bool                    *map[string]bool   `json:"Bool,omitempty"`
-	Discriminator           *string            `json:"Discriminator,omitempty"`
-	Enum                    *map[string]bool   `json:"Enum,omitempty"`
-	Format                  *string            `json:"Format,omitempty"`
-	Identifier              string             `json:"Identifier,omitempty"`
-	IsAnyCovered            bool               `json:"IsAnyCovered"`
-	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
-	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
-	CoveredCount            int                `json:"CoveredCount,omitempty"`
-	TotalCount              int                `json:"TotalCount,omitempty"`
-	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
-	IsRequired              bool               `json:"IsRequired,omitempty"`
-	Item                    *Model             `json:"Item,omitempty"`
-	Properties              *map[string]*Model `json:"Properties,omitempty"`
-	Type                    *string            `json:"Type,omitempty"`
-	Variants                *map[string]*Model `json:"Variants,omitempty"`
-}
+const msExtensionDiscriminator = "x-ms-discriminator-value"
 
 func Expand(modelName, swaggerPath string) (*Model, error) {
 	doc, err := loads.JSONSpec(swaggerPath)
@@ -49,15 +31,15 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 
 	variantsTable := map[string][]string{}
 	for k, v := range spec.Definitions {
-		if v.Extensions["x-ms-discriminator-value"] != nil && len(v.AllOf) > 0 {
+		if v.Extensions[msExtensionDiscriminator] != nil && len(v.AllOf) > 0 {
 			for _, variant := range v.AllOf {
 				if variant.Ref.String() != "" {
 					resolved, err := openapispec.ResolveRefWithBase(spec, &variant.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
 					if err != nil {
 						panic(err)
 					}
-					if resolved.Extensions["x-ms-discriminator-value"] != nil || resolved.Discriminator != "" {
-						modelName, _ := SchemaInfoFromRef(variant.Ref)
+					if resolved.Extensions[msExtensionDiscriminator] != nil || resolved.Discriminator != "" {
+						modelName, _ := SchemaNamePathFromRef(variant.Ref)
 						if variantsTable[modelName] == nil {
 							variantsTable[modelName] = []string{k}
 						} else {
@@ -77,9 +59,9 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier string, root interface{}, variantsTable map[string][]string, resolvedDiscriminator map[string]interface{}, resolvedModel map[string]interface{}) *Model {
 	output := Model{Identifier: identifier}
 
-	//fmt.Println("expand schema for", swaggerPath, modelName)
+	//log.Println("[DEBUG]expand schema for", swaggerPath, modelName)
 	if _, hasResolvedModel := resolvedModel[modelName]; hasResolvedModel {
-		log.Printf("[WARN]circular reference detected for %s %s", swaggerPath, modelName)
+		//log.Printf("[WARN]circular reference detected for %s %s", swaggerPath, modelName)
 		return &output
 	}
 	resolvedModel[modelName] = nil
@@ -127,13 +109,13 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 
 	// expand ref
 	if input.Ref.String() != "" {
-		//fmt.Println("expand ref", input.Ref.String())
+		//log.Println("[DEBUG]expand ref", input.Ref.String())
 		resolved, err := openapispec.ResolveRefWithBase(root, &input.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
 			panic(err)
 		}
 
-		modelName, relativPath := SchemaInfoFromRef(input.Ref)
+		modelName, relativPath := SchemaNamePathFromRef(input.Ref)
 		if relativPath != "" {
 			swaggerPath = filepath.Join(filepath.Dir(swaggerPath), relativPath)
 			swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
@@ -152,13 +134,13 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 	// expand properties
 	properties := make(map[string]*Model)
 	for k, v := range input.Properties {
-		//fmt.Println("expand properties", k)
+		//log.Println("[DEBUG]expand properties", k)
 		properties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), identifier+"."+k, root, variantsTable, resolvedDiscriminator, resolvedModel)
 	}
 
 	// expand composition
 	for _, v := range input.AllOf {
-		//fmt.Println("expand composition", v.Ref.String())
+		//log.Println("[DEBUG]expand composition", v.Ref.String())
 		allOf := expandSchema(v, swaggerPath, fmt.Sprintf("%s.allOf", modelName), identifier, root, variantsTable, resolvedDiscriminator, resolvedModel)
 		if allOf.Properties != nil {
 			for k, v := range *allOf.Properties {
@@ -180,7 +162,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 
 	// expand items
 	if input.Items != nil {
-		//fmt.Println("expand items", input.Items.Schema.Ref.String())
+		//log.Println("[DEBUG]expand items", input.Items.Schema.Ref.String())
 		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s[]", modelName), identifier+"[]", root, variantsTable, resolvedDiscriminator, resolvedModel)
 		output.Item = item
 	}
@@ -193,16 +175,16 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 		_, hasResolvedDiscriminator := resolvedDiscriminator[modelName]
 		if !hasResolvedDiscriminator {
 			resolvedDiscriminator[modelName] = nil
-			//fmt.Println("expand variants", modelName)
+			//log.Println("[DEBUG]expand variants", modelName)
 			variants := make(map[string]*Model)
 
 			vars, ok := variantsTable[modelName]
 			// level order traverse to find all variants
 			for ok && len(vars) > 0 {
-				vars2 := []string{}
+				var vars2 []string
 				for _, v := range vars {
 					schema := root.(*openapispec.Swagger).Definitions[v]
-					variantName := schema.Extensions["x-ms-discriminator-value"].(string)
+					variantName := schema.Extensions[msExtensionDiscriminator].(string)
 					resolved := expandSchema(schema, swaggerPath, v, identifier+"{"+variantName+"}", root, variantsTable, resolvedDiscriminator, resolvedModel)
 					variants[variantName] = resolved
 					if vv, ok := variantsTable[v]; ok {
@@ -219,50 +201,7 @@ func expandSchema(input openapispec.Schema, swaggerPath, modelName, identifier s
 	return &output
 }
 
-func Flatten(property *Model, path string, lookupTable map[string]bool, discriminatorTable map[string]string) {
-	if property.IsReadOnly {
-		return
-	}
-
-	lookupTable[path] = false
-
-	if property.Properties != nil {
-		for k, v := range *property.Properties {
-			if strings.Contains(k, ".") {
-				k = "\"" + k + "\""
-			}
-			Flatten(v, strings.TrimLeft(path+"."+k, "."), lookupTable, discriminatorTable)
-		}
-	}
-
-	if property.Variants != nil && property.Discriminator != nil {
-		discriminatorTable[path] = *property.Discriminator
-		for k, v := range *property.Variants {
-			Flatten(v, path+"{"+*property.Discriminator+"("+k+")}", lookupTable, discriminatorTable)
-		}
-	}
-
-	if property.Item != nil {
-		Flatten(property.Item, strings.TrimLeft(path+"[]", "."), lookupTable, discriminatorTable)
-	}
-
-	if property.Enum != nil {
-		lookupTable[path+"()"] = false
-		for k, v := range *property.Enum {
-			lookupTable[path+"("+k+")"] = v
-		}
-	}
-
-	if property.Type != nil && *property.Type == "boolean" {
-		lookupTable[path+"()"] = false
-		lookupTable[path+"(true)"] = false
-		lookupTable[path+"(false)"] = false
-	}
-
-	return
-}
-
-func SchemaInfoFromRef(ref openapispec.Ref) (name string, path string) {
+func SchemaNamePathFromRef(ref openapispec.Ref) (name string, path string) {
 	if ref.GetURL() == nil {
 		return "", ""
 	}
@@ -270,7 +209,7 @@ func SchemaInfoFromRef(ref openapispec.Ref) (name string, path string) {
 	return fragments[len(fragments)-1], ref.GetURL().Path
 }
 
-func toRegex(path string) string {
+func pathToRegex(path string) string {
 	segs := strings.Split(path, "/")
 	out := make([]string, 0, len(segs))
 	for _, seg := range segs {
@@ -283,7 +222,7 @@ func toRegex(path string) string {
 	return "^" + strings.Join(out, "/") + "$"
 }
 
-func PathPatternFromId(resourceId, swaggerPath string) (*string, *string, *string, error) {
+func GetModelInfoFromSingleSwaggerFile(resourceId, swaggerPath string) (*string, *string, *string, error) {
 	doc, err := loads.JSONSpec(swaggerPath)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("loading swagger spec: %+v", err)
@@ -296,7 +235,7 @@ func PathPatternFromId(resourceId, swaggerPath string) (*string, *string, *strin
 	if spec.Paths != nil {
 	pathLoop:
 		for p, item := range spec.Paths.Paths {
-			regex := toRegex(p)
+			regex := pathToRegex(p)
 			re := regexp.MustCompile(regex)
 			if re.MatchString(resourceId) {
 				apiPath = p
@@ -307,9 +246,9 @@ func PathPatternFromId(resourceId, swaggerPath string) (*string, *string, *strin
 				for _, param := range operation.Parameters {
 					if param.In == "body" {
 						var modelRelativePath string
-						modelName, modelRelativePath = SchemaInfoFromRef(param.Schema.Ref)
+						modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
 						if modelRelativePath != "" {
-							//fmt.Println("modelRelativePath", modelRelativePath)
+							//log.Println("[DEBUG]modelRelativePath", modelRelativePath)
 							swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
 						}
 

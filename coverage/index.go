@@ -14,11 +14,15 @@ import (
 	"github.com/magodo/azure-rest-api-index/azidx"
 )
 
+const (
+	indexFileURL = "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
+	azureRepoURL = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
+)
+
 func GetIndex() (*azidx.Index, error) {
-	indexUrl := "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
-	resp, err := http.Get(indexUrl)
+	resp, err := http.Get(indexFileURL)
 	if err != nil {
-		return nil, fmt.Errorf("get index file (%v): %v", indexUrl, err)
+		return nil, fmt.Errorf("get index file (%v): %v", indexFileURL, err)
 	}
 
 	defer resp.Body.Close()
@@ -35,7 +39,7 @@ func GetIndex() (*azidx.Index, error) {
 	return &index, nil
 }
 
-func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string, *string, *string, error) {
+func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *string, *string, error) {
 	index, err := GetIndex()
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -52,9 +56,8 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 		return nil, nil, nil, nil, err
 	}
 
-	azureRepoUrl := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
-	swaggerPath := filepath.Join(azureRepoUrl, ref.GetURL().Path)
-	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoUrl + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
+	swaggerPath := filepath.Join(azureRepoURL, ref.GetURL().Path)
+	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoURL + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -67,7 +70,7 @@ func PathPatternFromIdFromIndex(resourceId, apiVersion string) (*string, *string
 	for _, param := range operation.Parameters {
 		if param.In == "body" {
 			var modelRelativePath string
-			modelName, modelRelativePath = SchemaInfoFromRef(param.Schema.Ref)
+			modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
 			if modelRelativePath != "" {
 				swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
 			}
