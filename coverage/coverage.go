@@ -128,8 +128,8 @@ func (m *Model) CountCoverage() (int, int) {
 
 	if m.Item != nil {
 		covered, total := m.Item.CountCoverage()
-		m.CoveredCount += covered
-		m.TotalCount += total
+		m.CoveredCount = covered
+		m.TotalCount = total
 	}
 
 	if m.Variants != nil {

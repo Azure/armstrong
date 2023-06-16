@@ -155,9 +155,23 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 			id = v.(string)
 		}
 
-		jsonBody := map[string]interface{}{}
-		if body, ok := res.AttributeValues["body"].(string); ok {
-			err := json.Unmarshal([]byte(body), &jsonBody)
+		body := map[string]interface{}{}
+		if bodyRaw, ok := res.AttributeValues["body"].(string); ok {
+			if value, ok := res.AttributeValues["tags"]; ok && value != nil {
+				tagsModel := value.(map[string]interface{})
+				if len(tagsModel) != 0 {
+					body["tags"] = tagsModel
+				}
+			}
+			if value, ok := res.AttributeValues["location"]; ok && value != nil {
+				body["location"] = value.(string)
+			}
+
+			if value, ok := res.AttributeValues["identity"]; ok && value != nil {
+				body["identity"] = expandIdentity(value.([]interface{}))
+			}
+
+			err := json.Unmarshal([]byte(bodyRaw), &body)
 			if err != nil {
 				return out, err
 			}
@@ -171,12 +185,32 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 			}
 		}
 
-		err := out.AddCoverageFromState(id, apiVersion, jsonBody)
+		err := out.AddCoverageFromState(id, apiVersion, body)
 		if err != nil {
 			return out, err
 		}
 	}
 	return out, nil
+}
+
+func expandIdentity(input []interface{}) map[string]interface{} {
+	config := map[string]interface{}{}
+	if len(input) == 0 {
+		return config
+	}
+	v := input[0].(map[string]interface{})
+
+	identityType := v["type"].(string)
+	config["type"] = identityType
+	identityIds := v["identity_ids"].([]interface{})
+	userAssignedIdentities := make(map[string]interface{}, len(identityIds))
+	if len(identityIds) != 0 {
+		for _, id := range identityIds {
+			userAssignedIdentities[id.(string)] = make(map[string]interface{})
+		}
+		config["userAssignedIdentities"] = userAssignedIdentities
+	}
+	return config
 }
 
 func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
