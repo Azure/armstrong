@@ -2,7 +2,6 @@ package coverage_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -55,6 +54,7 @@ func TestExpand(t *testing.T) {
 	t.Logf("expanded model %s", string(out))
 }
 
+// try to expand all models
 func TestExpandAll(t *testing.T) {
 	azureRepoDir := os.Getenv("AZURE_REPO_DIR")
 	if azureRepoDir == "" {
@@ -67,7 +67,7 @@ func TestExpandAll(t *testing.T) {
 		panic(err)
 	}
 
-	refs := make([]*jsonreference.Ref, 0)
+	refMaps := make(map[string]*jsonreference.Ref, 0)
 	for resourceProvider, versionRaw := range index.ResourceProviders {
 		for version, methodRaw := range versionRaw {
 			for operationKind, resourceTypeRaw := range methodRaw {
@@ -80,13 +80,17 @@ func TestExpandAll(t *testing.T) {
 					}
 					for action, operationRefs := range operationInfo.Actions {
 						for pathPatternStr, ref := range operationRefs {
-							resourceProvider = fmt.Sprintf("%s %s %s %s %s %s", resourceProvider, version, operationKind, resourceType, action, pathPatternStr)
-							refs = append(refs, &ref)
+							if false {
+								t.Logf("%s %s %s %s %s %s", resourceProvider, version, operationKind, resourceType, action, pathPatternStr)
+							}
+							refMaps[ref.String()] = &ref
 						}
 					}
 					for pathPatternStr, ref := range operationInfo.OperationRefs {
-						resourceProvider = fmt.Sprintf("%s %s %s %s %s", resourceProvider, version, operationKind, resourceType, pathPatternStr)
-						refs = append(refs, &ref)
+						if false {
+							t.Logf("%s %s %s %s %s", resourceProvider, version, operationKind, resourceType, pathPatternStr)
+						}
+						refMaps[ref.String()] = &ref
 					}
 				}
 			}
@@ -94,15 +98,15 @@ func TestExpandAll(t *testing.T) {
 	}
 	index = nil
 
-	t.Logf("refs: %d", len(refs))
+	t.Logf("refs numbers: %d", len(refMaps))
 
-	refChans := make(chan *jsonreference.Ref)
+	refChan := make(chan *jsonreference.Ref)
 
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func(i int) {
-			for ref := range refChans {
+			for ref := range refChan {
 				t.Logf("%v ref: %v", i, ref.String())
 				swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
 				operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
@@ -126,8 +130,6 @@ func TestExpandAll(t *testing.T) {
 					panic("modelName is empty")
 				}
 
-				swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
-
 				model, err := coverage.Expand(modelName, swaggerPath)
 				if err != nil {
 					panic(err)
@@ -143,7 +145,7 @@ func TestExpandAll(t *testing.T) {
 		}(i)
 	}
 
-	for _, ref := range refs {
-		refChans <- ref
+	for _, ref := range refMaps {
+		refChan <- ref
 	}
 }

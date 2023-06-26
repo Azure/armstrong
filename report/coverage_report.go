@@ -13,28 +13,28 @@ import (
 //go:embed coverage_report.md
 var coverageReportTemplate string
 
-func CoverageMarkdownReport2(report types.CoverageReport) string {
-	content := coverageReportTemplate
-
-	coverages := []string{}
-	count := 0
-	for k, v := range report.Coverages {
-		count++
-		var covered, uncovered []string
-		v.SplitCovered(&covered, &uncovered)
-
-		sort.Strings(covered)
-		sort.Strings(uncovered)
-
-		coverages = append(coverages, fmt.Sprintf("%v. %s\ncovered:%v total:%v\n\ncovered properties:\n- %s\n\nuncovered properties:\n\n- %s\n",
-			count, k, len(covered), len(covered)+len(uncovered), strings.Join(covered, "\n- "), strings.Join(uncovered, "\n- ")))
-	}
-	content = strings.ReplaceAll(content, "${coverage}", strings.Join(coverages, "\n"))
-	return content
-}
-
 func CoverageMarkdownReport(report types.CoverageReport) string {
 	content := coverageReportTemplate
+
+	fullyCoveredPath := make([]string, 0)
+	partiallyCoveredPath := make([]string, 0)
+	for k, v := range report.Coverages {
+		if v.IsFullyCovered {
+			fullyCoveredPath = append(fullyCoveredPath, k)
+		} else {
+			partiallyCoveredPath = append(partiallyCoveredPath, k)
+		}
+	}
+
+	summary := ""
+	if len(fullyCoveredPath) > 0 {
+		summary += fmt.Sprintf("Congratulations! The following API paths are 100%% covered:\n\n- %s\n\n", strings.Join(fullyCoveredPath, "\n- "))
+	}
+	if len(partiallyCoveredPath) > 0 {
+		summary += fmt.Sprintf("The following API paths are partially covered, please help add more test cases:\n\n- %s\n\n", strings.Join(partiallyCoveredPath, "\n- "))
+	}
+
+	content = strings.ReplaceAll(content, "${summary}", summary)
 
 	var coverages []string
 	count := 0
@@ -44,20 +44,29 @@ func CoverageMarkdownReport(report types.CoverageReport) string {
 		reportDetail := generateReport(v)
 		sort.Strings(reportDetail)
 
-		coverages = append(coverages, fmt.Sprintf(`<blockquote><details open><summary>%s</summary><blockquote>
+		coverages = append(coverages, fmt.Sprintf(`### <!-- %[1]v -->
+<details open>
+<summary>%[1]v</summary>
 
-<details open><summary><span %v>body(%v/%v)</span></summary><blockquote>
+[swagger](%[2]v)
+<blockquote>
+<details open>
+<summary><span%[3]v>body(%[4]v/%[5]v)</span></summary>
+<blockquote>
 
-%v
+%[6]v
 
-</blockquote></details>
+</blockquote>
+</details>
 
-</blockquote></details>
-</blockquote>`, k, getStyle(v.IsFullyCovered), v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
+</blockquote>
+</details>
 
+---
+`, k, v.SourceFile, getStyle(v.IsFullyCovered), v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
 	}
+
 	sort.Strings(coverages)
-	content = strings.ReplaceAll(content, "${specs-commit-id}", report.CommitId)
 	content = strings.ReplaceAll(content, "${coverage}", strings.Join(coverages, "\n"))
 	return content
 }
@@ -67,13 +76,13 @@ func generateReport(model *coverage.Model) []string {
 
 	if model.Enum != nil {
 		for k, isCovered := range *model.Enum {
-			out = append(out, getEnumerableReport(k, isCovered))
+			out = append(out, getEnumBoolReport(k, isCovered))
 		}
 	}
 
 	if model.Bool != nil {
 		for k, isCovered := range *model.Bool {
-			out = append(out, getEnumerableReport(fmt.Sprintf("%v", k), isCovered))
+			out = append(out, getEnumBoolReport(fmt.Sprintf("%v", k), isCovered))
 		}
 	}
 
@@ -100,30 +109,44 @@ func generateReport(model *coverage.Model) []string {
 	return out
 }
 
-func getEnumerableReport(name string, isCovered bool) string {
+func getEnumBoolReport(name string, isCovered bool) string {
 	return fmt.Sprintf("- <span %v>value=%v</span>", getStyle(isCovered), name)
 }
 
+func getCoverageCount(model *coverage.Model) string {
+	if model.Bool != nil {
+		return fmt.Sprintf("(bool=%v/%v)", model.BoolCoveredCount, 2)
+	}
+	if model.Enum != nil {
+		return fmt.Sprintf("(enum=%v/%v)", model.EnumCoveredCount, model.EnumTotalCount)
+	}
+	return fmt.Sprintf("(%v/%v)", model.CoveredCount, model.TotalCount)
+}
+
 func getChildReport(name string, model *coverage.Model) string {
-	childReport := generateReport(model)
 	var color, report string
 
 	color = getStyle(model.IsFullyCovered)
 
-	if model.TotalCount == 1 {
+	if model.TotalCount == 1 && model.Bool == nil && model.Enum == nil && model.Properties == nil && model.Variants == nil {
 		// leaf property
-		report = fmt.Sprintf("- <span %v>%v</span>", color, name)
-	} else if len(childReport) == 0 {
-		// leaf property with enum or bool type
-		report = fmt.Sprintf("- <span %v>%v(%v/%v)</span>", color, name, model.CoveredCount, model.TotalCount)
+		report = fmt.Sprintf(`<!-- %[1]v -->
+<details>
+<summary><span%[2]v>%[3]v</span></summary>
+
+</details>`, model.Identifier, color, name)
 	} else {
-		// non-leaf property
+		childReport := generateReport(model)
 		sort.Strings(childReport)
-		report = fmt.Sprintf(`<details><summary><span %v>%v(%v/%v)</span></summary><blockquote>
+		report = fmt.Sprintf(`<!-- %[1]v -->
+<details>
+<summary><span%[2]v>%[3]v %[4]v</span></summary>
+<blockquote>
 
-%v
+%[5]v
 
-</blockquote></details>`, color, name, model.CoveredCount, model.TotalCount, strings.Join(childReport, "\n\n"))
+</blockquote>
+</details>`, model.Identifier, color, name, getCoverageCount(model), strings.Join(childReport, "\n\n"))
 	}
 
 	return report
@@ -133,5 +156,5 @@ func getStyle(isFullyCovered bool) string {
 	if isFullyCovered {
 		return ""
 	}
-	return "style=\"color:red\""
+	return " style=\"color:red\""
 }

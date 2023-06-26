@@ -13,4 +13,4 @@ terraform-ls
 armstrong
 
 # test output
-coverage/test_coverage_report.md
+coverage/test_coverage_report*.md

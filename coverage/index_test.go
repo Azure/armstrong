@@ -8,7 +8,7 @@ import (
 
 func TestGetModelInfoFromIndex(t *testing.T) {
 	apiVersion := "2022-06-01"
-	apiPath, modelName, modelSwaggerPath, commitId, err := coverage.GetModelInfoFromIndex(
+	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
 	)
@@ -16,14 +16,12 @@ func TestGetModelInfoFromIndex(t *testing.T) {
 		t.Errorf("get model info from index error: %+v", err)
 	}
 
-	t.Logf("commit id: %s", *commitId)
-
 	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}"
 	if *apiPath != expectedApiPath {
 		t.Errorf("expected apiPath %s, got %s", expectedApiPath, *apiPath)
 	}
 
-	expectedModelName := "DataCollectionRule"
+	expectedModelName := "DataCollectionRuleResource"
 	if *modelName != expectedModelName {
 		t.Errorf("expected modelName %s, got %s", expectedModelName, *modelName)
 	}

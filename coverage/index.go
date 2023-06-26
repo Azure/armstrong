@@ -39,28 +39,28 @@ func GetIndex() (*azidx.Index, error) {
 	return &index, nil
 }
 
-func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *string, *string, error) {
+func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *string, error) {
 	index, err := GetIndex()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 	log.Printf("[INFO] load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
 
 	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
 	uRL, err := url.Parse(resourceURL)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("parsing URL %s: %v", resourceURL, err)
+		return nil, nil, nil, fmt.Errorf("parsing URL %s: %v", resourceURL, err)
 	}
 	ref, err := index.Lookup("PUT", *uRL)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	swaggerPath := filepath.Join(azureRepoURL, ref.GetURL().Path)
 	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoURL + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	pointerTokens := ref.GetPointer().DecodedTokens()
@@ -79,5 +79,5 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *st
 
 	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
 
-	return &apiPath, &modelName, &swaggerPath, &index.Commit, nil
+	return &apiPath, &modelName, &swaggerPath, nil
 }

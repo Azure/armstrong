@@ -17,7 +17,6 @@ type Resource struct {
 }
 
 type CoverageReport struct {
-	CommitId  string
 	Coverages map[string]*coverage.Model
 }
 
@@ -51,16 +50,14 @@ type Error struct {
 }
 
 func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jsonBody map[string]interface{}) error {
-	var apiPath, modelName, modelSwaggerPath, commitId *string
+	var apiPath, modelName, modelSwaggerPath *string
 	var err error
 
-	apiPath, modelName, modelSwaggerPath, commitId, err = coverage.GetModelInfoFromIndex(resourceId, apiVersion)
+	apiPath, modelName, modelSwaggerPath, err = coverage.GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {
 		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
 
 	}
-
-	c.CommitId = *commitId
 
 	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
 

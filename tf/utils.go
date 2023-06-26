@@ -157,17 +157,17 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 
 		body := map[string]interface{}{}
 		if bodyRaw, ok := res.AttributeValues["body"].(string); ok {
-			if value, ok := res.AttributeValues["tags"]; ok && value != nil {
+			if value, ok := res.AttributeValues["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
 				tagsModel := value.(map[string]interface{})
 				if len(tagsModel) != 0 {
 					body["tags"] = tagsModel
 				}
 			}
-			if value, ok := res.AttributeValues["location"]; ok && value != nil {
+			if value, ok := res.AttributeValues["location"]; ok && value != nil && value.(string) != "" {
 				body["location"] = value.(string)
 			}
 
-			if value, ok := res.AttributeValues["identity"]; ok && value != nil {
+			if value, ok := res.AttributeValues["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
 				body["identity"] = expandIdentity(value.([]interface{}))
 			}
 

@@ -17,10 +17,14 @@ type Model struct {
 	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
 	CoveredCount            int                `json:"CoveredCount,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
+	EnumCoveredCount        int                `json:"EnumCoveredCount,omitempty"`
+	EnumTotalCount          int                `json:"EnumTotalCount,omitempty"`
+	BoolCoveredCount        int                `json:"BoolCoveredCount,omitempty"`
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
 	Item                    *Model             `json:"Item,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
+	SourceFile              string             `json:"SourceFile,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
 	Variants                *map[string]*Model `json:"Variants,omitempty"`
 }
@@ -105,23 +109,21 @@ func (m *Model) CountCoverage() (int, int) {
 		return 0, 0
 	}
 
-	// first assume is leaf property
-	m.TotalCount = 1
+	m.TotalCount = 0
 
 	if m.Enum != nil {
-		m.TotalCount = len(*m.Enum)
+		m.EnumTotalCount = len(*m.Enum)
 		for _, isCovered := range *m.Enum {
 			if isCovered {
-				m.CoveredCount++
+				m.EnumCoveredCount++
 			}
 		}
 	}
 
 	if m.Bool != nil {
-		m.TotalCount = 2
 		for _, isCovered := range *m.Bool {
 			if isCovered {
-				m.CoveredCount++
+				m.BoolCoveredCount++
 			}
 		}
 	}
@@ -146,6 +148,10 @@ func (m *Model) CountCoverage() (int, int) {
 			m.CoveredCount += covered
 			m.TotalCount += total
 		}
+	}
+
+	if m.TotalCount == 0 {
+		m.TotalCount = 1
 	}
 
 	if m.TotalCount == 1 && m.IsAnyCovered {
