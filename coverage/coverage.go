@@ -40,10 +40,6 @@ func (m *Model) MarkCovered(root interface{}) {
 	switch value := root.(type) {
 	case string:
 		if m.Enum != nil {
-			if m.Enum == nil {
-				log.Printf("[Error] unexpected enum %s in %s\n", value, m.Identifier)
-			}
-
 			strValue := fmt.Sprintf("%v", value)
 			if _, ok := (*m.Enum)[strValue]; !ok {
 				log.Printf("[WARN] unexpected enum %s in %s\n", value, m.Identifier)
@@ -54,7 +50,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case bool:
 		if m.Bool == nil {
-			log.Printf("[Error] unexpected bool %v in %v\n", value, m.Identifier)
+			log.Printf("[ERROR] unexpected bool %v in %v\n", value, m.Identifier)
 		}
 		(*m.Bool)[strconv.FormatBool(value)] = true
 
@@ -62,7 +58,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case []interface{}:
 		if m.Item == nil {
-			log.Printf("[Error] unexpected array in %s\n", m.Identifier)
+			log.Printf("[ERROR] unexpected array in %s\n", m.Identifier)
 		}
 
 		for _, item := range value {
@@ -74,10 +70,10 @@ func (m *Model) MarkCovered(root interface{}) {
 			for k, v := range value {
 				if k == *m.Discriminator {
 					if m.Variants == nil {
-						log.Printf("[Error] unexpected discriminator %s in %s\n", k, m.Identifier)
+						log.Printf("[ERROR] unexpected discriminator %s in %s\n", k, m.Identifier)
 					}
 					if _, ok := (*m.Variants)[v.(string)]; !ok {
-						log.Printf("[Error] unexpected variant %s in %s\n", v.(string), m.Identifier)
+						log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
 					}
 					(*m.Variants)[v.(string)].MarkCovered(value)
 					break
@@ -87,20 +83,20 @@ func (m *Model) MarkCovered(root interface{}) {
 		for k, v := range value {
 			if m.Properties == nil {
 				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[Error] unexpected key %s in %s\n", k, m.Identifier)
+					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
 				}
 				return
 			}
 			if _, ok := (*m.Properties)[k]; !ok {
 				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[Error] unexpected key %s in %s\n", k, m.Identifier)
+					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
 				}
 			}
 			(*m.Properties)[k].MarkCovered(v)
 		}
 
 	default:
-		panic(fmt.Errorf("unexpect type %T for json unmarshaled value", value))
+		log.Printf("[ERROR] unexpect type %T for json unmarshaled value", value)
 	}
 }
 
@@ -134,19 +130,25 @@ func (m *Model) CountCoverage() (int, int) {
 		m.TotalCount = total
 	}
 
-	if m.Variants != nil {
-		for _, v := range *m.Variants {
-			covered, total := v.CountCoverage()
-			m.CoveredCount += covered
-			m.TotalCount += total
-		}
-	}
-
 	if m.Properties != nil {
 		for _, v := range *m.Properties {
 			covered, total := v.CountCoverage()
 			m.CoveredCount += covered
 			m.TotalCount += total
+			if v.Variants != nil {
+				for _, variant := range *v.Variants {
+					covered, total := variant.CountCoverage()
+					m.CoveredCount += covered
+					m.TotalCount += total
+				}
+			}
+			if v.Item != nil && v.Item.Variants != nil {
+				for _, variant := range *v.Item.Variants {
+					covered, total := variant.CountCoverage()
+					m.CoveredCount += covered
+					m.TotalCount += total
+				}
+			}
 		}
 	}
 

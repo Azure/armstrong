@@ -90,16 +90,22 @@ func generateReport(model *coverage.Model) []string {
 		return generateReport(model.Item)
 	}
 
-	if model.Variants != nil {
-		for k, v := range *model.Variants {
-			out = append(out, getChildReport(k, v))
-		}
-	}
-
 	if model.Properties != nil {
 		for k, v := range *model.Properties {
 			if v.IsReadOnly {
 				continue
+			}
+
+			if v.Variants != nil {
+				for variantType, variant := range *v.Variants {
+					out = append(out, getChildReport(fmt.Sprintf("%s{%s}", k, variantType), variant))
+				}
+			}
+
+			if v.Item != nil && v.Item.Variants != nil {
+				for variantType, variant := range *v.Item.Variants {
+					out = append(out, getChildReport(fmt.Sprintf("%s{%s}", k, variantType), variant))
+				}
 			}
 
 			out = append(out, getChildReport(k, v))

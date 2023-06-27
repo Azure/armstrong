@@ -19,7 +19,13 @@ const (
 	azureRepoURL = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
 )
 
+var indexCache *azidx.Index
+
 func GetIndex() (*azidx.Index, error) {
+	if indexCache != nil {
+		return indexCache, nil
+	}
+
 	resp, err := http.Get(indexFileURL)
 	if err != nil {
 		return nil, fmt.Errorf("get index file (%v): %v", indexFileURL, err)
@@ -36,7 +42,10 @@ func GetIndex() (*azidx.Index, error) {
 	if err := json.Unmarshal(b, &index); err != nil {
 		return nil, fmt.Errorf("unmarshal index file: %v", err)
 	}
-	return &index, nil
+	indexCache = &index
+
+	log.Printf("[INFO] load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
+	return indexCache, nil
 }
 
 func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *string, error) {
@@ -44,7 +53,6 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*string, *string, *st
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	log.Printf("[INFO] load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
 
 	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
 	uRL, err := url.Parse(resourceURL)

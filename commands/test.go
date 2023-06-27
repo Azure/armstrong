@@ -67,7 +67,7 @@ func (c TestCommand) Execute() int {
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
-		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
+		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
 	}
 
 	log.Printf("[INFO] prepare working directory\n")
@@ -76,7 +76,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running plan command to check changes...")
 	plan, err := terraform.Plan()
 	if err != nil {
-		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
+		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
 	}
 
 	actions := tf.GetChanges(plan)
@@ -97,7 +97,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running apply command to provision test resource...")
 	applyErr := terraform.Apply()
 	if applyErr != nil {
-		log.Printf("[Error] error running terraform apply: %+v\n", applyErr)
+		log.Printf("[ERROR] error running terraform apply: %+v\n", applyErr)
 	} else {
 		log.Println("[INFO] test resource has been provisioned")
 	}
@@ -105,7 +105,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running plan command to verify test resource...")
 	plan, err = terraform.Plan()
 	if err != nil {
-		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
+		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
 	}
 
 	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
@@ -114,7 +114,7 @@ func (c TestCommand) Execute() int {
 	reportDir = path.Join(wd, reportDir)
 	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
-		log.Fatalf("[Error] error creating report dir %s: %+v", reportDir, err)
+		log.Fatalf("[ERROR] error creating report dir %s: %+v", reportDir, err)
 	}
 
 	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
@@ -127,12 +127,12 @@ func (c TestCommand) Execute() int {
 			log.Printf("[INFO] producing coverage report...")
 			coverageReport, err := tf.NewCoverageReportFromState(state)
 			if err != nil {
-				log.Fatalf("[Error] error produce coverage report: %+v", err)
+				log.Fatalf("[ERROR] error produce coverage report: %+v", err)
 			}
 			storeCoverageReport(coverageReport, reportDir, "coverage_report.md")
 			log.Printf("[INFO] coverage report has been saved in the report directory: %s, please check.", reportDir)
 		} else {
-			log.Fatalf("[Error] error showing terraform state: %+v", err)
+			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
 		}
 		return 0
 	}

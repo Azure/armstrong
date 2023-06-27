@@ -13,67 +13,32 @@ import (
 	"github.com/ms-henglu/armstrong/types"
 )
 
-func TestCoverageBasic(t *testing.T) {
-	apiVersion := "2022-09-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/rgName",
-		apiVersion,
-	)
+type testCase struct {
+	name       string
+	apiVersion string
+	apiPath    string
+	rawRequest []string
+}
 
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `{"location": "westeurope"}`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+func TestCoverageResourceGroup(t *testing.T) {
+	tc := testCase{
+		name:       "ResourceGroup",
+		apiVersion: "2022-09-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/rgName",
+		rawRequest: []string{
+			`{"location": "westeurope"}`,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
 
 func TestCoverageKeyVault(t *testing.T) {
-	apiVersion := "2023-02-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `{
+	tc := testCase{
+		name:       "KeyVault",
+		apiVersion: "2023-02-01",
+		apiPath:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
+		rawRequest: []string{`{
     "location": "westus",
     "properties": {
         "tenantId": "00000000-0000-0000-0000-000000000000",
@@ -138,50 +103,19 @@ func TestCoverageKeyVault(t *testing.T) {
         "enabledForTemplateDeployment": true,
         "publicNetworkAccess": "Enabled"
     }
-}`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+}`,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
+
 func TestCoverageStorageAccount(t *testing.T) {
-	apiVersion := "2022-09-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `{
+	tc := testCase{
+		name:       "StorageAccount",
+		apiVersion: "2022-09-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
+		rawRequest: []string{`{
     "sku": {
         "name": "Standard_GRS"
     },
@@ -229,51 +163,19 @@ func TestCoverageStorageAccount(t *testing.T) {
         "key1": "value1",
         "key2": "value2"
     }
-}`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+}`,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
 
 func TestCoverageVM(t *testing.T) {
-	apiVersion := "2023-03-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `{
+	tc := testCase{
+		name:       "VM",
+		apiVersion: "2023-03-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
+		rawRequest: []string{`{
     "location": "westus",
     "properties": {
         "hardwareProfile": {
@@ -322,52 +224,19 @@ func TestCoverageVM(t *testing.T) {
         },
         "userData": "U29tZSBDdXN0b20gRGF0YQ=="
     }
-}`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+}`,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
 
 func TestCoverageVNet(t *testing.T) {
-	apiVersion := "2023-02-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `
-{
+	tc := testCase{
+		name:       "VNet",
+		apiVersion: "2023-02-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
+		rawRequest: []string{`{
     "properties": {
         "addressSpace": {
             "addressPrefixes": [
@@ -384,52 +253,18 @@ func TestCoverageVNet(t *testing.T) {
         ]
     },
     "location": "eastus"
-}`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+}`,
 		},
 	}
-
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
 
-func TestCoverageTwice(t *testing.T) {
-	apiVersion := "2022-06-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `
-{
+func TestCoverageDataCollectionRule(t *testing.T) {
+	tc := testCase{
+		name:       "DataCollectionRule",
+		apiVersion: "2022-06-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
+		rawRequest: []string{`{
     "location": "westeurope",
     "identity": {
         "type": "UserAssigned",
@@ -691,19 +526,8 @@ func TestCoverageTwice(t *testing.T) {
             }
         ]
     }
-}
-`
-
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	rawRequestJson = `
-{
+}`,
+			`{
     "location": "westeurope",
     "kind": "Windows",
     "properties": {
@@ -745,52 +569,19 @@ func TestCoverageTwice(t *testing.T) {
     "tags": {
         "env": "test"
     }
-}
-`
-
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
-	if err != nil {
-		t.Error(err)
-	}
-
-	model.MarkCovered(body)
-
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
-
-	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+}`,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	testCoverage(t, tc)
 }
 
-func TestCoverageDiscriminator(t *testing.T) {
-	apiVersion := "2022-07-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
-		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ex-resources/providers/Microsoft.Media/mediaServices/mediatest/transforms/transform1",
-		apiVersion,
-	)
-
-	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
-	}
-
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rawRequestJson := `
-{
+func TestCoverageMediaTransform(t *testing.T) {
+	tc := testCase{
+		name:       "MediaTransform",
+		apiVersion: "2022-07-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ex-resources/providers/Microsoft.Media/mediaServices/mediatest/transforms/transform1",
+		rawRequest: []string{`{	
   "properties": {
 	"description": "Example Transform to illustrate create and update.",
 	"outputs": [
@@ -803,17 +594,149 @@ func TestCoverageDiscriminator(t *testing.T) {
 	]
   }
 }
-`
+`,
+		},
+	}
 
-	body := map[string]interface{}{}
-	err = json.Unmarshal([]byte(rawRequestJson), &body)
+	testCoverage(t, tc)
+}
+
+func TestCoverageCosmosDB(t *testing.T) {
+	tc := testCase{
+		name:       "CosmosDB",
+		apiVersion: "2023-04-15",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
+		rawRequest: []string{`{
+    "location": "westus",
+    "tags": {},
+    "kind": "MongoDB",
+    "identity": {
+        "type": "SystemAssigned,UserAssigned",
+        "userAssignedIdentities": {
+            "/subscriptions/fa5fc227-a624-475e-b696-cdd604c735bc/resourceGroups/eu2cgroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id1": {}
+        }
+    },
+    "properties": {
+        "databaseAccountOfferType": "Standard",
+        "ipRules": [
+            {
+                "ipAddressOrRange": "23.43.230.120"
+            },
+            {
+                "ipAddressOrRange": "110.12.240.0/12"
+            }
+        ],
+        "isVirtualNetworkFilterEnabled": true,
+        "virtualNetworkRules": [
+            {
+                "id": "/subscriptions/subId/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/subnet1",
+                "ignoreMissingVNetServiceEndpoint": false
+            }
+        ],
+        "publicNetworkAccess": "Enabled",
+        "locations": [
+            {
+                "failoverPriority": 0,
+                "locationName": "southcentralus",
+                "isZoneRedundant": false
+            },
+            {
+                "failoverPriority": 1,
+                "locationName": "eastus",
+                "isZoneRedundant": false
+            }
+        ],
+        "consistencyPolicy": {
+            "defaultConsistencyLevel": "BoundedStaleness",
+            "maxIntervalInSeconds": 10,
+            "maxStalenessPrefix": 200
+        },
+        "keyVaultKeyUri": "https://myKeyVault.vault.azure.net",
+        "defaultIdentity": "FirstPartyIdentity",
+        "enableFreeTier": false,
+        "apiProperties": {
+            "serverVersion": "3.2"
+        },
+        "enableAnalyticalStorage": true,
+        "analyticalStorageConfiguration": {
+            "schemaType": "WellDefined"
+        },
+        "createMode": "Default",
+        "backupPolicy": {
+            "type": "Periodic",
+            "periodicModeProperties": {
+                "backupIntervalInMinutes": 240,
+                "backupRetentionIntervalInHours": 8,
+                "backupStorageRedundancy": "Geo"
+            }
+        },
+        "cors": [
+            {
+                "allowedOrigins": "https://test"
+            }
+        ],
+        "networkAclBypass": "AzureServices",
+        "networkAclBypassResourceIds": [
+            "/subscriptions/subId/resourcegroups/rgName/providers/Microsoft.Synapse/workspaces/workspaceName"
+        ],
+        "capacity": {
+            "totalThroughputLimit": 2000
+        },
+        "minimalTlsVersion": "Tls12"
+    }
+}`,
+		},
+	}
+
+	testCoverage(t, tc)
+}
+
+func TestCoverageDataFactoryLinkedServices(t *testing.T) {
+	tc := testCase{
+		name:       "DataFactoryLinkedServices",
+		apiVersion: "2018-06-01",
+		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedservices/linkedservice1",
+		rawRequest: []string{`{
+    "properties": {
+        "type": "AzureStorage",
+        "typeProperties": {
+            "connectionString": {
+                "type": "SecureString",
+                "value": "DefaultEndpointsProtocol=https;AccountName=examplestorageaccount;AccountKey=<storage key>"
+            }
+        }
+    }
+}`,
+		},
+	}
+
+	testCoverage(t, tc)
+}
+
+func testCoverage(t *testing.T, tc testCase) {
+	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
+		tc.apiPath,
+		tc.apiVersion,
+	)
+
+	if err != nil {
+		t.Errorf("get model info from index error: %+v", err)
+	}
+
+	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
 		t.Error(err)
 	}
 
-	model.MarkCovered(body)
+	for _, rq := range tc.rawRequest {
+		request := map[string]interface{}{}
+		err = json.Unmarshal([]byte(rq), &request)
+		if err != nil {
+			t.Error(err)
+		}
 
-	model.MarkCovered(body)
+		model.MarkCovered(request)
+	}
 
 	out, err := json.MarshalIndent(model, "", "\t")
 	if err != nil {
@@ -826,11 +749,11 @@ func TestCoverageDiscriminator(t *testing.T) {
 
 	coverageReport := types.CoverageReport{
 		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion): model,
+			fmt.Sprintf("%s?api-version=%s", *apiPath, tc.apiVersion): model,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", "test_coverage_report.md")
+	storeCoverageReport(coverageReport, ".", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
 }
 
 func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
