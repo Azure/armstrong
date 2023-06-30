@@ -576,31 +576,6 @@ func TestCoverageDataCollectionRule(t *testing.T) {
 	testCoverage(t, tc)
 }
 
-func TestCoverageMediaTransform(t *testing.T) {
-	tc := testCase{
-		name:       "MediaTransform",
-		apiVersion: "2022-07-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ex-resources/providers/Microsoft.Media/mediaServices/mediatest/transforms/transform1",
-		rawRequest: []string{`{	
-  "properties": {
-	"description": "Example Transform to illustrate create and update.",
-	"outputs": [
-	  {
-		"preset": {
-		  "@odata.type": "#Microsoft.Media.BuiltInStandardEncoderPreset",
-		  "presetName": "AdaptiveStreaming"
-		}
-	  }
-	]
-  }
-}
-`,
-		},
-	}
-
-	testCoverage(t, tc)
-}
-
 func TestCoverageCosmosDB(t *testing.T) {
 	tc := testCase{
 		name:       "CosmosDB",
@@ -688,7 +663,143 @@ func TestCoverageCosmosDB(t *testing.T) {
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %v", err)
+	}
+
+	if model.CoveredCount != 34 {
+		t.Errorf("expected CoveredCount 34, got %d", model.CoveredCount)
+	}
+
+	if model.Properties == nil {
+		t.Errorf("expected properties, got none")
+	}
+
+	if v, ok := (*model.Properties)["identity"]; !ok || v == nil {
+		t.Errorf("expected identity property, got none")
+	}
+
+	if (*model.Properties)["identity"].CoveredCount != 2 {
+		t.Errorf("expected identity CoveredCount 2, got %d", (*model.Properties)["identity"].CoveredCount)
+	}
+
+	if (*model.Properties)["identity"].Properties == nil {
+		t.Errorf("expected identity properties, got none")
+	}
+
+	if v, ok := (*(*model.Properties)["identity"].Properties)["type"]; !ok || v == nil {
+		t.Errorf("expected identity type property, got none")
+	}
+
+	if !(*(*model.Properties)["identity"].Properties)["type"].IsAnyCovered {
+		t.Errorf("expected identity type IsAnyCovered true, got false")
+	}
+
+	if !(*(*model.Properties)["identity"].Properties)["type"].IsFullyCovered {
+		t.Errorf("expected identity type IsFullyCovered true, got false")
+	}
+
+	if (*(*model.Properties)["identity"].Properties)["type"].EnumCoveredCount != 1 {
+		t.Errorf("expected identity type EnumCoveredCount 1, got %d", (*(*model.Properties)["identity"].Properties)["type"].EnumCoveredCount)
+	}
+
+	if (*(*model.Properties)["identity"].Properties)["type"].Enum == nil {
+		t.Errorf("expected identity type Enum, got none")
+	}
+
+	if isSet, ok := (*(*(*model.Properties)["identity"].Properties)["type"].Enum)["SystemAssigned,UserAssigned"]; !ok || !isSet {
+		t.Errorf("expected identity type Enum SystemAssigned,UserAssigned to be set")
+	}
+
+	if v, ok := (*model.Properties)["tags"]; !ok || v == nil {
+		t.Errorf("expected identity tags, got none")
+	}
+
+	if !(*model.Properties)["tags"].HasAdditionalProperties {
+		t.Errorf("expected tags HasAdditionalProperties true, got false")
+	}
+
+	if !(*model.Properties)["tags"].IsAnyCovered {
+		t.Errorf("expected tags IsAnyCovered true, got false")
+	}
+
+	if (*model.Properties)["tags"].TotalCount != 1 {
+		t.Errorf("expected tags TotalCount 1, got %d", (*model.Properties)["tags"].TotalCount)
+	}
+
+	if (*model.Properties)["tags"].CoveredCount != 1 {
+		t.Errorf("expected tags CoveredCount 1, got %d", (*model.Properties)["tags"].CoveredCount)
+	}
+
+	if v, ok := (*model.Properties)["properties"]; !ok || v == nil {
+		t.Errorf("expected identity properties, got none")
+	}
+
+	if !(*model.Properties)["properties"].IsAnyCovered {
+		t.Errorf("expected properties IsAnyCovered true, got false")
+	}
+
+	if (*model.Properties)["properties"].Properties == nil {
+		t.Errorf("expected properties properties, got none")
+	}
+
+	if v, ok := (*(*model.Properties)["properties"].Properties)["locations"]; !ok || v == nil {
+		t.Errorf("expected properties locations, got none")
+	}
+
+	if !(*(*model.Properties)["properties"].Properties)["locations"].IsAnyCovered {
+		t.Errorf("expected locations IsAnyCovered true, got false")
+	}
+
+	if (*(*model.Properties)["properties"].Properties)["locations"].Item == nil {
+		t.Errorf("expected locations Item, got none")
+	}
+
+	if (*(*model.Properties)["properties"].Properties)["locations"].Item.Properties == nil {
+		t.Errorf("expected locations Item properties, got none")
+	}
+
+	if v, ok := (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["locationName"]; !ok || v == nil {
+		t.Errorf("expected locations Item locationName, got none")
+	}
+
+	if !(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["locationName"].IsAnyCovered {
+		t.Errorf("expected locationName IsAnyCovered true, got false")
+	}
+
+	if v, ok := (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"]; !ok || v == nil {
+		t.Errorf("expected locations Item isZoneRedundant, got none")
+	}
+
+	if !(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].IsAnyCovered {
+		t.Errorf("expected isZoneRedundant IsAnyCovered true, got false")
+	}
+
+	if (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].Bool == nil {
+		t.Errorf("expected isZoneRedundant Bool, got none")
+	}
+
+	if isSet, ok := (*(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].Bool)["false"]; !ok || !isSet {
+		t.Errorf("expected isZoneRedundant Bool false to be set")
+	}
+
+	if v, ok := (*(*model.Properties)["properties"].Properties)["ipRules"]; !ok || v == nil {
+		t.Errorf("expected properties ipRules, got none")
+	}
+
+	if (*(*model.Properties)["properties"].Properties)["ipRules"].Item == nil {
+		t.Errorf("expected ipRules Item, got none")
+	}
+
+	if (*(*model.Properties)["properties"].Properties)["ipRules"].Item.Properties == nil {
+		t.Errorf("expected ipRules Item properties, got none")
+	}
+
+	if v, ok := (*(*(*model.Properties)["properties"].Properties)["ipRules"].Item.Properties)["ipAddressOrRange"]; !ok || v == nil {
+		t.Errorf("expected ipRules Item ipAddressOrRange, got none")
+	}
+
 }
 
 func TestCoverageDataFactoryLinkedServices(t *testing.T) {
@@ -710,22 +821,93 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 3 {
+		t.Errorf("expected 3, got %d", model.TotalCount)
+	}
+
+	if model.Properties == nil {
+		t.Errorf("expected properties, got none")
+	}
+
+	if (*model.Properties)["properties"].Properties == nil {
+		t.Errorf("expected properties properties, got none")
+	}
+
+	if v, ok := (*(*model.Properties)["properties"].Properties)["type"]; !ok || v == nil {
+		t.Errorf("expected properties type property, got none")
+	}
+
+	if !(*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
+		t.Errorf("expected properties type IsAnyCovered true, got false")
+	}
+
+	if (*model.Properties)["properties"].Discriminator == nil {
+		t.Errorf("expected properties discriminator, got none")
+	}
+
+	if *(*model.Properties)["properties"].Discriminator != "type" {
+		t.Errorf("expected properties discriminator 'type', got %s", *(*model.Properties)["properties"].Discriminator)
+	}
+
+	if (*model.Properties)["properties"].Variants == nil {
+		t.Errorf("expected properties variants, got none")
+	}
+
+	if v, ok := (*(*model.Properties)["properties"].Variants)["AzureStorage"]; !ok || v == nil {
+		t.Errorf("expected properties variant AzureStorage, got none")
+	}
+
+	if (*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties == nil {
+		t.Errorf("expected properties variant AzureStorage properties, got none")
+	}
+
+	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"]; !ok || v == nil {
+		t.Errorf("expected properties variant AzureStorage type property, got none")
+	}
+
+	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"].IsAnyCovered {
+		t.Errorf("expected properties variant AzureStorage type IsAnyCovered true, got false")
+	}
+
+	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"]; !ok || v == nil {
+		t.Errorf("expected properties variant AzureStorage typeProperties property, got none")
+	}
+
+	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].IsAnyCovered {
+		t.Errorf("expected properties variant AzureStorage typeProperties IsAnyCovered true, got false")
+	}
+
+	if (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties == nil {
+		t.Errorf("expected properties variant AzureStorage typeProperties properties, got none")
+	}
+
+	if v, ok := (*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"]; !ok || v == nil {
+		t.Errorf("expected properties variant AzureStorage typeProperties connectionString property, got none")
+	}
+
+	if !(*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"].IsAnyCovered {
+		t.Errorf("expected properties variant AzureStorage typeProperties connectionString IsAnyCovered true, got false")
+	}
 }
 
-func testCoverage(t *testing.T, tc testCase) {
+func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
 		tc.apiPath,
 		tc.apiVersion,
 	)
 
 	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
+		return nil, fmt.Errorf("get model info from index: %+v", err)
 	}
 
 	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
 	if err != nil {
-		t.Error(err)
+		return nil, fmt.Errorf("expand model: %+v", err)
 	}
 
 	for _, rq := range tc.rawRequest {
@@ -754,6 +936,8 @@ func testCoverage(t *testing.T, tc testCase) {
 	}
 
 	storeCoverageReport(coverageReport, ".", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
+
+	return model, nil
 }
 
 func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {

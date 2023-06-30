@@ -193,11 +193,17 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if referenceModel.IsReadOnly {
 			output.IsReadOnly = referenceModel.IsReadOnly
 		}
+		if referenceModel.IsRequired {
+			output.IsRequired = referenceModel.IsRequired
+		}
 		if referenceModel.Discriminator != nil {
 			output.Discriminator = referenceModel.Discriminator
 		}
 		if referenceModel.Variants != nil {
 			output.Variants = referenceModel.Variants
+		}
+		if referenceModel.Item != nil {
+			output.Item = referenceModel.Item
 		}
 	}
 

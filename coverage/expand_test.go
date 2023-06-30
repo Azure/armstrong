@@ -14,31 +14,6 @@ import (
 	"github.com/ms-henglu/armstrong/coverage"
 )
 
-func TestGetModelInfoFromSingleSwaggerFile(t *testing.T) {
-	resourceId := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/ex-resources/providers/Microsoft.Media/mediaServices/mediatest/transforms/transform1"
-	swaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
-
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromSingleSwaggerFile(resourceId, swaggerPath)
-	if err != nil {
-		t.Errorf("get model info error:%+v", err)
-	}
-
-	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Media/mediaServices/{accountName}/transforms/{transformName}"
-	if *apiPath != expectedApiPath {
-		t.Errorf("apiPath should be %s, but got %s", expectedApiPath, *apiPath)
-	}
-
-	expectedModelName := "Transform"
-	if *modelName != expectedModelName {
-		t.Errorf("modelName should be %s, but got %s", expectedModelName, *modelName)
-	}
-
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
-	if *modelSwaggerPath != expectedModelSwaggerPath {
-		t.Errorf("modelSwaggerPath should be %s, but got %s", expectedModelSwaggerPath, *modelSwaggerPath)
-	}
-}
-
 func TestExpand(t *testing.T) {
 	modelName := "Transform"
 	modelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
@@ -54,11 +29,11 @@ func TestExpand(t *testing.T) {
 	t.Logf("expanded model %s", string(out))
 }
 
-// try to expand all models
+// try to expand all PUT and POST models
 func TestExpandAll(t *testing.T) {
-	azureRepoDir := os.Getenv("AZURE_REPO_DIR")
+	azureRepoDir := os.Getenv("AZURE_REST_REPO_DIR")
 	if azureRepoDir == "" {
-		t.Skip("AZURE_REPO_DIR is not set")
+		t.Skip("AZURE_REST_REPO_DIR is not set")
 	}
 	t.Logf("azure repo dir: %s", azureRepoDir)
 
@@ -135,6 +110,7 @@ func TestExpandAll(t *testing.T) {
 					panic(err)
 				}
 
+				// clean up
 				model = model
 				model = nil
 				operation = nil

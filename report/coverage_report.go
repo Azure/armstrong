@@ -134,7 +134,7 @@ func getChildReport(name string, model *coverage.Model) string {
 
 	color = getStyle(model.IsFullyCovered)
 
-	if model.TotalCount == 1 && model.Bool == nil && model.Enum == nil && model.Properties == nil && model.Variants == nil {
+	if model.TotalCount == 1 && model.Bool == nil && model.Enum == nil && model.Properties == nil && model.Variants == nil && model.Item == nil {
 		// leaf property
 		report = fmt.Sprintf(`<!-- %[1]v -->
 <details>
