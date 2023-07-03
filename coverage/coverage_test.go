@@ -14,30 +14,56 @@ import (
 )
 
 type testCase struct {
-	name       string
-	apiVersion string
-	apiPath    string
-	rawRequest []string
+	name         string
+	apiVersion   string
+	apiPath      string
+	rawRequest   []string
+	resourceType string
 }
 
 func TestCoverageResourceGroup(t *testing.T) {
 	tc := testCase{
-		name:       "ResourceGroup",
-		apiVersion: "2022-09-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/rgName",
+		name:         "ResourceGroup",
+		resourceType: "Microsoft.Resources/resourceGroups@2022-09-01",
+		apiVersion:   "2022-09-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rgName",
 		rawRequest: []string{
 			`{"location": "westeurope"}`,
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 1 {
+		t.Errorf("expected CoveredCount 1, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 3 {
+		t.Errorf("expected TotalCount 3, got %d", model.TotalCount)
+	}
+
+	if model.Properties == nil {
+		t.Errorf("expected properties, got none")
+	}
+
+	if v, ok := (*model.Properties)["location"]; !ok || v == nil {
+		t.Errorf("expected location, got none")
+	}
+
+	if !(*model.Properties)["location"].IsAnyCovered {
+		t.Errorf("expected location IsAnyCovered true, got false")
+	}
 }
 
 func TestCoverageKeyVault(t *testing.T) {
 	tc := testCase{
-		name:       "KeyVault",
-		apiVersion: "2023-02-01",
-		apiPath:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
+		name:         "KeyVault",
+		resourceType: "Microsoft.KeyVault/vaults@2023-02-01",
+		apiVersion:   "2023-02-01",
+		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
 		rawRequest: []string{`{
     "location": "westus",
     "properties": {
@@ -107,14 +133,26 @@ func TestCoverageKeyVault(t *testing.T) {
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 13 {
+		t.Errorf("expected CoveredCount 13, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 28 {
+		t.Errorf("expected TotalCount 28, got %d", model.TotalCount)
+	}
 }
 
 func TestCoverageStorageAccount(t *testing.T) {
 	tc := testCase{
-		name:       "StorageAccount",
-		apiVersion: "2022-09-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
+		name:         "StorageAccount",
+		resourceType: "Microsoft.Storage/storageAccounts@2022-09-01",
+		apiVersion:   "2022-09-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
 		rawRequest: []string{`{
     "sku": {
         "name": "Standard_GRS"
@@ -166,15 +204,26 @@ func TestCoverageStorageAccount(t *testing.T) {
 }`,
 		},
 	}
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
 
-	testCoverage(t, tc)
+	if model.CoveredCount != 24 {
+		t.Errorf("expected CoveredCount 24, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 69 {
+		t.Errorf("expected TotalCount 69, got %d", model.TotalCount)
+	}
 }
 
 func TestCoverageVM(t *testing.T) {
 	tc := testCase{
-		name:       "VM",
-		apiVersion: "2023-03-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
+		name:         "VM",
+		resourceType: "Microsoft.Compute/virtualMachines@2023-03-01",
+		apiVersion:   "2023-03-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
 		rawRequest: []string{`{
     "location": "westus",
     "properties": {
@@ -228,14 +277,26 @@ func TestCoverageVM(t *testing.T) {
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 20 {
+		t.Errorf("expected CoveredCount 20, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 155 {
+		t.Errorf("expected TotalCount 155, got %d", model.TotalCount)
+	}
 }
 
 func TestCoverageVNet(t *testing.T) {
 	tc := testCase{
-		name:       "VNet",
-		apiVersion: "2023-02-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
+		name:         "VNet",
+		resourceType: "Microsoft.Network/virtualNetworks@2023-02-01",
+		apiVersion:   "2023-02-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
 		rawRequest: []string{`{
     "properties": {
         "addressSpace": {
@@ -256,14 +317,27 @@ func TestCoverageVNet(t *testing.T) {
 }`,
 		},
 	}
-	testCoverage(t, tc)
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 4 {
+		t.Errorf("expected CoveredCount 4, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 95 {
+		t.Errorf("expect TotalCount 95, got %d", model.TotalCount)
+	}
 }
 
 func TestCoverageDataCollectionRule(t *testing.T) {
 	tc := testCase{
-		name:       "DataCollectionRule",
-		apiVersion: "2022-06-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
+		name:         "DataCollectionRule",
+		resourceType: "Microsoft.Insights/dataCollectionRules@2022-06-01",
+		apiVersion:   "2022-06-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		rawRequest: []string{`{
     "location": "westeurope",
     "identity": {
@@ -573,14 +647,148 @@ func TestCoverageDataCollectionRule(t *testing.T) {
 		},
 	}
 
-	testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 65 {
+		t.Errorf("expected CoveredCount 65, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 65 {
+		t.Errorf("expected TotalCount 65, got %d", model.TotalCount)
+	}
+}
+
+func TestCoverageWebSite(t *testing.T) {
+	tc := testCase{
+		name:         "WebSites",
+		resourceType: "Microsoft.Web/sites@2022-09-01",
+		apiVersion:   "2022-09-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/testrg123/providers/Microsoft.Web/sites/sitef6141",
+		rawRequest: []string{`{
+    "kind": "app",
+    "location": "East US",
+    "properties": {
+        "serverFarmId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp"
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 3 {
+		t.Errorf("expected CoveredCount 3, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 186 {
+		t.Errorf("expected TotalCount 186, got %d", model.TotalCount)
+	}
+}
+func TestCoverageAKS(t *testing.T) {
+	tc := testCase{
+		name:         "AKS",
+		resourceType: "Microsoft.ContainerService/ManagedClusters@2023-05-02-preview",
+		apiVersion:   "2023-05-02-preview",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/rg1/providers/Microsoft.ContainerService/managedClusters/clustername1",
+		rawRequest: []string{`{
+    "location": "location1",
+    "tags": {
+        "tier": "production",
+        "archv2": ""
+    },
+    "sku": {
+        "name": "Basic",
+        "tier": "Free"
+    },
+    "properties": {
+        "kubernetesVersion": "",
+        "dnsPrefix": "dnsprefix1",
+        "agentPoolProfiles": [
+            {
+                "name": "nodepool1",
+                "count": 3,
+                "vmSize": "Standard_DS2_v2",
+                "osType": "Linux",
+                "osSKU": "AzureLinux",
+                "type": "VirtualMachineScaleSets",
+                "enableNodePublicIP": true,
+                "mode": "System"
+            }
+        ],
+        "linuxProfile": {
+            "adminUsername": "azureuser",
+            "ssh": {
+                "publicKeys": [
+                    {
+                        "keyData": "keydata"
+                    }
+                ]
+            }
+        },
+        "networkProfile": {
+            "loadBalancerSku": "standard",
+            "outboundType": "loadBalancer",
+            "loadBalancerProfile": {
+                "managedOutboundIPs": {
+                    "count": 2
+                }
+            }
+        },
+        "autoScalerProfile": {
+            "scan-interval": "20s",
+            "scale-down-delay-after-add": "15m"
+        },
+        "windowsProfile": {
+            "adminUsername": "azureuser",
+            "adminPassword": "replacePassword1234$"
+        },
+        "servicePrincipalProfile": {
+            "clientId": "clientid",
+            "secret": "secret"
+        },
+        "addonProfiles": {},
+        "enableRBAC": true,
+        "diskEncryptionSetID": "/subscriptions/subid1/resourceGroups/rg1/providers/Microsoft.Compute/diskEncryptionSets/des",
+        "enablePodSecurityPolicy": true,
+        "httpProxyConfig": {
+            "httpProxy": "http://myproxy.server.com:8080",
+            "httpsProxy": "https://myproxy.server.com:8080",
+            "noProxy": [
+                "localhost",
+                "127.0.0.1"
+            ],
+            "trustedCa": "Q29uZ3JhdHMhIFlvdSBoYXZlIGZvdW5kIGEgaGlkZGVuIG1lc3NhZ2U="
+        }
+    }
+}`},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Errorf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 33 {
+		t.Errorf("expected TotalCount 33, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 242 {
+		t.Errorf("expected TotalCount 242, got %d", model.TotalCount)
+	}
 }
 
 func TestCoverageCosmosDB(t *testing.T) {
 	tc := testCase{
-		name:       "CosmosDB",
-		apiVersion: "2023-04-15",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
+		name:         "CosmosDB",
+		resourceType: "Microsoft.DocumentDB/databaseAccounts@2023-04-15",
+		apiVersion:   "2023-04-15",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
 		rawRequest: []string{`{
     "location": "westus",
     "tags": {},
@@ -670,6 +878,10 @@ func TestCoverageCosmosDB(t *testing.T) {
 
 	if model.CoveredCount != 34 {
 		t.Errorf("expected CoveredCount 34, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 65 {
+		t.Errorf("expected TotalCount 65, got %d", model.TotalCount)
 	}
 
 	if model.Properties == nil {
@@ -804,9 +1016,10 @@ func TestCoverageCosmosDB(t *testing.T) {
 
 func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 	tc := testCase{
-		name:       "DataFactoryLinkedServices",
-		apiVersion: "2018-06-01",
-		apiPath:    "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedservices/linkedservice1",
+		name:         "DataFactoryLinkedServices",
+		resourceType: "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
+		apiVersion:   "2018-06-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
 		rawRequest: []string{`{
     "properties": {
         "type": "AzureStorage",
@@ -827,7 +1040,11 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 	}
 
 	if model.CoveredCount != 3 {
-		t.Errorf("expected 3, got %d", model.TotalCount)
+		t.Errorf("expected TotalCount 3, got %d", model.CoveredCount)
+	}
+
+	if model.TotalCount != 2857 {
+		t.Errorf("expected TotalCount 2857, got %d", model.TotalCount)
 	}
 
 	if model.Properties == nil {
@@ -930,8 +1147,12 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	model.CountCoverage()
 
 	coverageReport := types.CoverageReport{
-		Coverages: map[string]*coverage.Model{
-			fmt.Sprintf("%s?api-version=%s", *apiPath, tc.apiVersion): model,
+		Coverages: map[types.Resource]*coverage.Model{
+			types.Resource{
+				ApiPath: *apiPath,
+				Type:    tc.resourceType,
+				Address: "azapi_resource.test",
+			}: model,
 		},
 	}
 

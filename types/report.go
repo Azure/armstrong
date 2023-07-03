@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 
 	"github.com/ms-henglu/armstrong/coverage"
 )
@@ -12,12 +14,13 @@ type PassReport struct {
 }
 
 type Resource struct {
+	ApiPath string
 	Type    string
 	Address string
 }
 
 type CoverageReport struct {
-	Coverages map[string]*coverage.Model
+	Coverages map[Resource]*coverage.Model
 }
 
 type DiffReport struct {
@@ -49,9 +52,14 @@ type Error struct {
 	Message string
 }
 
-func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jsonBody map[string]interface{}) error {
+func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType, address string, jsonBody map[string]interface{}) error {
 	var apiPath, modelName, modelSwaggerPath *string
 	var err error
+
+	apiVersion := strings.Split(resourceType, "@")[1]
+	if !regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}$`).MatchString(apiVersion) {
+		return fmt.Errorf("could not parse apiVersion from resourceType: %s", resourceType)
+	}
 
 	apiPath, modelName, modelSwaggerPath, err = coverage.GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {
@@ -61,17 +69,22 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, apiVersion string, jso
 
 	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
 
-	versionedPath := fmt.Sprintf("%s?api-version=%s", *apiPath, apiVersion)
-	if _, ok := c.Coverages[versionedPath]; !ok {
+	resource := Resource{
+		ApiPath: *apiPath,
+		Type:    resourceType,
+		Address: address,
+	}
+
+	if _, ok := c.Coverages[resource]; !ok {
 		expanded, err := coverage.Expand(*modelName, *modelSwaggerPath)
 		if err != nil {
 			return fmt.Errorf("error expand model %s property:%s", *modelName, err)
 		}
 
-		c.Coverages[versionedPath] = expanded
+		c.Coverages[resource] = expanded
 	}
-	c.Coverages[versionedPath].MarkCovered(jsonBody)
-	c.Coverages[versionedPath].CountCoverage()
+	c.Coverages[resource].MarkCovered(jsonBody)
+	c.Coverages[resource].CountCoverage()
 
 	return nil
 }

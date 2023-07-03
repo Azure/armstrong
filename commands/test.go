@@ -120,17 +120,15 @@ func (c TestCommand) Execute() int {
 	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
 		if state, err := terraform.Show(); err == nil {
 			passReport := tf.NewPassReportFromState(state)
-			storePassReport(passReport, reportDir, "all_passed_report.md")
 			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
-			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
 
 			log.Printf("[INFO] producing coverage report...")
 			coverageReport, err := tf.NewCoverageReportFromState(state)
 			if err != nil {
 				log.Fatalf("[ERROR] error produce coverage report: %+v", err)
 			}
-			storeCoverageReport(coverageReport, reportDir, "coverage_report.md")
-			log.Printf("[INFO] coverage report has been saved in the report directory: %s, please check.", reportDir)
+			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
+			storePassReport(passReport, coverageReport, reportDir, "all_passed_report.md")
 		} else {
 			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
 		}
@@ -152,7 +150,11 @@ func (c TestCommand) Execute() int {
 	storeDiffReport(diffReport, reportDir)
 
 	passReport := tf.NewPassReport(plan)
-	storePassReport(passReport, reportDir, "partially_passed_report.md")
+	coverageReport, err := tf.NewCoverageReport(plan)
+	if err != nil {
+		log.Fatalf("[ERROR] error produce coverage report: %+v", err)
+	}
+	storePassReport(passReport, coverageReport, reportDir, "partially_passed_report.md")
 
 	log.Println("[INFO] ---------------- Summary ----------------")
 	log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
@@ -166,20 +168,9 @@ func (c TestCommand) Execute() int {
 	return 1
 }
 
-func storePassReport(passReport types.PassReport, reportDir string, reportName string) {
+func storePassReport(passReport types.PassReport, coverageReport types.CoverageReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport)), 0644)
-		if err != nil {
-			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
-		} else {
-			log.Printf("[INFO] markdown report saved to %s", reportName)
-		}
-	}
-}
-
-func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
-	if len(coverageReport.Coverages) != 0 {
-		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.CoverageMarkdownReport(coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {

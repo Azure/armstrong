@@ -140,7 +140,7 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 
 func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, error) {
 	out := types.CoverageReport{
-		Coverages: make(map[string]*coverage.Model, 0),
+		Coverages: make(map[types.Resource]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
 		return out, nil
@@ -153,6 +153,10 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 		id := ""
 		if v, ok := res.AttributeValues["id"]; ok {
 			id = v.(string)
+		}
+		resourceType := ""
+		if v, ok := res.AttributeValues["type"]; ok {
+			resourceType = v.(string)
 		}
 
 		body := map[string]interface{}{}
@@ -177,17 +181,68 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 			}
 		}
 
-		apiVersion := ""
-		if resourceType, ok := res.AttributeValues["type"].(string); ok {
-			apiVersion = strings.Split(resourceType, "@")[1]
-			if !regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}$`).MatchString(apiVersion) {
-				return out, fmt.Errorf("could not parse apiVersion from resourceType: %s", resourceType)
-			}
-		}
-
-		err := out.AddCoverageFromState(id, apiVersion, body)
+		err := out.AddCoverageFromState(id, resourceType, res.Address, body)
 		if err != nil {
 			return out, err
+		}
+	}
+	return out, nil
+}
+
+func NewCoverageReport(plan *tfjson.Plan) (types.CoverageReport, error) {
+	out := types.CoverageReport{
+		Coverages: make(map[types.Resource]*coverage.Model, 0),
+	}
+	if plan != nil {
+		for _, resourceChange := range plan.ResourceChanges {
+			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+				continue
+			}
+			if resourceChange == nil || resourceChange.Change == nil {
+				continue
+			}
+			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+				beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+				if !beforeMapOk {
+					continue
+				}
+				id := ""
+				if v, ok := beforeMap["id"]; ok {
+					id = v.(string)
+				}
+				resourceType := ""
+				if v, ok := beforeMap["type"]; ok {
+					resourceType = v.(string)
+				}
+
+				body := map[string]interface{}{}
+				if bodyRaw, ok := beforeMap["body"].(string); ok {
+					if value, ok := beforeMap["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
+						tagsModel := value.(map[string]interface{})
+						if len(tagsModel) != 0 {
+							body["tags"] = tagsModel
+						}
+					}
+					if value, ok := beforeMap["location"]; ok && value != nil && value.(string) != "" {
+						body["location"] = value.(string)
+					}
+
+					if value, ok := beforeMap["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
+						body["identity"] = expandIdentity(value.([]interface{}))
+					}
+
+					err := json.Unmarshal([]byte(bodyRaw), &body)
+					if err != nil {
+						return out, err
+					}
+				}
+
+				err := out.AddCoverageFromState(id, resourceType, resourceChange.Address, body)
+				if err != nil {
+					return out, err
+				}
+
+			}
 		}
 	}
 	return out, nil
