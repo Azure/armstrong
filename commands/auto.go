@@ -54,18 +54,26 @@ func (c AutoCommand) Run(args []string) int {
 }
 
 func (c AutoCommand) Execute() int {
-	GenerateCommand{
+	result := GenerateCommand{
 		Ui:                c.Ui,
 		workingDir:        c.workingDir,
 		path:              c.path,
 		overwrite:         c.overwrite,
 		useRawJsonPayload: c.useRawJsonPayload,
 	}.Execute()
-	TestCommand{
+	if result != 0 {
+		log.Println("[ERROR] Generate failed, skip test")
+		return result
+	}
+	result = TestCommand{
 		Ui:         c.Ui,
 		verbose:    c.verbose,
 		workingDir: c.workingDir,
 	}.Execute()
+	if result != 0 {
+		log.Println("[ERROR] Test failed, skip cleanup")
+		return result
+	}
 	CleanupCommand{
 		Ui:         c.Ui,
 		verbose:    c.verbose,

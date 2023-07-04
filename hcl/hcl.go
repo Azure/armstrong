@@ -16,6 +16,8 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 // RenameLabel is used to rename resource name to make name unique
 func RenameLabel(input string) string {
 	f, parseDiags := hclwrite.ParseConfig([]byte(input), "temp.tf", hcl.InitialPos)
@@ -48,7 +50,6 @@ func RenameLabel(input string) string {
 		resourceCountMap[labels[0]] = count + 1
 		block.SetLabels(labels)
 		if block.Body() != nil && block.Body().GetAttribute("name") != nil {
-			rand.Seed(time.Now().UnixNano())
 			block.Body().SetAttributeValue("name", cty.StringVal(RandomName()))
 		}
 		resHcl.Body().AppendBlock(block)
@@ -117,8 +118,7 @@ func FindResourceAddress(config, resourceType string) string {
 }
 
 func RandomName() string {
-	rand.Seed(time.Now().UnixNano())
-	return fmt.Sprintf("acctest%d", rand.Intn(10000))
+	return fmt.Sprintf("acctest%d", r.Intn(10000))
 }
 
 func LoadExistingDependencies(workingDir string) []types.Dependency {
@@ -152,11 +152,15 @@ func LoadExistingDependencies(workingDir string) []types.Dependency {
 				if labels[0] == "azapi_resource" {
 					pattern = GetAzApiResourceIdPattern(block)
 				}
+				address := strings.Join(labels, ".")
+				if block.Type() == "data" {
+					address = "data." + address
+				}
 				existDeps = append(existDeps, types.Dependency{
 					Pattern:          pattern,
 					ResourceType:     labels[0],
 					ReferredProperty: "id",
-					Address:          strings.Join(labels, "."),
+					Address:          address,
 				})
 			}
 		}
@@ -189,6 +193,7 @@ terraform {
 
 provider "azurerm" {
   features {}
+  skip_provider_registration = false
 }
 
 provider "azapi" {

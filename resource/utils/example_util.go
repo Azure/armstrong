@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,6 +16,9 @@ func GetUpdatedBody(body interface{}, replacements map[string]string, removes []
 		res := make(map[string]interface{})
 		for key, value := range bodyValue {
 			if temp := GetUpdatedBody(value, replacements, removes, path+"."+key); temp != nil {
+				if replaceKey := replacements[fmt.Sprintf("key:%s.%s", path, key)]; replaceKey != "" {
+					key = replaceKey
+				}
 				res[key] = temp
 			}
 		}

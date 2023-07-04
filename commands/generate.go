@@ -23,6 +23,7 @@ type GenerateCommand struct {
 	workingDir        string
 	useRawJsonPayload bool
 	overwrite         bool
+	resourceType      string
 }
 
 func (c *GenerateCommand) flags() *flag.FlagSet {
@@ -32,6 +33,7 @@ func (c *GenerateCommand) flags() *flag.FlagSet {
 	fs.StringVar(&c.workingDir, "working-dir", "", "output path to Terraform configuration files")
 	fs.BoolVar(&c.useRawJsonPayload, "raw", false, "whether use raw json payload in 'body'")
 	fs.BoolVar(&c.overwrite, "overwrite", false, "whether overwrite existing terraform configurations")
+	fs.StringVar(&c.resourceType, "type", "resource", "the type of the resource to be generated, allowed values: 'resource'(supports CRUD) and 'data'(read-only). Defaults to 'resource'")
 	fs.Usage = func() { c.Ui.Error(c.Help()) }
 
 	return fs
@@ -76,40 +78,55 @@ func (c GenerateCommand) Execute() int {
 		}
 	}
 	if c.overwrite {
-		_ = os.Remove(path.Join(wd, "testing.tf"))
-		_ = os.Remove(path.Join(wd, "dependency.tf"))
+		_ = os.RemoveAll(path.Join(wd, "testing.tf"))
+		_ = os.RemoveAll(path.Join(wd, "dependency.tf"))
 	}
 	err = os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
 	if err != nil {
 		log.Fatalf("[ERROR] error writing provider.tf: %+v\n", err)
 	}
 
-	log.Println("[INFO] ----------- generate dependency and test resource ---------")
+	log.Println("[INFO] ----------- generate dependencies and testing resource ---------")
 	// load dependencies
 	log.Println("[INFO] loading dependencies")
 	existDeps, deps := loadDependencies(wd)
 
-	// load example and generate hcl
+	// load example
 	log.Println("[INFO] generating testing files")
 	exampleFilepath := c.path
-	exampleResource, err := resource.NewResourceFromExample(exampleFilepath)
-	if err != nil {
-		log.Fatalf("[ERROR] error reading example file: %+v\n", err)
+	var base resource.Base
+	if c.resourceType == "data" {
+		base, err = resource.NewDataSourceFromExample(exampleFilepath)
+		if err != nil {
+			log.Fatalf("[ERROR] error loading data source: %+v\n", err)
+		}
+	} else {
+		base, err = resource.NewResourceFromExample(exampleFilepath)
+		if err != nil {
+			log.Fatalf("[ERROR] error loading resource: %+v\n", err)
+		}
 	}
 
-	dependencyHcl := exampleResource.DependencyHcl(existDeps, deps)
+	// generate dependency.tf
+	requiredDependencies := base.RequiredDependencies(existDeps, deps)
+	dependencyHcl := ""
+	for _, dep := range requiredDependencies {
+		dependencyHcl = hcl.Combine(dependencyHcl, hcl.RenameLabel(dep.ExampleConfiguration))
+	}
 	err = appendFile(path.Join(wd, "dependency.tf"), dependencyHcl)
 	if err != nil {
 		log.Fatalf("[ERROR] error writing dependency.tf: %+v\n", err)
 	}
 	log.Println("[INFO] dependency.tf generated")
 
-	existDeps = hcl.LoadExistingDependencies(wd)
-	addrs := make([]string, 0)
-	for _, dep := range existDeps {
-		addrs = append(addrs, dep.Address)
+	// generate testing.tf
+	refs := make([]resource.Reference, 0)
+	for _, dep := range hcl.LoadExistingDependencies(wd) {
+		refs = append(refs, *resource.NewReferenceFromAddress(fmt.Sprintf("%s.%s", dep.Address, dep.ReferredProperty)))
 	}
-	testResourceHcl := exampleResource.Hcl(dependencyHcl, addrs, c.useRawJsonPayload)
+	base.UpdatePropertyDependencyMappingsReference(append(deps, existDeps...), refs)
+	base.GenerateLabel(refs)
+	testResourceHcl := base.Hcl(c.useRawJsonPayload)
 	err = appendFile(path.Join(wd, "testing.tf"), testResourceHcl)
 	if err != nil {
 		log.Fatalf("[ERROR] error writing testing.tf: %+v\n", err)

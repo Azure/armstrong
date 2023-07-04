@@ -77,3 +77,16 @@ func GetResourceType(id string) string {
 	}
 	return resourceType
 }
+
+func GetName(id string) string {
+	idURL, err := url.ParseRequestURI(id)
+	if err != nil {
+		return ""
+	}
+
+	path := idURL.Path
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+	return path[strings.LastIndex(path, "/")+1:]
+}
