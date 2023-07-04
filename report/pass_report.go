@@ -30,9 +30,9 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport types.Cove
 		reportDetail := generateReport(v)
 		sort.Strings(reportDetail)
 
-		coverages = append(coverages, fmt.Sprintf(`### <!-- %[1]v -->
+		coverages = append(coverages, fmt.Sprintf(`#### <!-- %[1]v -->
 <details open>
-<summary>%[1]v (%[2]v) [%[3]v]</summary>
+<summary>%[1]v (%[2]v)  %[3]v</summary>
 
 [swagger](%[4]v)
 <blockquote>

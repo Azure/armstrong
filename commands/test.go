@@ -170,7 +170,7 @@ func (c TestCommand) Execute() int {
 
 func storePassReport(passReport types.PassReport, coverageReport types.CoverageReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
-		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport)), 0644)
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {

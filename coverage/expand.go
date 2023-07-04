@@ -53,7 +53,7 @@ func getVariantTable(swaggerPath string) (map[string]map[string]interface{}, err
 				if variant.Ref.String() != "" {
 					resolved, err := openapiSpec.ResolveRefWithBase(spec, &variant.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 					if err != nil {
-						log.Printf("[ERROR] resolve %s: %v", variant.Ref.String(), err)
+						log.Fatalf("[ERROR] resolve %s: %v", variant.Ref.String(), err)
 					}
 					if resolved.Extensions[msExtensionDiscriminator] != nil || resolved.Discriminator != "" {
 						modelName, _ := SchemaNamePathFromRef(variant.Ref)
@@ -139,7 +139,8 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 			case int:
 				enumMap[fmt.Sprintf("%v", t)] = false
 			default:
-				log.Printf("[ERROR]unknown enum type %T", t)
+				log.Printf("[ERROR] unknown enum type %T", t)
+				enumMap[fmt.Sprintf("%v", t)] = false
 			}
 		}
 
@@ -153,7 +154,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		//log.Println("[DEBUG] expand ref", input.Ref.String())
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
-			log.Printf("[ERROR] resolve %s: %v", input.Ref.String(), err)
+			log.Fatalf("[ERROR] resolve %s: %v", input.Ref.String(), err)
 		}
 
 		modelName, relativePath := SchemaNamePathFromRef(input.Ref)
@@ -163,7 +164,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 			doc, err := loadSwagger(swaggerPath)
 			if err != nil {
-				log.Printf("[ERROR] load swagger %s: %v", swaggerPath, err)
+				log.Fatalf("[ERROR] load swagger %s: %v", swaggerPath, err)
 			}
 
 			root = doc.Spec()
@@ -228,7 +229,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		for _, v := range input.Required {
 			p, ok := properties[v]
 			if !ok {
-				log.Printf("[ERROR] required property %s not found in %s", v, modelName)
+				log.Printf("[WARN] required property %s not found in %s", v, modelName)
 			}
 			p.IsRequired = true
 		}
@@ -268,7 +269,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 			variantsTable, err := getVariantTable(swaggerPath)
 			if err != nil {
-				log.Printf("[ERROR] get variant table %s: %v", swaggerPath, err)
+				log.Fatalf("[ERROR] get variant table %s: %v", swaggerPath, err)
 			}
 			varSet, ok := variantsTable[modelName]
 			// level order traverse to find all variants

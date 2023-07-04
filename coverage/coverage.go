@@ -96,7 +96,7 @@ func (m *Model) MarkCovered(root interface{}) {
 		}
 
 	default:
-		log.Printf("[ERROR] unexpect type %T for json unmarshaled value", value)
+		log.Fatalf("[ERROR] unexpect type %T for json unmarshaled value", value)
 	}
 }
 

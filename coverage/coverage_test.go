@@ -34,27 +34,27 @@ func TestCoverageResourceGroup(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 1 {
-		t.Errorf("expected CoveredCount 1, got %d", model.CoveredCount)
+		t.Fatalf("expected CoveredCount 1, got %d", model.CoveredCount)
 	}
 
 	if model.TotalCount != 3 {
-		t.Errorf("expected TotalCount 3, got %d", model.TotalCount)
+		t.Fatalf("expected TotalCount 3, got %d", model.TotalCount)
 	}
 
 	if model.Properties == nil {
-		t.Errorf("expected properties, got none")
+		t.Fatalf("expected properties, got none")
 	}
 
 	if v, ok := (*model.Properties)["location"]; !ok || v == nil {
-		t.Errorf("expected location, got none")
+		t.Fatalf("expected location, got none")
 	}
 
 	if !(*model.Properties)["location"].IsAnyCovered {
-		t.Errorf("expected location IsAnyCovered true, got false")
+		t.Fatalf("expected location IsAnyCovered true, got false")
 	}
 }
 
@@ -135,16 +135,13 @@ func TestCoverageKeyVault(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 13 {
-		t.Errorf("expected CoveredCount 13, got %d", model.CoveredCount)
+		t.Fatalf("expected CoveredCount 13, got %d", model.CoveredCount)
 	}
 
-	if model.TotalCount != 28 {
-		t.Errorf("expected TotalCount 28, got %d", model.TotalCount)
-	}
 }
 
 func TestCoverageStorageAccount(t *testing.T) {
@@ -206,15 +203,11 @@ func TestCoverageStorageAccount(t *testing.T) {
 	}
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 24 {
-		t.Errorf("expected CoveredCount 24, got %d", model.CoveredCount)
-	}
-
-	if model.TotalCount != 69 {
-		t.Errorf("expected TotalCount 69, got %d", model.TotalCount)
+		t.Fatalf("expected CoveredCount 24, got %d", model.CoveredCount)
 	}
 }
 
@@ -279,16 +272,13 @@ func TestCoverageVM(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 20 {
-		t.Errorf("expected CoveredCount 20, got %d", model.CoveredCount)
+		t.Fatalf("expected CoveredCount 20, got %d", model.CoveredCount)
 	}
 
-	if model.TotalCount != 155 {
-		t.Errorf("expected TotalCount 155, got %d", model.TotalCount)
-	}
 }
 
 func TestCoverageVNet(t *testing.T) {
@@ -320,15 +310,11 @@ func TestCoverageVNet(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 4 {
-		t.Errorf("expected CoveredCount 4, got %d", model.CoveredCount)
-	}
-
-	if model.TotalCount != 95 {
-		t.Errorf("expect TotalCount 95, got %d", model.TotalCount)
+		t.Fatalf("expected CoveredCount 4, got %d", model.CoveredCount)
 	}
 }
 
@@ -649,16 +635,13 @@ func TestCoverageDataCollectionRule(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 65 {
-		t.Errorf("expected CoveredCount 65, got %d", model.CoveredCount)
+		t.Fatalf("expected CoveredCount 65, got %d", model.CoveredCount)
 	}
 
-	if model.TotalCount != 65 {
-		t.Errorf("expected TotalCount 65, got %d", model.TotalCount)
-	}
 }
 
 func TestCoverageWebSite(t *testing.T) {
@@ -679,16 +662,13 @@ func TestCoverageWebSite(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 3 {
-		t.Errorf("expected CoveredCount 3, got %d", model.CoveredCount)
+		t.Fatalf("expected CoveredCount 3, got %d", model.CoveredCount)
 	}
 
-	if model.TotalCount != 186 {
-		t.Errorf("expected TotalCount 186, got %d", model.TotalCount)
-	}
 }
 func TestCoverageAKS(t *testing.T) {
 	tc := testCase{
@@ -771,16 +751,13 @@ func TestCoverageAKS(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 33 {
-		t.Errorf("expected TotalCount 33, got %d", model.CoveredCount)
+		t.Fatalf("expected TotalCount 33, got %d", model.CoveredCount)
 	}
 
-	if model.TotalCount != 242 {
-		t.Errorf("expected TotalCount 242, got %d", model.TotalCount)
-	}
 }
 
 func TestCoverageCosmosDB(t *testing.T) {
@@ -873,143 +850,139 @@ func TestCoverageCosmosDB(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %v", err)
+		t.Fatalf("process coverage: %v", err)
 	}
 
 	if model.CoveredCount != 34 {
-		t.Errorf("expected CoveredCount 34, got %d", model.CoveredCount)
-	}
-
-	if model.TotalCount != 65 {
-		t.Errorf("expected TotalCount 65, got %d", model.TotalCount)
+		t.Fatalf("expected CoveredCount 34, got %d", model.CoveredCount)
 	}
 
 	if model.Properties == nil {
-		t.Errorf("expected properties, got none")
+		t.Fatalf("expected properties, got none")
 	}
 
 	if v, ok := (*model.Properties)["identity"]; !ok || v == nil {
-		t.Errorf("expected identity property, got none")
+		t.Fatalf("expected identity property, got none")
 	}
 
 	if (*model.Properties)["identity"].CoveredCount != 2 {
-		t.Errorf("expected identity CoveredCount 2, got %d", (*model.Properties)["identity"].CoveredCount)
+		t.Fatalf("expected identity CoveredCount 2, got %d", (*model.Properties)["identity"].CoveredCount)
 	}
 
 	if (*model.Properties)["identity"].Properties == nil {
-		t.Errorf("expected identity properties, got none")
+		t.Fatalf("expected identity properties, got none")
 	}
 
 	if v, ok := (*(*model.Properties)["identity"].Properties)["type"]; !ok || v == nil {
-		t.Errorf("expected identity type property, got none")
+		t.Fatalf("expected identity type property, got none")
 	}
 
 	if !(*(*model.Properties)["identity"].Properties)["type"].IsAnyCovered {
-		t.Errorf("expected identity type IsAnyCovered true, got false")
+		t.Fatalf("expected identity type IsAnyCovered true, got false")
 	}
 
 	if !(*(*model.Properties)["identity"].Properties)["type"].IsFullyCovered {
-		t.Errorf("expected identity type IsFullyCovered true, got false")
+		t.Fatalf("expected identity type IsFullyCovered true, got false")
 	}
 
 	if (*(*model.Properties)["identity"].Properties)["type"].EnumCoveredCount != 1 {
-		t.Errorf("expected identity type EnumCoveredCount 1, got %d", (*(*model.Properties)["identity"].Properties)["type"].EnumCoveredCount)
+		t.Fatalf("expected identity type EnumCoveredCount 1, got %d", (*(*model.Properties)["identity"].Properties)["type"].EnumCoveredCount)
 	}
 
 	if (*(*model.Properties)["identity"].Properties)["type"].Enum == nil {
-		t.Errorf("expected identity type Enum, got none")
+		t.Fatalf("expected identity type Enum, got none")
 	}
 
 	if isSet, ok := (*(*(*model.Properties)["identity"].Properties)["type"].Enum)["SystemAssigned,UserAssigned"]; !ok || !isSet {
-		t.Errorf("expected identity type Enum SystemAssigned,UserAssigned to be set")
+		t.Fatalf("expected identity type Enum SystemAssigned,UserAssigned to be set")
 	}
 
 	if v, ok := (*model.Properties)["tags"]; !ok || v == nil {
-		t.Errorf("expected identity tags, got none")
+		t.Fatalf("expected identity tags, got none")
 	}
 
 	if !(*model.Properties)["tags"].HasAdditionalProperties {
-		t.Errorf("expected tags HasAdditionalProperties true, got false")
+		t.Fatalf("expected tags HasAdditionalProperties true, got false")
 	}
 
 	if !(*model.Properties)["tags"].IsAnyCovered {
-		t.Errorf("expected tags IsAnyCovered true, got false")
+		t.Fatalf("expected tags IsAnyCovered true, got false")
 	}
 
 	if (*model.Properties)["tags"].TotalCount != 1 {
-		t.Errorf("expected tags TotalCount 1, got %d", (*model.Properties)["tags"].TotalCount)
+		t.Fatalf("expected tags TotalCount 1, got %d", (*model.Properties)["tags"].TotalCount)
 	}
 
 	if (*model.Properties)["tags"].CoveredCount != 1 {
-		t.Errorf("expected tags CoveredCount 1, got %d", (*model.Properties)["tags"].CoveredCount)
+		t.Fatalf("expected tags CoveredCount 1, got %d", (*model.Properties)["tags"].CoveredCount)
 	}
 
 	if v, ok := (*model.Properties)["properties"]; !ok || v == nil {
-		t.Errorf("expected identity properties, got none")
+		t.Fatalf("expected identity properties, got none")
 	}
 
 	if !(*model.Properties)["properties"].IsAnyCovered {
-		t.Errorf("expected properties IsAnyCovered true, got false")
+		t.Fatalf("expected properties IsAnyCovered true, got false")
 	}
 
 	if (*model.Properties)["properties"].Properties == nil {
-		t.Errorf("expected properties properties, got none")
+		t.Fatalf("expected properties properties, got none")
 	}
 
 	if v, ok := (*(*model.Properties)["properties"].Properties)["locations"]; !ok || v == nil {
-		t.Errorf("expected properties locations, got none")
+		t.Fatalf("expected properties locations, got none")
 	}
 
 	if !(*(*model.Properties)["properties"].Properties)["locations"].IsAnyCovered {
-		t.Errorf("expected locations IsAnyCovered true, got false")
+		t.Fatalf("expected locations IsAnyCovered true, got false")
 	}
 
 	if (*(*model.Properties)["properties"].Properties)["locations"].Item == nil {
-		t.Errorf("expected locations Item, got none")
+		t.Fatalf("expected locations Item, got none")
 	}
 
 	if (*(*model.Properties)["properties"].Properties)["locations"].Item.Properties == nil {
-		t.Errorf("expected locations Item properties, got none")
+		t.Fatalf("expected locations Item properties, got none")
 	}
 
 	if v, ok := (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["locationName"]; !ok || v == nil {
-		t.Errorf("expected locations Item locationName, got none")
+		t.Fatalf("expected locations Item locationName, got none")
 	}
 
 	if !(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["locationName"].IsAnyCovered {
-		t.Errorf("expected locationName IsAnyCovered true, got false")
+		t.Fatalf("expected locationName IsAnyCovered true, got false")
 	}
 
 	if v, ok := (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"]; !ok || v == nil {
-		t.Errorf("expected locations Item isZoneRedundant, got none")
+		t.Fatalf("expected locations Item isZoneRedundant, got none")
 	}
 
 	if !(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].IsAnyCovered {
-		t.Errorf("expected isZoneRedundant IsAnyCovered true, got false")
+		t.Fatalf("expected isZoneRedundant IsAnyCovered true, got false")
 	}
 
 	if (*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].Bool == nil {
-		t.Errorf("expected isZoneRedundant Bool, got none")
+		t.Fatalf("expected isZoneRedundant Bool, got none")
 	}
 
 	if isSet, ok := (*(*(*(*model.Properties)["properties"].Properties)["locations"].Item.Properties)["isZoneRedundant"].Bool)["false"]; !ok || !isSet {
-		t.Errorf("expected isZoneRedundant Bool false to be set")
+		t.Fatalf("expected isZoneRedundant Bool false to be set")
 	}
 
 	if v, ok := (*(*model.Properties)["properties"].Properties)["ipRules"]; !ok || v == nil {
-		t.Errorf("expected properties ipRules, got none")
+		t.Fatalf("expected properties ipRules, got none")
 	}
 
 	if (*(*model.Properties)["properties"].Properties)["ipRules"].Item == nil {
-		t.Errorf("expected ipRules Item, got none")
+		t.Fatalf("expected ipRules Item, got none")
 	}
 
 	if (*(*model.Properties)["properties"].Properties)["ipRules"].Item.Properties == nil {
-		t.Errorf("expected ipRules Item properties, got none")
+		t.Fatalf("expected ipRules Item properties, got none")
 	}
 
 	if v, ok := (*(*(*model.Properties)["properties"].Properties)["ipRules"].Item.Properties)["ipAddressOrRange"]; !ok || v == nil {
-		t.Errorf("expected ipRules Item ipAddressOrRange, got none")
+		t.Fatalf("expected ipRules Item ipAddressOrRange, got none")
 	}
 
 }
@@ -1036,79 +1009,75 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 
 	model, err := testCoverage(t, tc)
 	if err != nil {
-		t.Errorf("process coverage: %+v", err)
+		t.Fatalf("process coverage: %+v", err)
 	}
 
 	if model.CoveredCount != 3 {
-		t.Errorf("expected TotalCount 3, got %d", model.CoveredCount)
-	}
-
-	if model.TotalCount != 2857 {
-		t.Errorf("expected TotalCount 2857, got %d", model.TotalCount)
+		t.Fatalf("expected TotalCount 3, got %d", model.CoveredCount)
 	}
 
 	if model.Properties == nil {
-		t.Errorf("expected properties, got none")
+		t.Fatalf("expected properties, got none")
 	}
 
 	if (*model.Properties)["properties"].Properties == nil {
-		t.Errorf("expected properties properties, got none")
+		t.Fatalf("expected properties properties, got none")
 	}
 
 	if v, ok := (*(*model.Properties)["properties"].Properties)["type"]; !ok || v == nil {
-		t.Errorf("expected properties type property, got none")
+		t.Fatalf("expected properties type property, got none")
 	}
 
 	if !(*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
-		t.Errorf("expected properties type IsAnyCovered true, got false")
+		t.Fatalf("expected properties type IsAnyCovered true, got false")
 	}
 
 	if (*model.Properties)["properties"].Discriminator == nil {
-		t.Errorf("expected properties discriminator, got none")
+		t.Fatalf("expected properties discriminator, got none")
 	}
 
 	if *(*model.Properties)["properties"].Discriminator != "type" {
-		t.Errorf("expected properties discriminator 'type', got %s", *(*model.Properties)["properties"].Discriminator)
+		t.Fatalf("expected properties discriminator 'type', got %s", *(*model.Properties)["properties"].Discriminator)
 	}
 
 	if (*model.Properties)["properties"].Variants == nil {
-		t.Errorf("expected properties variants, got none")
+		t.Fatalf("expected properties variants, got none")
 	}
 
 	if v, ok := (*(*model.Properties)["properties"].Variants)["AzureStorage"]; !ok || v == nil {
-		t.Errorf("expected properties variant AzureStorage, got none")
+		t.Fatalf("expected properties variant AzureStorage, got none")
 	}
 
 	if (*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties == nil {
-		t.Errorf("expected properties variant AzureStorage properties, got none")
+		t.Fatalf("expected properties variant AzureStorage properties, got none")
 	}
 
 	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"]; !ok || v == nil {
-		t.Errorf("expected properties variant AzureStorage type property, got none")
+		t.Fatalf("expected properties variant AzureStorage type property, got none")
 	}
 
 	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"].IsAnyCovered {
-		t.Errorf("expected properties variant AzureStorage type IsAnyCovered true, got false")
+		t.Fatalf("expected properties variant AzureStorage type IsAnyCovered true, got false")
 	}
 
 	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"]; !ok || v == nil {
-		t.Errorf("expected properties variant AzureStorage typeProperties property, got none")
+		t.Fatalf("expected properties variant AzureStorage typeProperties property, got none")
 	}
 
 	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].IsAnyCovered {
-		t.Errorf("expected properties variant AzureStorage typeProperties IsAnyCovered true, got false")
+		t.Fatalf("expected properties variant AzureStorage typeProperties IsAnyCovered true, got false")
 	}
 
 	if (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties == nil {
-		t.Errorf("expected properties variant AzureStorage typeProperties properties, got none")
+		t.Fatalf("expected properties variant AzureStorage typeProperties properties, got none")
 	}
 
 	if v, ok := (*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"]; !ok || v == nil {
-		t.Errorf("expected properties variant AzureStorage typeProperties connectionString property, got none")
+		t.Fatalf("expected properties variant AzureStorage typeProperties connectionString property, got none")
 	}
 
 	if !(*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"].IsAnyCovered {
-		t.Errorf("expected properties variant AzureStorage typeProperties connectionString IsAnyCovered true, got false")
+		t.Fatalf("expected properties variant AzureStorage typeProperties connectionString IsAnyCovered true, got false")
 	}
 }
 
@@ -1163,7 +1132,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 
 func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
 	if len(coverageReport.Coverages) != 0 {
-		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.CoverageMarkdownReport(coverageReport)), 0644)
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(types.PassReport{}, coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {

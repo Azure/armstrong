@@ -13,21 +13,21 @@ func TestGetModelInfoFromIndex(t *testing.T) {
 		apiVersion,
 	)
 	if err != nil {
-		t.Errorf("get model info from index error: %+v", err)
+		t.Fatalf("get model info from index error: %+v", err)
 	}
 
 	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}"
 	if *apiPath != expectedApiPath {
-		t.Errorf("expected apiPath %s, got %s", expectedApiPath, *apiPath)
+		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, *apiPath)
 	}
 
 	expectedModelName := "DataCollectionRuleResource"
 	if *modelName != expectedModelName {
-		t.Errorf("expected modelName %s, got %s", expectedModelName, *modelName)
+		t.Fatalf("expected modelName %s, got %s", expectedModelName, *modelName)
 	}
 
 	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/dataCollectionRules_API.json"
 	if *modelSwaggerPath != expectedModelSwaggerPath {
-		t.Errorf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, *modelSwaggerPath)
+		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, *modelSwaggerPath)
 	}
 }

@@ -19,12 +19,12 @@ func TestExpand(t *testing.T) {
 	modelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
 	model, err := coverage.Expand(modelName, modelSwaggerPath)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	out, err := json.MarshalIndent(model, "", "\t")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	t.Logf("expanded model %s", string(out))
 }
@@ -39,7 +39,7 @@ func TestExpandAll(t *testing.T) {
 
 	index, err := coverage.GetIndex()
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	refMaps := make(map[string]*jsonreference.Ref, 0)
@@ -86,7 +86,8 @@ func TestExpandAll(t *testing.T) {
 				swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
 				operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 				if err != nil {
-					panic(err)
+					t.Error(err)
+					return
 				}
 
 				var modelName string
@@ -102,12 +103,14 @@ func TestExpandAll(t *testing.T) {
 
 				// post may have no model
 				if operation.Put != nil && modelName == "" {
-					panic("modelName is empty")
+					t.Error("modelName is empty")
+					return
 				}
 
 				model, err := coverage.Expand(modelName, swaggerPath)
 				if err != nil {
-					panic(err)
+					t.Error(err)
+					return
 				}
 
 				// clean up
