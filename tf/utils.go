@@ -58,33 +58,36 @@ func NewDiffReport(plan *tfjson.Plan, logs []types.RequestTrace) types.DiffRepor
 		Diffs: make([]types.Diff, 0),
 		Logs:  logs,
 	}
-	if plan != nil {
-		for _, resourceChange := range plan.ResourceChanges {
-			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
-				continue
-			}
-			if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
-				continue
-			}
-			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
-				continue
-			}
-			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
-			afterMap, afterMapOk := resourceChange.Change.After.(map[string]interface{})
-			if !beforeMapOk || !afterMapOk {
-				continue
-			}
-			out.Diffs = append(out.Diffs, types.Diff{
-				Id:      afterMap["id"].(string),
-				Type:    afterMap["type"].(string),
-				Address: resourceChange.Address,
-				Change: types.Change{
-					Before: beforeMap["body"].(string),
-					After:  afterMap["body"].(string),
-				},
-			})
-		}
+	if plan == nil {
+		return out
 	}
+
+	for _, resourceChange := range plan.ResourceChanges {
+		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+			continue
+		}
+		if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
+			continue
+		}
+		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+			continue
+		}
+		beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+		afterMap, afterMapOk := resourceChange.Change.After.(map[string]interface{})
+		if !beforeMapOk || !afterMapOk {
+			continue
+		}
+		out.Diffs = append(out.Diffs, types.Diff{
+			Id:      afterMap["id"].(string),
+			Type:    afterMap["type"].(string),
+			Address: resourceChange.Address,
+			Change: types.Change{
+				Before: beforeMap["body"].(string),
+				After:  afterMap["body"].(string),
+			},
+		})
+	}
+
 	return out
 }
 
@@ -115,32 +118,35 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	out := types.PassReport{
 		Resources: make([]types.Resource, 0),
 	}
-	if plan != nil {
-		for _, resourceChange := range plan.ResourceChanges {
-			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+	if plan == nil {
+		return out
+	}
+
+	for _, resourceChange := range plan.ResourceChanges {
+		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+			continue
+		}
+		if resourceChange == nil || resourceChange.Change == nil {
+			continue
+		}
+		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+			if !beforeMapOk {
 				continue
 			}
-			if resourceChange == nil || resourceChange.Change == nil {
-				continue
-			}
-			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
-				beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
-				if !beforeMapOk {
-					continue
-				}
-				out.Resources = append(out.Resources, types.Resource{
-					Type:    beforeMap["type"].(string),
-					Address: resourceChange.Address,
-				})
-			}
+			out.Resources = append(out.Resources, types.Resource{
+				Type:    beforeMap["type"].(string),
+				Address: resourceChange.Address,
+			})
 		}
 	}
+
 	return out
 }
 
 func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, error) {
 	out := types.CoverageReport{
-		Coverages: make(map[types.Resource]*coverage.Model, 0),
+		Coverages: make(map[types.ArmResource]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
 		return out, nil
@@ -159,29 +165,12 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 			resourceType = v.(string)
 		}
 
-		body := map[string]interface{}{}
-		if bodyRaw, ok := res.AttributeValues["body"].(string); ok {
-			if value, ok := res.AttributeValues["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
-				tagsModel := value.(map[string]interface{})
-				if len(tagsModel) != 0 {
-					body["tags"] = tagsModel
-				}
-			}
-			if value, ok := res.AttributeValues["location"]; ok && value != nil && value.(string) != "" {
-				body["location"] = value.(string)
-			}
-
-			if value, ok := res.AttributeValues["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
-				body["identity"] = expandIdentity(value.([]interface{}))
-			}
-
-			err := json.Unmarshal([]byte(bodyRaw), &body)
-			if err != nil {
-				return out, err
-			}
+		body, err := getBody(res.AttributeValues)
+		if err != nil {
+			return out, err
 		}
 
-		err := out.AddCoverageFromState(id, resourceType, res.Address, body)
+		err = out.AddCoverageFromState(id, resourceType, body)
 		if err != nil {
 			return out, err
 		}
@@ -191,61 +180,73 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 
 func NewCoverageReport(plan *tfjson.Plan) (types.CoverageReport, error) {
 	out := types.CoverageReport{
-		Coverages: make(map[types.Resource]*coverage.Model, 0),
+		Coverages: make(map[types.ArmResource]*coverage.Model, 0),
 	}
-	if plan != nil {
-		for _, resourceChange := range plan.ResourceChanges {
-			if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+	if plan == nil {
+		return out, nil
+	}
+
+	for _, resourceChange := range plan.ResourceChanges {
+		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+			continue
+		}
+		if resourceChange == nil || resourceChange.Change == nil {
+			continue
+		}
+		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+			if !beforeMapOk {
 				continue
 			}
-			if resourceChange == nil || resourceChange.Change == nil {
-				continue
+
+			id := ""
+			if v, ok := beforeMap["id"]; ok {
+				id = v.(string)
 			}
-			if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
-				beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
-				if !beforeMapOk {
-					continue
-				}
-				id := ""
-				if v, ok := beforeMap["id"]; ok {
-					id = v.(string)
-				}
-				resourceType := ""
-				if v, ok := beforeMap["type"]; ok {
-					resourceType = v.(string)
-				}
 
-				body := map[string]interface{}{}
-				if bodyRaw, ok := beforeMap["body"].(string); ok {
-					if value, ok := beforeMap["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
-						tagsModel := value.(map[string]interface{})
-						if len(tagsModel) != 0 {
-							body["tags"] = tagsModel
-						}
-					}
-					if value, ok := beforeMap["location"]; ok && value != nil && value.(string) != "" {
-						body["location"] = value.(string)
-					}
-
-					if value, ok := beforeMap["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
-						body["identity"] = expandIdentity(value.([]interface{}))
-					}
-
-					err := json.Unmarshal([]byte(bodyRaw), &body)
-					if err != nil {
-						return out, err
-					}
-				}
-
-				err := out.AddCoverageFromState(id, resourceType, resourceChange.Address, body)
-				if err != nil {
-					return out, err
-				}
-
+			resourceType := ""
+			if v, ok := beforeMap["type"]; ok {
+				resourceType = v.(string)
 			}
+
+			body, err := getBody(beforeMap)
+			if err != nil {
+				return out, err
+			}
+
+			err = out.AddCoverageFromState(id, resourceType, body)
+			if err != nil {
+				return out, err
+			}
+
 		}
 	}
+
 	return out, nil
+}
+
+func getBody(input map[string]interface{}) (map[string]interface{}, error) {
+	output := map[string]interface{}{}
+	if bodyRaw, ok := input["body"]; ok && bodyRaw != nil && bodyRaw.(string) != "" {
+		if value, ok := input["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
+			output["tags"] = value.(map[string]interface{})
+		}
+
+		if value, ok := input["location"]; ok && value != nil && value.(string) != "" {
+			output["location"] = value.(string)
+		}
+
+		if value, ok := input["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
+			output["identity"] = expandIdentity(value.([]interface{}))
+		}
+
+		err := json.Unmarshal([]byte(bodyRaw.(string)), &output)
+		if err != nil {
+			return output, err
+		}
+	}
+
+	return output, nil
 }
 
 func expandIdentity(input []interface{}) map[string]interface{} {
@@ -255,16 +256,19 @@ func expandIdentity(input []interface{}) map[string]interface{} {
 	}
 	v := input[0].(map[string]interface{})
 
-	identityType := v["type"].(string)
-	config["type"] = identityType
-	identityIds := v["identity_ids"].([]interface{})
-	userAssignedIdentities := make(map[string]interface{}, len(identityIds))
-	if len(identityIds) != 0 {
+	if identityTypeRaw, ok := v["type"]; ok && identityTypeRaw != nil && identityTypeRaw.(string) != "" {
+		config["type"] = identityTypeRaw.(string)
+	}
+
+	if identityIdsRaw, ok := v["identity_ids"]; ok && identityIdsRaw != nil && len(identityIdsRaw.([]interface{})) > 0 {
+		identityIds := identityIdsRaw.([]interface{})
+		userAssignedIdentities := make(map[string]interface{}, len(identityIds))
 		for _, id := range identityIds {
 			userAssignedIdentities[id.(string)] = make(map[string]interface{})
 		}
 		config["userAssignedIdentities"] = userAssignedIdentities
 	}
+
 	return config
 }
 
@@ -280,11 +284,11 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 		if lastIndex := strings.LastIndex(e, "------"); lastIndex != -1 {
 			errorMessage = errorMessage[0:lastIndex]
 		}
-		if matches := regexp.MustCompile(`ResourceId \\?\"(.+)\\?\" \/ Api Version \\?\"(.+)\\?\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
+		if matches := regexp.MustCompile(`ResourceId \\"(.+)\\" / Api Version \\"(.+)\\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
 			id = matches[0][1]
 			apiVersion = matches[0][2]
 		}
-		if matches := regexp.MustCompile(`resource \"azapi_resource\" \"(.+)\"`).FindAllStringSubmatch(e, -1); len(matches) != 0 {
+		if matches := regexp.MustCompile(`resource "azapi_resource" "(.+)"`).FindAllStringSubmatch(e, -1); len(matches) != 0 {
 			label = matches[0][1]
 		}
 		if len(label) == 0 {

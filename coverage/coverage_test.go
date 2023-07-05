@@ -1116,11 +1116,10 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	model.CountCoverage()
 
 	coverageReport := types.CoverageReport{
-		Coverages: map[types.Resource]*coverage.Model{
-			types.Resource{
+		Coverages: map[types.ArmResource]*coverage.Model{
+			types.ArmResource{
 				ApiPath: *apiPath,
 				Type:    tc.resourceType,
-				Address: "azapi_resource.test",
 			}: model,
 		},
 	}

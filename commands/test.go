@@ -52,6 +52,11 @@ func (c TestCommand) Run(args []string) int {
 }
 
 func (c TestCommand) Execute() int {
+	const (
+		allPassedReportFileName     = "all_passed_report.md"
+		partialPassedReportFileName = "partial_passed_report.md"
+	)
+
 	log.Println("[INFO] ----------- run tests ---------")
 	wd, err := os.Getwd()
 	if err != nil {
@@ -122,13 +127,13 @@ func (c TestCommand) Execute() int {
 			passReport := tf.NewPassReportFromState(state)
 			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
 
-			log.Printf("[INFO] producing coverage report...")
 			coverageReport, err := tf.NewCoverageReportFromState(state)
 			if err != nil {
 				log.Fatalf("[ERROR] error produce coverage report: %+v", err)
 			}
+			log.Printf("[INFO] the coverage report has been produced.")
+			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
-			storePassReport(passReport, coverageReport, reportDir, "all_passed_report.md")
 		} else {
 			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
 		}
@@ -154,7 +159,7 @@ func (c TestCommand) Execute() int {
 	if err != nil {
 		log.Fatalf("[ERROR] error produce coverage report: %+v", err)
 	}
-	storePassReport(passReport, coverageReport, reportDir, "partially_passed_report.md")
+	storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 
 	log.Println("[INFO] ---------------- Summary ----------------")
 	log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))

@@ -14,13 +14,17 @@ type PassReport struct {
 }
 
 type Resource struct {
-	ApiPath string
 	Type    string
 	Address string
 }
 
+type ArmResource struct {
+	ApiPath string
+	Type    string
+}
+
 type CoverageReport struct {
-	Coverages map[Resource]*coverage.Model
+	Coverages map[ArmResource]*coverage.Model
 }
 
 type DiffReport struct {
@@ -52,7 +56,7 @@ type Error struct {
 	Message string
 }
 
-func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType, address string, jsonBody map[string]interface{}) error {
+func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, jsonBody map[string]interface{}) error {
 	var apiPath, modelName, modelSwaggerPath *string
 	var err error
 
@@ -69,10 +73,9 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType, address 
 
 	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
 
-	resource := Resource{
+	resource := ArmResource{
 		ApiPath: *apiPath,
 		Type:    resourceType,
-		Address: address,
 	}
 
 	if _, ok := c.Coverages[resource]; !ok {

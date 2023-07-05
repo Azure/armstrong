@@ -8,23 +8,23 @@ import (
 
 type Model struct {
 	Bool                    *map[string]bool   `json:"Bool,omitempty"`
+	BoolCoveredCount        int                `json:"BoolCoveredCount,omitempty"`
+	CoveredCount            int                `json:"CoveredCount,omitempty"`
 	Discriminator           *string            `json:"Discriminator,omitempty"`
 	Enum                    *map[string]bool   `json:"Enum,omitempty"`
+	EnumCoveredCount        int                `json:"EnumCoveredCount,omitempty"`
+	EnumTotalCount          int                `json:"EnumTotalCount,omitempty"`
 	Format                  *string            `json:"Format,omitempty"`
+	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
 	Identifier              string             `json:"Identifier,omitempty"`
 	IsAnyCovered            bool               `json:"IsAnyCovered"`
 	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
-	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
-	CoveredCount            int                `json:"CoveredCount,omitempty"`
-	TotalCount              int                `json:"TotalCount,omitempty"`
-	EnumCoveredCount        int                `json:"EnumCoveredCount,omitempty"`
-	EnumTotalCount          int                `json:"EnumTotalCount,omitempty"`
-	BoolCoveredCount        int                `json:"BoolCoveredCount,omitempty"`
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
 	Item                    *Model             `json:"Item,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
 	SourceFile              string             `json:"SourceFile,omitempty"`
+	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
 	Variants                *map[string]*Model `json:"Variants,omitempty"`
 }
@@ -94,6 +94,8 @@ func (m *Model) MarkCovered(root interface{}) {
 			}
 			(*m.Properties)[k].MarkCovered(v)
 		}
+
+	case nil:
 
 	default:
 		log.Fatalf("[ERROR] unexpect type %T for json unmarshaled value", value)
