@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/cli"
+	"github.com/ms-henglu/armstrong/coverage"
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"

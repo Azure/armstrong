@@ -8,7 +8,7 @@ import (
 
 func TestGetModelInfoFromIndex(t *testing.T) {
 	apiVersion := "2022-06-01"
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
+	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
 	)
@@ -17,17 +17,17 @@ func TestGetModelInfoFromIndex(t *testing.T) {
 	}
 
 	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}"
-	if *apiPath != expectedApiPath {
-		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, *apiPath)
+	if swaggerModel.ApiPath != expectedApiPath {
+		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
 	}
 
 	expectedModelName := "DataCollectionRuleResource"
-	if *modelName != expectedModelName {
-		t.Fatalf("expected modelName %s, got %s", expectedModelName, *modelName)
+	if swaggerModel.ModelName != expectedModelName {
+		t.Fatalf("expected modelName %s, got %s", expectedModelName, swaggerModel.ModelName)
 	}
 
 	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/dataCollectionRules_API.json"
-	if *modelSwaggerPath != expectedModelSwaggerPath {
-		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, *modelSwaggerPath)
+	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
+		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
 }

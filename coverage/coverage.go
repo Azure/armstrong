@@ -107,9 +107,11 @@ func (m *Model) CountCoverage() (int, int) {
 		return 0, 0
 	}
 
+	m.CoveredCount = 0
 	m.TotalCount = 0
 
 	if m.Enum != nil {
+		m.EnumCoveredCount = 0
 		m.EnumTotalCount = len(*m.Enum)
 		for _, isCovered := range *m.Enum {
 			if isCovered {
@@ -119,6 +121,7 @@ func (m *Model) CountCoverage() (int, int) {
 	}
 
 	if m.Bool != nil {
+		m.BoolCoveredCount = 0
 		for _, isCovered := range *m.Bool {
 			if isCovered {
 				m.BoolCoveredCount++
@@ -157,7 +160,6 @@ func (m *Model) CountCoverage() (int, int) {
 	if m.TotalCount == 0 {
 		m.TotalCount = 1
 	}
-
 	if m.TotalCount == 1 && m.IsAnyCovered {
 		m.CoveredCount = 1
 	}

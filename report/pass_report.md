@@ -11,7 +11,9 @@ ${resource_type}
 ### Coverage Status:
 
 #### Summary
+
 ${coverage_summary}
 
 #### Details
+
 ${coverage_details}

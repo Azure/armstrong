@@ -17,7 +17,6 @@ type CoverageReport struct {
 }
 
 func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, jsonBody map[string]interface{}) error {
-	var apiPath, modelName, modelSwaggerPath *string
 	var err error
 
 	apiVersion := strings.Split(resourceType, "@")[1]
@@ -25,23 +24,23 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 		return fmt.Errorf("could not parse apiVersion from resourceType: %s", resourceType)
 	}
 
-	apiPath, modelName, modelSwaggerPath, err = GetModelInfoFromIndex(resourceId, apiVersion)
+	swaggerModel, err := GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {
 		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
 
 	}
 
-	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", *apiPath, *modelSwaggerPath)
+	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
 
 	resource := ArmResource{
-		ApiPath: *apiPath,
+		ApiPath: swaggerModel.ApiPath,
 		Type:    resourceType,
 	}
 
 	if _, ok := c.Coverages[resource]; !ok {
-		expanded, err := Expand(*modelName, *modelSwaggerPath)
+		expanded, err := Expand(swaggerModel.ModelName, swaggerModel.SwaggerPath)
 		if err != nil {
-			return fmt.Errorf("error expand model %s property:%s", *modelName, err)
+			return fmt.Errorf("error expand model %s property:%s", swaggerModel.ModelName, err)
 		}
 
 		c.Coverages[resource] = expanded

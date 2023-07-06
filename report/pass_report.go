@@ -83,18 +83,20 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 func getReport(model *coverage.Model) []string {
 	out := make([]string, 0)
 
-	if model.Enum != nil {
-		for k, isCovered := range *model.Enum {
-			out = append(out, getEnumBoolReport(k, isCovered))
+	if isBoolEnumDisplayed {
+		if model.Enum != nil {
+			for k, isCovered := range *model.Enum {
+				out = append(out, getEnumBoolReport(k, isCovered))
+			}
+			return out
 		}
-		return out
-	}
 
-	if model.Bool != nil {
-		for k, isCovered := range *model.Bool {
-			out = append(out, getEnumBoolReport(fmt.Sprintf("%v", k), isCovered))
+		if model.Bool != nil {
+			for k, isCovered := range *model.Bool {
+				out = append(out, getEnumBoolReport(fmt.Sprintf("%v", k), isCovered))
+			}
+			return out
 		}
-		return out
 	}
 
 	if model.Item != nil {
@@ -145,7 +147,7 @@ func getChildReport(name string, model *coverage.Model) string {
 
 	style = getStyle(model.IsFullyCovered)
 
-	if model.TotalCount == 1 && model.Properties == nil && model.Variants == nil && model.Item == nil && (!isBoolEnumDisplayed || (model.Bool == nil && model.Enum == nil)) {
+	if hasNoDetail(model) {
 		// leaf property
 		report = fmt.Sprintf(`<!-- %[1]v -->
 <details>
@@ -167,6 +169,19 @@ func getChildReport(name string, model *coverage.Model) string {
 	}
 
 	return report
+}
+
+func hasNoDetail(model *coverage.Model) bool {
+	if model.Properties == nil && model.Variants == nil && model.Item == nil && (!isBoolEnumDisplayed || (model.Bool == nil && model.Enum == nil)) {
+		return true
+	}
+
+	// array inside array is regarded as no detail
+	if model.Item != nil {
+		return hasNoDetail(model.Item)
+	}
+
+	return false
 }
 
 func getStyle(isFullyCovered bool) string {

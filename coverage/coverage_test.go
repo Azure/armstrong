@@ -670,6 +670,7 @@ func TestCoverageWebSite(t *testing.T) {
 	}
 
 }
+
 func TestCoverageAKS(t *testing.T) {
 	tc := testCase{
 		name:         "AKS",
@@ -1082,7 +1083,7 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 }
 
 func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
-	apiPath, modelName, modelSwaggerPath, err := coverage.GetModelInfoFromIndex(
+	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		tc.apiPath,
 		tc.apiVersion,
 	)
@@ -1091,7 +1092,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		return nil, fmt.Errorf("get model info from index: %+v", err)
 	}
 
-	model, err := coverage.Expand(*modelName, *modelSwaggerPath)
+	model, err := coverage.Expand(swaggerModel.ModelName, swaggerModel.SwaggerPath)
 	if err != nil {
 		return nil, fmt.Errorf("expand model: %+v", err)
 	}
@@ -1118,20 +1119,29 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	coverageReport := coverage.CoverageReport{
 		Coverages: map[coverage.ArmResource]*coverage.Model{
 			coverage.ArmResource{
-				ApiPath: *apiPath,
+				ApiPath: swaggerModel.ApiPath,
 				Type:    tc.resourceType,
 			}: model,
 		},
 	}
 
-	storeCoverageReport(coverageReport, ".", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
+	passReport := types.PassReport{
+		Resources: []types.Resource{
+			{
+				Type:    tc.resourceType,
+				Address: "azapi_resource.test",
+			},
+		},
+	}
+
+	storeCoverageReport(passReport, coverageReport, ".", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
 
 	return model, nil
 }
 
-func storeCoverageReport(coverageReport coverage.CoverageReport, reportDir string, reportName string) {
+func storeCoverageReport(passReport types.PassReport, coverageReport coverage.CoverageReport, reportDir string, reportName string) {
 	if len(coverageReport.Coverages) != 0 {
-		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(types.PassReport{}, coverageReport)), 0644)
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {
