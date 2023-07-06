@@ -98,9 +98,7 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier string, root interface{}, resolvedDiscriminator map[string]interface{}, resolvedModel map[string]interface{}) *Model {
 	output := Model{Identifier: identifier}
 
-	//log.Println("[DEBUG] expand schema for", swaggerPath, modelName)
 	if _, ok := resolvedModel[modelName]; ok {
-		//log.Printf("[DEBUG] circular reference detected for %s %s %s", swaggerPath, identifier, modelName)
 		return &output
 	}
 	resolvedModel[modelName] = nil
@@ -151,7 +149,6 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	// expand ref
 	if input.Ref.String() != "" {
-		//log.Println("[DEBUG] expand ref", input.Ref.String())
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
 			log.Fatalf("[ERROR] resolve %s: %v", input.Ref.String(), err)
@@ -210,13 +207,11 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	// expand properties
 	for k, v := range input.Properties {
-		//log.Println("[DEBUG] expand properties", k)
 		properties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), identifier+"."+k, root, resolvedDiscriminator, resolvedModel)
 	}
 
 	// expand composition
 	for _, v := range input.AllOf {
-		//log.Println("[DEBUG] expand composition", v.Ref.String())
 		allOf := expandSchema(v, swaggerPath, fmt.Sprintf("%s.allOf", modelName), identifier, root, resolvedDiscriminator, resolvedModel)
 		if allOf.Properties != nil {
 			for k, v := range *allOf.Properties {
@@ -227,11 +222,11 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	if len(properties) > 0 {
 		for _, v := range input.Required {
-			p, ok := properties[v]
-			if !ok {
+			if p, ok := properties[v]; ok {
+				p.IsRequired = true
+			} else {
 				log.Printf("[WARN] required property %s not found in %s", v, modelName)
 			}
-			p.IsRequired = true
 		}
 
 		// check if all properties are readonly
@@ -251,20 +246,16 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	// expand items
 	if input.Items != nil {
-		//log.Println("[DEBUG] expand items", input.Items.Schema.Ref.String())
 		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s[]", modelName), identifier+"[]", root, resolvedDiscriminator, resolvedModel)
 		output.Item = item
 	}
 
 	delete(resolvedModel, modelName)
 
-	// variants have circular reference
 	// expand variants
 	if input.Discriminator != "" {
-		_, hasResolvedDiscriminator := resolvedDiscriminator[modelName]
-		if !hasResolvedDiscriminator {
+		if _, hasResolvedDiscriminator := resolvedDiscriminator[modelName]; !hasResolvedDiscriminator {
 			resolvedDiscriminator[modelName] = nil
-			//log.Println("[DEBUG] expand variants", modelName)
 			variants := make(map[string]*Model)
 
 			variantsTable, err := getVariantTable(swaggerPath)
@@ -272,25 +263,28 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 				log.Fatalf("[ERROR] get variant table %s: %v", swaggerPath, err)
 			}
 			varSet, ok := variantsTable[modelName]
-			// level order traverse to find all variants
-			for ok && len(varSet) > 0 {
-				tempVarSet := make(map[string]interface{})
-				for variantModel := range varSet {
-					schema := root.(*openapiSpec.Swagger).Definitions[variantModel]
-					variantName := variantModel
-					if variantNameRaw, ok := schema.Extensions[msExtensionDiscriminator]; ok {
-						variantName = variantNameRaw.(string)
-					}
-					resolved := expandSchema(schema, swaggerPath, variantModel, identifier+"{"+variantName+"}", root, resolvedDiscriminator, resolvedModel)
-					variants[variantName] = resolved
-					if varVarSet, ok := variantsTable[variantModel]; ok {
-						for v := range varVarSet {
-							tempVarSet[v] = nil
+			if ok {
+				// level order traverse to find all variants
+				for len(varSet) > 0 {
+					tempVarSet := make(map[string]interface{})
+					for variantModel := range varSet {
+						schema := root.(*openapiSpec.Swagger).Definitions[variantModel]
+						variantName := variantModel
+						if variantNameRaw, ok := schema.Extensions[msExtensionDiscriminator]; ok && variantNameRaw != nil {
+							variantName = variantNameRaw.(string)
+						}
+						resolved := expandSchema(schema, swaggerPath, variantModel, identifier+"{"+variantName+"}", root, resolvedDiscriminator, resolvedModel)
+						variants[variantName] = resolved
+						if varVarSet, ok := variantsTable[variantModel]; ok {
+							for v := range varVarSet {
+								tempVarSet[v] = nil
+							}
 						}
 					}
+					varSet = tempVarSet
 				}
-				varSet = tempVarSet
 			}
+
 			delete(resolvedDiscriminator, modelName)
 			output.Discriminator = &input.Discriminator
 			output.Variants = &variants

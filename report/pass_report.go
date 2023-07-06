@@ -16,7 +16,7 @@ var passedReportTemplate string
 // for now, we don't display bool and enum detail in coverage detail
 const isBoolEnumDisplayed = false
 
-func PassedMarkdownReport(passReport types.PassReport, coverageReport types.CoverageReport) string {
+func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.CoverageReport) string {
 	resourceTypes := make([]string, 0)
 	for _, resource := range passReport.Resources {
 		resourceTypes = append(resourceTypes, fmt.Sprintf("%s (%s)", resource.Type, resource.Address))

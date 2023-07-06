@@ -54,17 +54,13 @@ func TestExpandAll(t *testing.T) {
 						continue
 					}
 					for action, operationRefs := range operationInfo.Actions {
-						for pathPatternStr, ref := range operationRefs {
-							if false {
-								t.Logf("%s %s %s %s %s %s", resourceProvider, version, operationKind, resourceType, action, pathPatternStr)
-							}
+						for pathPattern, ref := range operationRefs {
+							t.Logf("%s %s %s %s %s %s", resourceProvider, version, operationKind, resourceType, action, pathPattern)
 							refMaps[ref.String()] = &ref
 						}
 					}
-					for pathPatternStr, ref := range operationInfo.OperationRefs {
-						if false {
-							t.Logf("%s %s %s %s %s", resourceProvider, version, operationKind, resourceType, pathPatternStr)
-						}
+					for pathPattern, ref := range operationInfo.OperationRefs {
+						t.Logf("%s %s %s %s %s", resourceProvider, version, operationKind, resourceType, pathPattern)
 						refMaps[ref.String()] = &ref
 					}
 				}
@@ -107,15 +103,13 @@ func TestExpandAll(t *testing.T) {
 					return
 				}
 
-				model, err := coverage.Expand(modelName, swaggerPath)
+				_, err = coverage.Expand(modelName, swaggerPath)
 				if err != nil {
 					t.Error(err)
 					return
 				}
 
 				// clean up
-				model = model
-				model = nil
 				operation = nil
 				ref = nil
 			}

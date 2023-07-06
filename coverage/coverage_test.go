@@ -1115,9 +1115,9 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 
 	model.CountCoverage()
 
-	coverageReport := types.CoverageReport{
-		Coverages: map[types.ArmResource]*coverage.Model{
-			types.ArmResource{
+	coverageReport := coverage.CoverageReport{
+		Coverages: map[coverage.ArmResource]*coverage.Model{
+			coverage.ArmResource{
 				ApiPath: *apiPath,
 				Type:    tc.resourceType,
 			}: model,
@@ -1129,7 +1129,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	return model, nil
 }
 
-func storeCoverageReport(coverageReport types.CoverageReport, reportDir string, reportName string) {
+func storeCoverageReport(coverageReport coverage.CoverageReport, reportDir string, reportName string) {
 	if len(coverageReport.Coverages) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(types.PassReport{}, coverageReport)), 0644)
 		if err != nil {

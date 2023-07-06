@@ -3,6 +3,7 @@ package tf
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -96,6 +97,7 @@ func NewPassReportFromState(state *tfjson.State) types.PassReport {
 		Resources: make([]types.Resource, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		log.Printf("[WARN] new pass report from state: state is nil")
 		return out
 	}
 	for _, res := range state.Values.RootModule.Resources {
@@ -144,11 +146,12 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, error) {
-	out := types.CoverageReport{
-		Coverages: make(map[types.ArmResource]*coverage.Model, 0),
+func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, error) {
+	out := coverage.CoverageReport{
+		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		log.Print("[WARN] new coverage report from state: state is nil")
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
@@ -178,9 +181,9 @@ func NewCoverageReportFromState(state *tfjson.State) (types.CoverageReport, erro
 	return out, nil
 }
 
-func NewCoverageReport(plan *tfjson.Plan) (types.CoverageReport, error) {
-	out := types.CoverageReport{
-		Coverages: make(map[types.ArmResource]*coverage.Model, 0),
+func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
+	out := coverage.CoverageReport{
+		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
 	if plan == nil {
 		return out, nil

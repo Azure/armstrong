@@ -173,7 +173,7 @@ func (c TestCommand) Execute() int {
 	return 1
 }
 
-func storePassReport(passReport types.PassReport, coverageReport types.CoverageReport, reportDir string, reportName string) {
+func storePassReport(passReport types.PassReport, coverageReport coverage.CoverageReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
