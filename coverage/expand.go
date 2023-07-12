@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/go-openapi/loads"
@@ -300,58 +299,4 @@ func SchemaNamePathFromRef(ref openapiSpec.Ref) (name string, path string) {
 	}
 	fragments := strings.Split(ref.GetURL().Fragment, "/")
 	return fragments[len(fragments)-1], ref.GetURL().Path
-}
-
-func pathToRegex(path string) string {
-	segments := strings.Split(path, "/")
-	out := make([]string, 0, len(segments))
-	for _, seg := range segments {
-		if strings.HasPrefix(seg, "{") && strings.HasSuffix(seg, "}") {
-			out = append(out, ".+")
-			continue
-		}
-		out = append(out, seg)
-	}
-	return "^" + strings.Join(out, "/") + "$"
-}
-
-func GetModelInfoFromSingleSwaggerFile(resourceId, swaggerPath string) (*string, *string, *string, error) {
-	doc, err := loads.JSONSpec(swaggerPath)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("loading swagger spec: %+v", err)
-	}
-
-	spec := doc.Spec()
-
-	var apiPath, modelName string
-
-	if spec.Paths != nil {
-	pathLoop:
-		for p, item := range spec.Paths.Paths {
-			regex := pathToRegex(p)
-			re := regexp.MustCompile(regex)
-			if re.MatchString(resourceId) {
-				apiPath = p
-				operation := item.Put
-				if operation == nil {
-					operation = item.Post
-				}
-				for _, param := range operation.Parameters {
-					if param.In == "body" {
-						var modelRelativePath string
-						modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
-						if modelRelativePath != "" {
-							//log.Println("[DEBUG] modelRelativePath", modelRelativePath)
-							swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
-						}
-
-						break pathLoop
-					}
-				}
-			}
-		}
-	}
-	strings.Replace(swaggerPath, "https:/", "https://", 1)
-
-	return &apiPath, &modelName, &swaggerPath, nil
 }
