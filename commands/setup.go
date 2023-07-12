@@ -63,14 +63,14 @@ func (c SetupCommand) Execute() int {
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
-		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
+		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
 	}
 	log.Printf("[INFO] prepare working directory\n")
 	_ = terraform.Init()
 	log.Println("[INFO] running apply command to update dependency resources...")
 	err = terraform.Apply()
 	if err != nil {
-		log.Fatalf("[Error] error setting up resources: %+v\n", err)
+		log.Fatalf("[ERROR] error setting up resources: %+v\n", err)
 	}
 	log.Println("[INFO] all dependencies have been updated")
 	return 0

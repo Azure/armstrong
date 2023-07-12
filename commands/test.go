@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/cli"
+	"github.com/ms-henglu/armstrong/coverage"
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
@@ -52,6 +53,11 @@ func (c TestCommand) Run(args []string) int {
 }
 
 func (c TestCommand) Execute() int {
+	const (
+		allPassedReportFileName     = "all_passed_report.md"
+		partialPassedReportFileName = "partial_passed_report.md"
+	)
+
 	log.Println("[INFO] ----------- run tests ---------")
 	wd, err := os.Getwd()
 	if err != nil {
@@ -67,7 +73,7 @@ func (c TestCommand) Execute() int {
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
-		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
+		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
 	}
 
 	log.Printf("[INFO] prepare working directory\n")
@@ -76,7 +82,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running plan command to check changes...")
 	plan, err := terraform.Plan()
 	if err != nil {
-		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
+		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
 	}
 
 	actions := tf.GetChanges(plan)
@@ -97,7 +103,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running apply command to provision test resource...")
 	applyErr := terraform.Apply()
 	if applyErr != nil {
-		log.Printf("[Error] error running terraform apply: %+v\n", applyErr)
+		log.Printf("[ERROR] error running terraform apply: %+v\n", applyErr)
 	} else {
 		log.Println("[INFO] test resource has been provisioned")
 	}
@@ -105,7 +111,7 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] running plan command to verify test resource...")
 	plan, err = terraform.Plan()
 	if err != nil {
-		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
+		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
 	}
 
 	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
@@ -114,17 +120,23 @@ func (c TestCommand) Execute() int {
 	reportDir = path.Join(wd, reportDir)
 	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
-		log.Fatalf("[Error] error creating report dir %s: %+v", reportDir, err)
+		log.Fatalf("[ERROR] error creating report dir %s: %+v", reportDir, err)
 	}
 
 	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
 		if state, err := terraform.Show(); err == nil {
 			passReport := tf.NewPassReportFromState(state)
-			storePassReport(passReport, reportDir, "all_passed_report.md")
 			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
+
+			coverageReport, err := tf.NewCoverageReportFromState(state)
+			if err != nil {
+				log.Fatalf("[ERROR] error produce coverage report: %+v", err)
+			}
+			log.Printf("[INFO] the coverage report has been produced.")
+			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
 		} else {
-			log.Fatalf("[Error] error showing terraform state: %+v", err)
+			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
 		}
 		return 0
 	}
@@ -144,7 +156,11 @@ func (c TestCommand) Execute() int {
 	storeDiffReport(diffReport, reportDir)
 
 	passReport := tf.NewPassReport(plan)
-	storePassReport(passReport, reportDir, "partially_passed_report.md")
+	coverageReport, err := tf.NewCoverageReport(plan)
+	if err != nil {
+		log.Fatalf("[ERROR] error produce coverage report: %+v", err)
+	}
+	storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 
 	log.Println("[INFO] ---------------- Summary ----------------")
 	log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
@@ -158,9 +174,9 @@ func (c TestCommand) Execute() int {
 	return 1
 }
 
-func storePassReport(passReport types.PassReport, reportDir string, reportName string) {
+func storePassReport(passReport types.PassReport, coverageReport coverage.CoverageReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
-		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport)), 0644)
+		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
 			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {

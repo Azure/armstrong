@@ -83,7 +83,7 @@ func (c GenerateCommand) Execute() int {
 	}
 	err = os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(hcl.ProviderHcl)), 0644)
 	if err != nil {
-		log.Fatalf("[Error] error writing provider.tf: %+v\n", err)
+		log.Fatalf("[ERROR] error writing provider.tf: %+v\n", err)
 	}
 
 	log.Println("[INFO] ----------- generate dependencies and testing resource ---------")
@@ -98,12 +98,12 @@ func (c GenerateCommand) Execute() int {
 	if c.resourceType == "data" {
 		base, err = resource.NewDataSourceFromExample(exampleFilepath)
 		if err != nil {
-			log.Fatalf("[Error] error loading data source: %+v\n", err)
+			log.Fatalf("[ERROR] error loading data source: %+v\n", err)
 		}
 	} else {
 		base, err = resource.NewResourceFromExample(exampleFilepath)
 		if err != nil {
-			log.Fatalf("[Error] error loading resource: %+v\n", err)
+			log.Fatalf("[ERROR] error loading resource: %+v\n", err)
 		}
 	}
 
@@ -115,7 +115,7 @@ func (c GenerateCommand) Execute() int {
 	}
 	err = appendFile(path.Join(wd, "dependency.tf"), dependencyHcl)
 	if err != nil {
-		log.Fatalf("[Error] error writing dependency.tf: %+v\n", err)
+		log.Fatalf("[ERROR] error writing dependency.tf: %+v\n", err)
 	}
 	log.Println("[INFO] dependency.tf generated")
 
@@ -129,7 +129,7 @@ func (c GenerateCommand) Execute() int {
 	testResourceHcl := base.Hcl(c.useRawJsonPayload)
 	err = appendFile(path.Join(wd, "testing.tf"), testResourceHcl)
 	if err != nil {
-		log.Fatalf("[Error] error writing testing.tf: %+v\n", err)
+		log.Fatalf("[ERROR] error writing testing.tf: %+v\n", err)
 	}
 	log.Println("[INFO] testing.tf generated")
 	return 0

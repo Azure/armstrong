@@ -11,7 +11,6 @@ provider "azurerm" {
 }
 
 provider "azapi" {
-  schema_validation_enabled = false
 }
 
 resource "azurerm_resource_group" "test" {

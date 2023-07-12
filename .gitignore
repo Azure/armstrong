@@ -9,3 +9,10 @@ internal/schemas/schemas_gen.go
 internal/schemas/data/
 terraform-ls
 commands/.temp
+
+# never upload the build to git
+armstrong
+
+# test output
+coverage/test_coverage_report*.md
+

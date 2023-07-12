@@ -60,7 +60,7 @@ func (c ValidateCommand) Execute() int {
 	}
 	terraform, err := tf.NewTerraform(wd, true)
 	if err != nil {
-		log.Fatalf("[Error] error creating terraform executable: %+v\n", err)
+		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
 	}
 
 	log.Printf("[INFO] prepare working directory\n")
@@ -69,7 +69,7 @@ func (c ValidateCommand) Execute() int {
 	log.Println("[INFO] running plan command to check changes...")
 	plan, err := terraform.Plan()
 	if err != nil {
-		log.Fatalf("[Error] error running terraform plan: %+v\n", err)
+		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
 	}
 
 	_ = tf.GetChanges(plan)
