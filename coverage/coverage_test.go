@@ -21,39 +21,6 @@ type testCase struct {
 	resourceType string
 }
 
-func TestCoverage_DataMigrationTasks(t *testing.T) {
-	tc := testCase{
-		name:         "DataMigrationTasks",
-		resourceType: "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
-		apiVersion:   "2021-06-30",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
-		rawRequest: []string{`{
-    "taskType": "ConnectToTarget.SqlDb",
-    "input": {
-        "targetConnectionInfo": {
-            "type": "SqlConnectionInfo",
-            "dataSource": "ssma-test-server.database.windows.net",
-            "authentication": "SqlAuthentication",
-            "encryptConnection": true,
-            "trustServerCertificate": true,
-            "userName": "testuser",
-            "password": "testpassword"
-        }
-    }
-}`,
-		},
-	}
-
-	model, err := testCoverage(t, tc)
-	if err != nil {
-		t.Fatalf("process coverage: %+v", err)
-	}
-
-	if model.CoveredCount != 1 {
-		t.Fatalf("expected CoveredCount 1, got %d", model.CoveredCount)
-	}
-}
-
 func TestCoverage_ResourceGroup(t *testing.T) {
 	tc := testCase{
 		name:         "ResourceGroup",
@@ -122,6 +89,41 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 
 	if model.CoveredCount != 5 {
 		t.Fatalf("expected CoveredCount 5, got %d", model.CoveredCount)
+	}
+}
+
+func TestCoverage_DataMigrationTasks(t *testing.T) {
+	tc := testCase{
+		name:         "DataMigrationTasks",
+		resourceType: "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
+		apiVersion:   "2021-06-30",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
+		rawRequest: []string{`{
+    "properties": {
+        "taskType": "ConnectToTarget.SqlDb",
+        "input": {
+            "targetConnectionInfo": {
+                "type": "SqlConnectionInfo",
+                "dataSource": "ssma-test-server.database.windows.net",
+                "authentication": "SqlAuthentication",
+                "encryptConnection": true,
+                "trustServerCertificate": true,
+                "userName": "testuser",
+                "password": "testpassword"
+            }
+        }
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 8 {
+		t.Fatalf("expected CoveredCount 8, got %d", model.CoveredCount)
 	}
 }
 
@@ -1261,6 +1263,12 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		return nil, fmt.Errorf("expand model: %+v", err)
 	}
 
+	out, err := json.MarshalIndent(model, "", "\t")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("expand model %s", string(out))
+
 	for _, rq := range tc.rawRequest {
 		request := map[string]interface{}{}
 		err = json.Unmarshal([]byte(rq), &request)
@@ -1273,7 +1281,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 
 	model.CountCoverage()
 
-	out, err := json.MarshalIndent(model, "", "\t")
+	out, err = json.MarshalIndent(model, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}

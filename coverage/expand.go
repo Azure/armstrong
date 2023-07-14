@@ -146,8 +146,6 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	properties := make(map[string]*Model)
 
 	// expand ref
-	a := input.Ref.String()
-	a = a
 	if input.Ref.String() != "" {
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
@@ -157,7 +155,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		refSwaggerPath := swaggerPath
 		modelName, relativePath := SchemaNamePathFromRef(input.Ref)
 		if relativePath != "" {
-			refSwaggerPath = filepath.Join(filepath.Dir(swaggerPath), relativePath)
+			refSwaggerPath = filepath.Join(filepath.Dir(refSwaggerPath), relativePath)
 			refSwaggerPath = strings.Replace(refSwaggerPath, "https:/", "https://", 1)
 
 			doc, err := loadSwagger(refSwaggerPath)
@@ -282,6 +280,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 						if variantNameRaw, ok := schema.Extensions[msExtensionDiscriminator]; ok && variantNameRaw != nil {
 							variantName = variantNameRaw.(string)
 						}
+
 						resolved := expandSchema(schema, swaggerPath, variantModelName, identifier+"{"+variantName+"}", root, resolvedDiscriminator, resolvedModel)
 						variants[variantName] = resolved
 						if varVarSet, ok := allOfTable[variantModelName]; ok {
