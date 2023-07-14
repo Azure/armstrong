@@ -71,7 +71,10 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	}
 
 	swaggerPath := filepath.Join(azureRepoURL, ref.GetURL().Path)
-	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoURL + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
+	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
+
+	relativeBase := azureRepoURL + strings.Split(ref.GetURL().Path, "/")[0]
+	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: relativeBase})
 
 	if err != nil {
 		return nil, err
@@ -82,16 +85,38 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 
 	var modelName string
 	for _, param := range operation.Parameters {
+		paramRef := param.Ref
+		if paramRef.String() != "" {
+			refParam, err := openapispec.ResolveParameterWithBase(nil, param.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
+			if err != nil {
+				return nil, fmt.Errorf("resolve param ref %q: %v", param.Ref.String(), err)
+			}
+
+			// Update the param
+			param = *refParam
+		}
 		if param.In == "body" {
+			if paramRef.String() != "" {
+				_, paramRelativePath := SchemaNamePathFromRef(paramRef)
+				if paramRelativePath != "" {
+					swaggerPath = filepath.Join(filepath.Dir(swaggerPath), paramRelativePath)
+					swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
+				}
+			}
+
 			var modelRelativePath string
 			modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
 			if modelRelativePath != "" {
 				swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
+				swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
 			}
+			break
 		}
 	}
 
-	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
+	if modelName == "" {
+		return nil, fmt.Errorf("PUT model not found for %s:%s", swaggerPath, apiPath)
+	}
 
 	return &SwaggerModel{
 		ApiPath:     apiPath,

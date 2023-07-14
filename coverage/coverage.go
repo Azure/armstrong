@@ -66,33 +66,42 @@ func (m *Model) MarkCovered(root interface{}) {
 		}
 
 	case map[string]interface{}:
-		if m.Discriminator != nil {
+		isMatchProperty := true
+		if m.Discriminator != nil && m.Variants != nil {
 			for k, v := range value {
 				if k == *m.Discriminator {
-					if m.Variants == nil {
-						log.Printf("[ERROR] unexpected discriminator %s in %s\n", k, m.Identifier)
-					}
-					if _, ok := (*m.Variants)[v.(string)]; !ok {
+					variant, ok := (*m.Variants)[v.(string)]
+					if !ok {
 						log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
 					}
+					if variant == nil {
+						break
+					}
+
+					isMatchProperty = false
 					(*m.Variants)[v.(string)].MarkCovered(value)
+
 					break
 				}
 			}
 		}
-		for k, v := range value {
-			if m.Properties == nil {
-				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+
+		if isMatchProperty {
+			for k, v := range value {
+				if m.Properties == nil {
+					if !m.HasAdditionalProperties {
+						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+					}
+					return
 				}
-				return
-			}
-			if _, ok := (*m.Properties)[k]; !ok {
-				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+				if _, ok := (*m.Properties)[k]; !ok {
+					if !m.HasAdditionalProperties {
+						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+						return
+					}
 				}
+				(*m.Properties)[k].MarkCovered(v)
 			}
-			(*m.Properties)[k].MarkCovered(v)
 		}
 
 	case nil:
@@ -137,6 +146,9 @@ func (m *Model) CountCoverage() (int, int) {
 
 	if m.Properties != nil {
 		for _, v := range *m.Properties {
+			if v.IsReadOnly {
+				continue
+			}
 			covered, total := v.CountCoverage()
 			m.CoveredCount += covered
 			m.TotalCount += total

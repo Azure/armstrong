@@ -21,14 +21,48 @@ type testCase struct {
 	resourceType string
 }
 
-func TestCoverageResourceGroup(t *testing.T) {
+func TestCoverage_DataMigrationTasks(t *testing.T) {
+	tc := testCase{
+		name:         "DataMigrationTasks",
+		resourceType: "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
+		apiVersion:   "2021-06-30",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
+		rawRequest: []string{`{
+    "taskType": "ConnectToTarget.SqlDb",
+    "input": {
+        "targetConnectionInfo": {
+            "type": "SqlConnectionInfo",
+            "dataSource": "ssma-test-server.database.windows.net",
+            "authentication": "SqlAuthentication",
+            "encryptConnection": true,
+            "trustServerCertificate": true,
+            "userName": "testuser",
+            "password": "testpassword"
+        }
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 1 {
+		t.Fatalf("expected CoveredCount 1, got %d", model.CoveredCount)
+	}
+}
+
+func TestCoverage_ResourceGroup(t *testing.T) {
 	tc := testCase{
 		name:         "ResourceGroup",
 		resourceType: "Microsoft.Resources/resourceGroups@2022-09-01",
 		apiVersion:   "2022-09-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rgName",
-		rawRequest: []string{
-			`{"location": "westeurope"}`,
+		rawRequest: []string{`{
+    "location": "westeurope"
+}`,
 		},
 	}
 
@@ -58,7 +92,40 @@ func TestCoverageResourceGroup(t *testing.T) {
 	}
 }
 
-func TestCoverageKeyVault(t *testing.T) {
+func TestCoverage_DeviceSecurityGroup(t *testing.T) {
+	tc := testCase{
+		name:         "DeviceSecurityGroup",
+		resourceType: "Microsoft.Security/deviceSecurityGroups@2019-08-01",
+		apiVersion:   "2019-08-01",
+		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
+		rawRequest: []string{`{
+    "properties": {
+        "timeWindowRules": [
+            {
+                "ruleType": "ActiveConnectionsNotInAllowedRange",
+                "isEnabled": true,
+                "minThreshold": 0,
+                "maxThreshold": 30,
+                "timeWindowSize": "PT05M"
+            }
+        ]
+    }
+}
+`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 5 {
+		t.Fatalf("expected CoveredCount 5, got %d", model.CoveredCount)
+	}
+}
+
+func TestCoverage_KeyVault(t *testing.T) {
 	tc := testCase{
 		name:         "KeyVault",
 		resourceType: "Microsoft.KeyVault/vaults@2023-02-01",
@@ -144,7 +211,7 @@ func TestCoverageKeyVault(t *testing.T) {
 
 }
 
-func TestCoverageStorageAccount(t *testing.T) {
+func TestCoverage_StorageAccount(t *testing.T) {
 	tc := testCase{
 		name:         "StorageAccount",
 		resourceType: "Microsoft.Storage/storageAccounts@2022-09-01",
@@ -211,7 +278,7 @@ func TestCoverageStorageAccount(t *testing.T) {
 	}
 }
 
-func TestCoverageVM(t *testing.T) {
+func TestCoverage_VM(t *testing.T) {
 	tc := testCase{
 		name:         "VM",
 		resourceType: "Microsoft.Compute/virtualMachines@2023-03-01",
@@ -281,7 +348,7 @@ func TestCoverageVM(t *testing.T) {
 
 }
 
-func TestCoverageVNet(t *testing.T) {
+func TestCoverage_VNet(t *testing.T) {
 	tc := testCase{
 		name:         "VNet",
 		resourceType: "Microsoft.Network/virtualNetworks@2023-02-01",
@@ -318,7 +385,7 @@ func TestCoverageVNet(t *testing.T) {
 	}
 }
 
-func TestCoverageDataCollectionRule(t *testing.T) {
+func TestCoverage_DataCollectionRule(t *testing.T) {
 	tc := testCase{
 		name:         "DataCollectionRule",
 		resourceType: "Microsoft.Insights/dataCollectionRules@2022-06-01",
@@ -644,7 +711,7 @@ func TestCoverageDataCollectionRule(t *testing.T) {
 
 }
 
-func TestCoverageWebSite(t *testing.T) {
+func TestCoverage_WebSite(t *testing.T) {
 	tc := testCase{
 		name:         "WebSites",
 		resourceType: "Microsoft.Web/sites@2022-09-01",
@@ -671,7 +738,7 @@ func TestCoverageWebSite(t *testing.T) {
 
 }
 
-func TestCoverageAKS(t *testing.T) {
+func TestCoverage_AKS(t *testing.T) {
 	tc := testCase{
 		name:         "AKS",
 		resourceType: "Microsoft.ContainerService/ManagedClusters@2023-05-02-preview",
@@ -761,7 +828,7 @@ func TestCoverageAKS(t *testing.T) {
 
 }
 
-func TestCoverageCosmosDB(t *testing.T) {
+func TestCoverage_CosmosDB(t *testing.T) {
 	tc := testCase{
 		name:         "CosmosDB",
 		resourceType: "Microsoft.DocumentDB/databaseAccounts@2023-04-15",
@@ -854,8 +921,8 @@ func TestCoverageCosmosDB(t *testing.T) {
 		t.Fatalf("process coverage: %v", err)
 	}
 
-	if model.CoveredCount != 34 {
-		t.Fatalf("expected CoveredCount 34, got %d", model.CoveredCount)
+	if model.CoveredCount != 33 {
+		t.Fatalf("expected CoveredCount 33, got %d", model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -988,7 +1055,102 @@ func TestCoverageCosmosDB(t *testing.T) {
 
 }
 
-func TestCoverageDataFactoryLinkedServices(t *testing.T) {
+func TestCoverage_DataFactoryPipelines(t *testing.T) {
+	tc := testCase{
+		name:         "DataFactoryPipelines",
+		apiVersion:   "2018-06-01",
+		resourceType: "Microsoft.DataFactory/factories/pipelines@2018-06-01",
+		apiPath:      "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
+		rawRequest: []string{`{
+    "properties": {
+        "activities": [
+            {
+                "type": "ForEach",
+                "typeProperties": {
+                    "isSequential": true,
+                    "items": {
+                        "value": "@pipeline().parameters.OutputBlobNameList",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "type": "Copy",
+                            "typeProperties": {
+                                "source": {
+                                    "type": "BlobSource"
+                                },
+                                "sink": {
+                                    "type": "BlobSink"
+                                },
+                                "dataIntegrationUnits": 32
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "exampleDataset",
+                                    "parameters": {
+                                        "MyFolderPath": "examplecontainer",
+                                        "MyFileName": "examplecontainer.csv"
+                                    },
+                                    "type": "DatasetReference"
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "exampleDataset",
+                                    "parameters": {
+                                        "MyFolderPath": "examplecontainer",
+                                        "MyFileName": {
+                                            "value": "@item()",
+                                            "type": "Expression"
+                                        }
+                                    },
+                                    "type": "DatasetReference"
+                                }
+                            ],
+                            "name": "ExampleCopyActivity"
+                        }
+                    ]
+                },
+                "name": "ExampleForeachActivity"
+            }
+        ],
+        "parameters": {
+            "OutputBlobNameList": {
+                "type": "Array"
+            },
+            "JobId": {
+                "type": "String"
+            }
+        },
+        "variables": {
+            "TestVariableArray": {
+                "type": "Array"
+            }
+        },
+        "runDimensions": {
+            "JobId": {
+                "value": "@pipeline().parameters.JobId",
+                "type": "Expression"
+            }
+        },
+        "policy": {
+            "elapsedTimeMetric": {
+                "duration": "0.00:10:00"
+            }
+        }
+    }
+}
+`,
+		},
+	}
+
+	_, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+}
+
+func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 	tc := testCase{
 		name:         "DataFactoryLinkedServices",
 		resourceType: "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
@@ -1013,8 +1175,8 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 3 {
-		t.Fatalf("expected TotalCount 3, got %d", model.CoveredCount)
+	if model.CoveredCount != 2 {
+		t.Fatalf("expected TotalCount 2, got %d", model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -1029,8 +1191,8 @@ func TestCoverageDataFactoryLinkedServices(t *testing.T) {
 		t.Fatalf("expected properties type property, got none")
 	}
 
-	if !(*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
-		t.Fatalf("expected properties type IsAnyCovered true, got false")
+	if (*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
+		t.Fatalf("expected properties type IsAnyCovered false, got true")
 	}
 
 	if (*model.Properties)["properties"].Discriminator == nil {
@@ -1088,6 +1250,8 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		tc.apiVersion,
 	)
 
+	t.Logf("swaggerModel: %+v", swaggerModel)
+
 	if err != nil {
 		return nil, fmt.Errorf("get model info from index: %+v", err)
 	}
@@ -1107,14 +1271,13 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		model.MarkCovered(request)
 	}
 
+	model.CountCoverage()
+
 	out, err := json.MarshalIndent(model, "", "\t")
 	if err != nil {
 		t.Error(err)
 	}
-
-	t.Logf("expanded model %s", string(out))
-
-	model.CountCoverage()
+	t.Logf("coverage model %s", string(out))
 
 	coverageReport := coverage.CoverageReport{
 		Coverages: map[coverage.ArmResource]*coverage.Model{

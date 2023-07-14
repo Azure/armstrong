@@ -2,6 +2,7 @@ package coverage_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,6 +32,7 @@ func TestExpand(t *testing.T) {
 
 // try to expand all PUT and POST models
 func TestExpandAll(t *testing.T) {
+	// e.g., AZURE_REST_REPO_DIR="/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/"
 	azureRepoDir := os.Getenv("AZURE_REST_REPO_DIR")
 	if azureRepoDir == "" {
 		t.Skip("AZURE_REST_REPO_DIR is not set")
@@ -82,31 +84,46 @@ func TestExpandAll(t *testing.T) {
 				swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
 				operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
 				if err != nil {
-					t.Error(err)
-					return
+					panic(fmt.Errorf("resolve operation %q from %s: %v", ref.String(), swaggerPath, err))
 				}
 
 				var modelName string
 				for _, param := range operation.Parameters {
+					paramRef := param.Ref
+					if paramRef.String() != "" {
+						refParam, err := openapispec.ResolveParameterWithBase(nil, param.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
+						if err != nil {
+							panic(fmt.Errorf("resolve parameter %q from %s: %v", param.Ref.String(), swaggerPath, err))
+						}
+
+						// Update the param
+						param = *refParam
+					}
 					if param.In == "body" {
+						if paramRef.String() != "" {
+							_, paramRelativePath := coverage.SchemaNamePathFromRef(paramRef)
+							if paramRelativePath != "" {
+								swaggerPath = filepath.Join(filepath.Dir(swaggerPath), paramRelativePath)
+							}
+						}
+
 						var modelRelativePath string
 						modelName, modelRelativePath = coverage.SchemaNamePathFromRef(param.Schema.Ref)
 						if modelRelativePath != "" {
 							swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
 						}
+						break
 					}
 				}
 
 				// post may have no model
 				if operation.Put != nil && modelName == "" {
-					t.Error("modelName is empty")
-					return
+					panic(fmt.Errorf("resolve %s from %s: modelName is empty", ref.String(), swaggerPath))
 				}
 
 				_, err = coverage.Expand(modelName, swaggerPath)
 				if err != nil {
-					t.Error(err)
-					return
+					panic(fmt.Errorf("expand %s from %s: %+v", modelName, swaggerPath, err))
 				}
 
 				// clean up
