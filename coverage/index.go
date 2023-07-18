@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	openapispec "github.com/go-openapi/spec"
@@ -70,8 +69,7 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 		return nil, err
 	}
 
-	swaggerPath := filepath.Join(azureRepoURL, ref.GetURL().Path)
-	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
+	_, swaggerPath := SchemaNamePathFromRef(azureRepoURL, openapispec.Ref{Ref: *ref})
 
 	relativeBase := azureRepoURL + strings.Split(ref.GetURL().Path, "/")[0]
 	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: relativeBase})
@@ -97,19 +95,10 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 		}
 		if param.In == "body" {
 			if paramRef.String() != "" {
-				_, paramRelativePath := SchemaNamePathFromRef(paramRef)
-				if paramRelativePath != "" {
-					swaggerPath = filepath.Join(filepath.Dir(swaggerPath), paramRelativePath)
-					swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
-				}
+				_, swaggerPath = SchemaNamePathFromRef(swaggerPath, paramRef)
 			}
 
-			var modelRelativePath string
-			modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
-			if modelRelativePath != "" {
-				swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
-				swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
-			}
+			modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
 			break
 		}
 	}

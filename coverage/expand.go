@@ -51,8 +51,8 @@ func getAllOfTable(swaggerPath string) (map[string]map[string]interface{}, error
 		if len(v.AllOf) > 0 {
 			for _, allOf := range v.AllOf {
 				if allOf.Ref.String() != "" {
-					modelName, relativePath := SchemaNamePathFromRef(allOf.Ref)
-					if relativePath != "" {
+					modelName, absPath := SchemaNamePathFromRef(swaggerPath, allOf.Ref)
+					if absPath != swaggerPath {
 						continue
 					}
 
@@ -152,12 +152,8 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 			log.Fatalf("[ERROR] resolve ref %s from %s: %v", input.Ref.String(), swaggerPath, err)
 		}
 
-		refSwaggerPath := swaggerPath
-		modelName, relativePath := SchemaNamePathFromRef(input.Ref)
-		if relativePath != "" {
-			refSwaggerPath = filepath.Join(filepath.Dir(refSwaggerPath), relativePath)
-			refSwaggerPath = strings.Replace(refSwaggerPath, "https:/", "https://", 1)
-
+		modelName, refSwaggerPath := SchemaNamePathFromRef(swaggerPath, input.Ref)
+		if refSwaggerPath != swaggerPath {
 			doc, err := loadSwagger(refSwaggerPath)
 			if err != nil {
 				log.Fatalf("[ERROR] load swagger %s: %v", refSwaggerPath, err)
@@ -303,10 +299,20 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	return &output
 }
 
-func SchemaNamePathFromRef(ref openapiSpec.Ref) (name string, path string) {
-	if ref.GetURL() == nil {
+func SchemaNamePathFromRef(swaggerPath string, ref openapiSpec.Ref) (name string, path string) {
+	url := ref.GetURL()
+	if url == nil {
 		return "", ""
 	}
-	fragments := strings.Split(ref.GetURL().Fragment, "/")
-	return fragments[len(fragments)-1], ref.GetURL().Path
+
+	path = url.Path
+	if path == "" {
+		path = swaggerPath
+	} else if !filepath.IsAbs(path) {
+		path = filepath.Join(filepath.Dir(swaggerPath), path)
+		path = strings.Replace(path, "https:/", "https://", 1)
+	}
+
+	fragments := strings.Split(url.Fragment, "/")
+	return fragments[len(fragments)-1], path
 }

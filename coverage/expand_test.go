@@ -15,7 +15,7 @@ import (
 	"github.com/ms-henglu/armstrong/coverage"
 )
 
-func TestExpand(t *testing.T) {
+func TestExpand_MediaTranform(t *testing.T) {
 	modelName := "Transform"
 	modelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
 	model, err := coverage.Expand(modelName, modelSwaggerPath)
@@ -101,17 +101,10 @@ func TestExpandAll(t *testing.T) {
 					}
 					if param.In == "body" {
 						if paramRef.String() != "" {
-							_, paramRelativePath := coverage.SchemaNamePathFromRef(paramRef)
-							if paramRelativePath != "" {
-								swaggerPath = filepath.Join(filepath.Dir(swaggerPath), paramRelativePath)
-							}
+							_, swaggerPath = coverage.SchemaNamePathFromRef(swaggerPath, paramRef)
 						}
 
-						var modelRelativePath string
-						modelName, modelRelativePath = coverage.SchemaNamePathFromRef(param.Schema.Ref)
-						if modelRelativePath != "" {
-							swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
-						}
+						modelName, swaggerPath = coverage.SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
 						break
 					}
 				}
