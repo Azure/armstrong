@@ -83,18 +83,27 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 
 	modelSchema, ok := spec.Definitions[modelName]
 	if !ok {
-		return nil, fmt.Errorf("%s not found in the definition of %s", modelName, swaggerPath)
+		_, ok := spec.Parameters[modelName]
+		if ok {
+			// https://github.com/Azure/azure-rest-api-specs/blob/fef27735a1c8498d970be905bc45b2e4892fc3b0/specification/vmware/resource-manager/Microsoft.AVS/stable/2021-06-01/vmware.json#L251
+			log.Printf("[WARN] Parameter %s is used as a model in %s", modelName, swaggerPath)
+			return &Model{}, nil
+		} else {
+			return nil, fmt.Errorf("%s not found in the definition of %s", modelName, swaggerPath)
+		}
 	}
 
 	output := expandSchema(modelSchema, swaggerPath, modelName, "#", spec, map[string]interface{}{}, map[string]interface{}{})
-
-	output.SourceFile = swaggerPath
 
 	return output, nil
 }
 
 func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier string, root interface{}, resolvedDiscriminator map[string]interface{}, resolvedModel map[string]interface{}) *Model {
-	output := Model{Identifier: identifier}
+	output := Model{
+		Identifier: identifier,
+		ModelName:  modelName,
+		SourceFile: swaggerPath,
+	}
 
 	if _, ok := resolvedModel[modelName]; ok {
 		return &output
@@ -149,20 +158,21 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	if input.Ref.String() != "" {
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
-			log.Fatalf("[ERROR] resolve ref %s from %s: %v", input.Ref.String(), swaggerPath, err)
+			log.Fatalf("[ERROR] resolve ref %s from %s: %+v", input.Ref.String(), swaggerPath, err)
 		}
 
 		modelName, refSwaggerPath := SchemaNamePathFromRef(swaggerPath, input.Ref)
+		refRoot := root
 		if refSwaggerPath != swaggerPath {
 			doc, err := loadSwagger(refSwaggerPath)
 			if err != nil {
-				log.Fatalf("[ERROR] load swagger %s: %v", refSwaggerPath, err)
+				log.Fatalf("[ERROR] load swagger %s: %+v", refSwaggerPath, err)
 			}
 
-			root = doc.Spec()
+			refRoot = doc.Spec()
 		}
 
-		referenceModel := expandSchema(*resolved, refSwaggerPath, modelName, identifier, root, resolvedDiscriminator, resolvedModel)
+		referenceModel := expandSchema(*resolved, refSwaggerPath, modelName, identifier, refRoot, resolvedDiscriminator, resolvedModel)
 		if referenceModel.Properties != nil {
 			for k, v := range *referenceModel.Properties {
 				properties[k] = v
@@ -257,7 +267,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if _, hasResolvedDiscriminator := resolvedDiscriminator[modelName]; !hasResolvedDiscriminator {
 			allOfTable, err := getAllOfTable(swaggerPath)
 			if err != nil {
-				log.Fatalf("[ERROR] get variant table %s: %v", swaggerPath, err)
+				log.Fatalf("[ERROR] get variant table %s: %+v", swaggerPath, err)
 			}
 
 			varSet, ok := allOfTable[modelName]

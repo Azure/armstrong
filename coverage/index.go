@@ -27,19 +27,19 @@ func GetIndex() (*azidx.Index, error) {
 
 	resp, err := http.Get(indexFileURL)
 	if err != nil {
-		return nil, fmt.Errorf("get index file (%v): %v", indexFileURL, err)
+		return nil, fmt.Errorf("get index file (%v): %+v", indexFileURL, err)
 	}
 
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read index file: %v", err)
+		return nil, fmt.Errorf("read index file: %+v", err)
 	}
 
 	var index azidx.Index
 	if err := json.Unmarshal(b, &index); err != nil {
-		return nil, fmt.Errorf("unmarshal index file: %v", err)
+		return nil, fmt.Errorf("unmarshal index file: %+v", err)
 	}
 	indexCache = &index
 
@@ -62,17 +62,29 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
 	uRL, err := url.Parse(resourceURL)
 	if err != nil {
-		return nil, fmt.Errorf("parsing URL %s: %v", resourceURL, err)
+		return nil, fmt.Errorf("parsing URL %s: %+v", resourceURL, err)
 	}
 	ref, err := index.Lookup("PUT", *uRL)
 	if err != nil {
 		return nil, err
 	}
 
-	_, swaggerPath := SchemaNamePathFromRef(azureRepoURL, openapispec.Ref{Ref: *ref})
+	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoURL)
+	if err != nil {
+		return nil, err
+	}
+	if model.ModelName == "" {
+		return nil, fmt.Errorf("PUT model not found for %s", ref.String())
+	}
 
-	relativeBase := azureRepoURL + strings.Split(ref.GetURL().Path, "/")[0]
-	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: relativeBase})
+	return model, nil
+}
+
+func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*SwaggerModel, error) {
+	_, swaggerPath := SchemaNamePathFromRef(swaggerRepo, ref)
+
+	relativeBase := swaggerRepo + strings.Split(ref.GetURL().Path, "/")[0]
+	operation, err := openapispec.ResolvePathItemWithBase(nil, ref, &openapispec.ExpandOptions{RelativeBase: relativeBase})
 
 	if err != nil {
 		return nil, err
@@ -87,7 +99,7 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 		if paramRef.String() != "" {
 			refParam, err := openapispec.ResolveParameterWithBase(nil, param.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
 			if err != nil {
-				return nil, fmt.Errorf("resolve param ref %q: %v", param.Ref.String(), err)
+				return nil, fmt.Errorf("resolve param ref %q: %+v", param.Ref.String(), err)
 			}
 
 			// Update the param
@@ -95,18 +107,15 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 		}
 		if param.In == "body" {
 			if paramRef.String() != "" {
-				_, swaggerPath = SchemaNamePathFromRef(swaggerPath, paramRef)
+				modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, paramRef)
 			}
 
-			modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
+			if param.Schema.Ref.String() != "" {
+				modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
+			}
 			break
 		}
 	}
-
-	if modelName == "" {
-		return nil, fmt.Errorf("PUT model not found for %s:%s", swaggerPath, apiPath)
-	}
-
 	return &SwaggerModel{
 		ApiPath:     apiPath,
 		ModelName:   modelName,

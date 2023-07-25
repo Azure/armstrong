@@ -60,10 +60,10 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 [swagger](%[3]v)
 <blockquote>
 <details open>
-<summary><span%[4]v>body(%[5]v/%[6]v)</span></summary>
+<summary><span%[4]v>%[5]v(%[6]v/%[7]v)</span></summary>
 <blockquote>
 
-%[7]v
+%[8]v
 
 </blockquote>
 </details>
@@ -72,7 +72,7 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 </details>
 
 ---
-`, k.Type, k.ApiPath, v.SourceFile, getStyle(v.IsFullyCovered), v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
+`, k.Type, k.ApiPath, v.SourceFile, getStyle(v.IsFullyCovered), v.ModelName, v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
 	}
 
 	sort.Strings(coverages)

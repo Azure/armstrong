@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -15,7 +14,7 @@ import (
 	"github.com/ms-henglu/armstrong/coverage"
 )
 
-func TestExpand_MediaTranform(t *testing.T) {
+func TestExpand_MediaTransform(t *testing.T) {
 	modelName := "Transform"
 	modelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
 	model, err := coverage.Expand(modelName, modelSwaggerPath)
@@ -32,13 +31,15 @@ func TestExpand_MediaTranform(t *testing.T) {
 
 // try to expand all PUT and POST models
 func TestExpandAll(t *testing.T) {
-	// e.g., AZURE_REST_REPO_DIR="/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/"
 	azureRepoDir := os.Getenv("AZURE_REST_REPO_DIR")
 	if azureRepoDir == "" {
 		t.Skip("AZURE_REST_REPO_DIR is not set")
 	}
-	t.Logf("azure repo dir: %s", azureRepoDir)
+	if !strings.HasSuffix(azureRepoDir, "specification/") {
+		t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/\"")
+	}
 
+	t.Logf("azure repo dir: %s", azureRepoDir)
 	index, err := coverage.GetIndex()
 	if err != nil {
 		t.Fatal(err)
@@ -81,46 +82,19 @@ func TestExpandAll(t *testing.T) {
 		go func(i int) {
 			for ref := range refChan {
 				t.Logf("%v ref: %v", i, ref.String())
-				swaggerPath := filepath.Join(azureRepoDir, ref.GetURL().Path)
-				operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoDir + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
+
+				model, err := coverage.GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoDir)
 				if err != nil {
-					panic(fmt.Errorf("resolve operation %q from %s: %v", ref.String(), swaggerPath, err))
+					panic(fmt.Errorf("get model info from index ref %s: %+v", ref.String(), err))
 				}
 
-				var modelName string
-				for _, param := range operation.Parameters {
-					paramRef := param.Ref
-					if paramRef.String() != "" {
-						refParam, err := openapispec.ResolveParameterWithBase(nil, param.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
-						if err != nil {
-							panic(fmt.Errorf("resolve parameter %q from %s: %v", param.Ref.String(), swaggerPath, err))
-						}
-
-						// Update the param
-						param = *refParam
-					}
-					if param.In == "body" {
-						if paramRef.String() != "" {
-							_, swaggerPath = coverage.SchemaNamePathFromRef(swaggerPath, paramRef)
-						}
-
-						modelName, swaggerPath = coverage.SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
-						break
-					}
-				}
-
-				// post may have no model
-				if operation.Put != nil && modelName == "" {
-					panic(fmt.Errorf("resolve %s from %s: modelName is empty", ref.String(), swaggerPath))
-				}
-
-				_, err = coverage.Expand(modelName, swaggerPath)
+				_, err = coverage.Expand(model.ModelName, model.SwaggerPath)
 				if err != nil {
-					panic(fmt.Errorf("expand %s from %s: %+v", modelName, swaggerPath, err))
+					panic(fmt.Errorf("process %s, expand %s from %s: %+v", ref.String(), model.ModelName, model.SwaggerPath, err))
 				}
 
 				// clean up
-				operation = nil
+				model = nil
 				ref = nil
 			}
 

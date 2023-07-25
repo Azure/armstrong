@@ -26,11 +26,11 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 
 	swaggerModel, err := GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {
-		return fmt.Errorf("error find the path for %s from index:%s", resourceId, err)
+		return fmt.Errorf("error find the path for %s from index: %+v", resourceId, err)
 
 	}
 
-	log.Printf("[INFO] matched API path:%s modelSwawggerPath:%s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
+	log.Printf("[INFO] matched API path: %s; modelSwawggerPath: %s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
 
 	resource := ArmResource{
 		ApiPath: swaggerModel.ApiPath,
@@ -40,7 +40,7 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 	if _, ok := c.Coverages[resource]; !ok {
 		expanded, err := Expand(swaggerModel.ModelName, swaggerModel.SwaggerPath)
 		if err != nil {
-			return fmt.Errorf("error expand model %s property:%s", swaggerModel.ModelName, err)
+			return fmt.Errorf("error expand model %s property: %+v", swaggerModel.ModelName, err)
 		}
 
 		c.Coverages[resource] = expanded

@@ -92,6 +92,30 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 	}
 }
 
+func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
+	// TODO: support cross file discriminator reference, e.g., https://github.com/Azure/azure-rest-api-specs/blob/0ab5469dc0d75594f5747493dcfe8774e22d728f/specification/datamigration/resource-manager/Microsoft.DataMigration/stable/2021-06-30/definitions/ServiceTasks.json#L39
+	tc := testCase{
+		name:         "DataMigrationServiceTasks",
+		resourceType: "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
+		apiVersion:   "2021-06-30",
+		apiPath:      "/subscriptions/fc04246f-04c5-437e-ac5e-206a19e7193f/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
+		rawRequest: []string{`{
+    "properties": {
+        "taskType": "Service.Check.OCI",
+        "input": {
+            "serverVersion": "NA"
+        }
+    }
+}`,
+		},
+	}
+
+	_, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+}
+
 func TestCoverage_DataMigrationTasks(t *testing.T) {
 	tc := testCase{
 		name:         "DataMigrationTasks",

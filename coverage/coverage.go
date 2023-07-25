@@ -22,6 +22,7 @@ type Model struct {
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
 	Item                    *Model             `json:"Item,omitempty"`
+	ModelName               string             `json:"ModelName,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
