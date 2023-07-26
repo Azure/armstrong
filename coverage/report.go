@@ -3,7 +3,6 @@ package coverage
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 )
 
@@ -17,12 +16,7 @@ type CoverageReport struct {
 }
 
 func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, jsonBody map[string]interface{}) error {
-	var err error
-
 	apiVersion := strings.Split(resourceType, "@")[1]
-	if !regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}$`).MatchString(apiVersion) {
-		return fmt.Errorf("could not parse apiVersion from resourceType: %s", resourceType)
-	}
 
 	swaggerModel, err := GetModelInfoFromIndex(resourceId, apiVersion)
 	if err != nil {

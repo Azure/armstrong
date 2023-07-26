@@ -108,7 +108,7 @@ func (m *Model) MarkCovered(root interface{}) {
 	case nil:
 
 	default:
-		log.Fatalf("[ERROR] unexpect type %T for json unmarshaled value", value)
+		log.Printf("[ERROR] unexpect type %T for json unmarshaled value", value)
 	}
 }
 

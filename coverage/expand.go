@@ -3,6 +3,7 @@ package coverage
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -158,7 +159,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	if input.Ref.String() != "" {
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
-			log.Fatalf("[ERROR] resolve ref %s from %s: %+v", input.Ref.String(), swaggerPath, err)
+			log.Panicf("[ERROR] resolve ref %s from %s: %+v", input.Ref.String(), swaggerPath, err)
 		}
 
 		modelName, refSwaggerPath := SchemaNamePathFromRef(swaggerPath, input.Ref)
@@ -166,7 +167,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if refSwaggerPath != swaggerPath {
 			doc, err := loadSwagger(refSwaggerPath)
 			if err != nil {
-				log.Fatalf("[ERROR] load swagger %s: %+v", refSwaggerPath, err)
+				log.Panicf("[ERROR] load swagger %s: %+v", refSwaggerPath, err)
 			}
 
 			refRoot = doc.Spec()
@@ -267,7 +268,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if _, hasResolvedDiscriminator := resolvedDiscriminator[modelName]; !hasResolvedDiscriminator {
 			allOfTable, err := getAllOfTable(swaggerPath)
 			if err != nil {
-				log.Fatalf("[ERROR] get variant table %s: %+v", swaggerPath, err)
+				log.Panicf("[ERROR] get variant table %s: %+v", swaggerPath, err)
 			}
 
 			varSet, ok := allOfTable[modelName]
@@ -309,20 +310,20 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	return &output
 }
 
-func SchemaNamePathFromRef(swaggerPath string, ref openapiSpec.Ref) (name string, path string) {
-	url := ref.GetURL()
-	if url == nil {
+func SchemaNamePathFromRef(swaggerPath string, ref openapiSpec.Ref) (schemaName string, schemaPath string) {
+	refUrl := ref.GetURL()
+	if refUrl == nil {
 		return "", ""
 	}
 
-	path = url.Path
-	if path == "" {
-		path = swaggerPath
-	} else if !filepath.IsAbs(path) {
-		path = filepath.Join(filepath.Dir(swaggerPath), path)
-		path = strings.Replace(path, "https:/", "https://", 1)
+	schemaPath = refUrl.Path
+	if schemaPath == "" {
+		schemaPath = swaggerPath
+	} else {
+		swaggerPath, _ := filepath.Split(swaggerPath)
+		schemaPath, _ = url.JoinPath(swaggerPath, schemaPath)
 	}
 
-	fragments := strings.Split(url.Fragment, "/")
-	return fragments[len(fragments)-1], path
+	fragments := strings.Split(refUrl.Fragment, "/")
+	return fragments[len(fragments)-1], schemaPath
 }

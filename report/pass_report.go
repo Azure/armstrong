@@ -25,6 +25,12 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 	content := passedReportTemplate
 	content = strings.ReplaceAll(content, "${resource_type}", strings.Join(resourceTypes, "\n"))
 
+	content = addCoverageReport(content, coverageReport)
+
+	return content
+}
+
+func addCoverageReport(content string, coverageReport coverage.CoverageReport) string {
 	fullyCoveredPath := make([]string, 0)
 	partiallyCoveredPath := make([]string, 0)
 	for k, v := range coverageReport.Coverages {
@@ -77,6 +83,7 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 
 	sort.Strings(coverages)
 	content = strings.ReplaceAll(content, "${coverage_details}", strings.Join(coverages, "\n"))
+
 	return content
 }
 

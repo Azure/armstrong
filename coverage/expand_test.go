@@ -72,10 +72,9 @@ func TestExpandAll(t *testing.T) {
 	}
 	index = nil
 
-	t.Logf("refs numbers: %d", len(refMaps))
-
 	refChan := make(chan *jsonreference.Ref)
 
+	totalPropCount := 0
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -105,4 +104,6 @@ func TestExpandAll(t *testing.T) {
 	for _, ref := range refMaps {
 		refChan <- ref
 	}
+
+	t.Logf("refs numbers: %d, total prop count: %d", len(refMaps), totalPropCount)
 }

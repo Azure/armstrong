@@ -147,6 +147,12 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 }
 
 func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[ERROR] panic when producing coverage report from state: %+v", r)
+		}
+	}()
+
 	out := coverage.CoverageReport{
 		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
@@ -182,6 +188,12 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 }
 
 func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[ERROR] panic when producing coverage report: %+v", r)
+		}
+	}()
+
 	out := coverage.CoverageReport{
 		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
