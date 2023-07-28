@@ -35,8 +35,8 @@ func TestExpandAll(t *testing.T) {
 	if azureRepoDir == "" {
 		t.Skip("AZURE_REST_REPO_DIR is not set")
 	}
-	if !strings.HasSuffix(azureRepoDir, "specification/") {
-		t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/\"")
+	if !strings.HasSuffix(azureRepoDir, "/specification") {
+		t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification\"")
 	}
 
 	t.Logf("azure repo dir: %s", azureRepoDir)

@@ -1,6 +1,8 @@
 package coverage
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +16,7 @@ import (
 )
 
 const (
-	indexFileURL = "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
+	indexFileURL = "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json.zip"
 	azureRepoURL = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
 )
 
@@ -27,18 +29,38 @@ func GetIndex() (*azidx.Index, error) {
 
 	resp, err := http.Get(indexFileURL)
 	if err != nil {
-		return nil, fmt.Errorf("get index file (%v): %+v", indexFileURL, err)
+		return nil, fmt.Errorf("get index file from %v: %+v", indexFileURL, err)
 	}
 
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read index file: %+v", err)
+		return nil, fmt.Errorf("download index file zip: %+v", err)
+	}
+
+	zipReader, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	if err != nil {
+		return nil, fmt.Errorf("read index file zip: %+v", err)
+	}
+
+	var unzippedIndexBytes []byte
+	for _, zipFile := range zipReader.File {
+		if strings.EqualFold(zipFile.Name, "index.json") {
+			unzippedIndexBytes, err = readZipFile(zipFile)
+			if err != nil {
+				return nil, fmt.Errorf("unzip index file: %+v", err)
+			}
+			break
+		}
+	}
+
+	if len(unzippedIndexBytes) == 0 {
+		return nil, fmt.Errorf("index file not found in zip")
 	}
 
 	var index azidx.Index
-	if err := json.Unmarshal(b, &index); err != nil {
+	if err := json.Unmarshal(unzippedIndexBytes, &index); err != nil {
 		return nil, fmt.Errorf("unmarshal index file: %+v", err)
 	}
 	indexCache = &index
@@ -121,4 +143,13 @@ func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*Swagger
 		ModelName:   modelName,
 		SwaggerPath: swaggerPath,
 	}, nil
+}
+
+func readZipFile(zf *zip.File) ([]byte, error) {
+	f, err := zf.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
 }
