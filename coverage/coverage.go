@@ -28,6 +28,7 @@ type Model struct {
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
 	Variants                *map[string]*Model `json:"Variants,omitempty"`
+	VariantType             *string            `json:"VariantType,omitempty"`
 }
 
 func (m *Model) MarkCovered(root interface{}) {

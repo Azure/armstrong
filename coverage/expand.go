@@ -71,27 +71,20 @@ func getAllOfTable(swaggerPath string) (map[string]map[string]interface{}, error
 }
 
 func Expand(modelName, swaggerPath string) (*Model, error) {
+	if modelName == "" {
+		return nil, fmt.Errorf("modelName is empty")
+	}
+
 	doc, err := loadSwagger(swaggerPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if modelName == "" {
-		return nil, nil
 	}
 
 	spec := doc.Spec()
 
 	modelSchema, ok := spec.Definitions[modelName]
 	if !ok {
-		_, ok := spec.Parameters[modelName]
-		if ok {
-			// https://github.com/Azure/azure-rest-api-specs/blob/fef27735a1c8498d970be905bc45b2e4892fc3b0/specification/vmware/resource-manager/Microsoft.AVS/stable/2021-06-01/vmware.json#L251
-			log.Printf("[WARN] Parameter %s is used as a model in %s", modelName, swaggerPath)
-			return &Model{}, nil
-		} else {
-			return nil, fmt.Errorf("%s not found in the definition of %s", modelName, swaggerPath)
-		}
+		return nil, fmt.Errorf("%s not found in the definition of %s", modelName, swaggerPath)
 	}
 
 	output := expandSchema(modelSchema, swaggerPath, modelName, "#", spec, map[string]interface{}{}, map[string]interface{}{})
@@ -228,6 +221,12 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		// the model should be a variant if its allOf contains a discriminator
 		if allOf.Discriminator != nil {
 			output.Discriminator = allOf.Discriminator
+
+			variantName := modelName
+			if variantNameRaw, ok := input.Extensions[msExtensionDiscriminator]; ok && variantNameRaw != nil {
+				variantName = variantNameRaw.(string)
+			}
+			output.VariantType = &variantName
 		}
 	}
 
@@ -289,6 +288,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 						}
 
 						resolved := expandSchema(schema, swaggerPath, variantModelName, identifier+"{"+variantName+"}", root, resolvedDiscriminator, resolvedModel)
+						resolved.VariantType = &variantName
 						variants[variantName] = resolved
 						if varVarSet, ok := allOfTable[variantModelName]; ok {
 							for v := range varVarSet {

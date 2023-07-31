@@ -117,8 +117,13 @@ func getReport(model *coverage.Model) []string {
 			}
 
 			if v.Variants != nil {
-				for variantName, variant := range *v.Variants {
-					variantKey := fmt.Sprintf("%s{%s}", k, variantName)
+				for variantType, variant := range *v.Variants {
+					variantType := variantType
+					if v.VariantType != nil {
+						variantType = *v.Item.VariantType
+					}
+					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+
 					if variant == nil {
 						// reference to self
 						out = append(out, getChildReport(variantKey, v))
@@ -132,7 +137,12 @@ func getReport(model *coverage.Model) []string {
 
 			if v.Item != nil && v.Item.Variants != nil {
 				for variantType, variant := range *v.Item.Variants {
+					variantType := variantType
+					if v.Item.VariantType != nil {
+						variantType = *v.Item.VariantType
+					}
 					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+
 					if variant == nil {
 						// reference to self
 						out = append(out, getChildReport(variantKey, v))
