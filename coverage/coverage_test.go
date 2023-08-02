@@ -59,6 +59,105 @@ func TestCoverage_ResourceGroup(t *testing.T) {
 	}
 }
 
+func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
+	tc := testCase{
+		name:         "MachineLearningServicesWorkspacesJobs",
+		resourceType: "Microsoft.MachineLearningServices/workspaces/jobs",
+		apiVersion:   "2023-06-01-preview",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/jobs/job1",
+		rawRequest: []string{`{
+    "properties": {
+        "description": "string",
+        "tags": {
+            "string": "string"
+        },
+        "properties": {
+            "string": "string"
+        },
+        "displayName": "string",
+        "experimentName": "string",
+        "services": {
+            "string": {
+                "jobServiceType": "string",
+                "port": 1,
+                "endpoint": "string",
+                "properties": {
+                    "string": "string"
+                }
+            }
+        },
+        "computeId": "string",
+        "jobType": "Pipeline",
+        "settings": {},
+        "inputs": {
+            "string": {
+                "description": "string",
+                "jobInputType": "literal",
+                "value": "string"
+            }
+        },
+        "outputs": {
+            "string": {
+                "description": "string",
+                "jobOutputType": "uri_file",
+                "mode": "Upload",
+                "uri": "string"
+            }
+        }
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	expected := 11
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
+	}
+}
+
+func TestCoverage_MachineLearningServicesWorkspacesDataVersions(t *testing.T) {
+	tc := testCase{
+		name:         "MachineLearningServicesWorkspacesDataVersions",
+		resourceType: "Microsoft.MachineLearningServices/workspaces/data/versions",
+		apiVersion:   "2023-06-01-preview",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/data/data1/versions/version1",
+		rawRequest: []string{`{
+    "properties": {
+        "description": "string",
+        "tags": {
+            "string": "string"
+        },
+        "properties": {
+            "string": "string"
+        },
+        "isArchived": false,
+        "isAnonymous": false,
+        "dataUri": "string",
+        "dataType": "mltable",
+        "referencedUris": [
+            "string"
+        ]
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	expected := 8
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
+	}
+}
+
 func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 	tc := testCase{
 		name:         "DeviceSecurityGroup",
@@ -87,13 +186,14 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 5 {
-		t.Fatalf("expected CoveredCount 5, got %d", model.CoveredCount)
+	expected := 5
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
-	// TODO: support cross file discriminator reference, e.g., https://github.com/Azure/azure-rest-api-specs/blob/0ab5469dc0d75594f5747493dcfe8774e22d728f/specification/datamigration/resource-manager/Microsoft.DataMigration/stable/2021-06-30/definitions/ServiceTasks.json#L39
+	// Do we need to support cross file discriminator reference? Now seems only DataMigration has this. e.g., https://github.com/Azure/azure-rest-api-specs/blob/0ab5469dc0d75594f5747493dcfe8774e22d728f/specification/datamigration/resource-manager/Microsoft.DataMigration/stable/2021-06-30/definitions/ServiceTasks.json#L39
 	tc := testCase{
 		name:         "DataMigrationServiceTasks",
 		resourceType: "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
@@ -146,8 +246,9 @@ func TestCoverage_DataMigrationTasks(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 8 {
-		t.Fatalf("expected CoveredCount 8, got %d", model.CoveredCount)
+	expected := 8
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
@@ -231,8 +332,9 @@ func TestCoverage_KeyVault(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 13 {
-		t.Fatalf("expected CoveredCount 13, got %d", model.CoveredCount)
+	expected := 13
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 }
@@ -299,8 +401,9 @@ func TestCoverage_StorageAccount(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 24 {
-		t.Fatalf("expected CoveredCount 24, got %d", model.CoveredCount)
+	expected := 24
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
@@ -368,8 +471,9 @@ func TestCoverage_VM(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 20 {
-		t.Fatalf("expected CoveredCount 20, got %d", model.CoveredCount)
+	expected := 20
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 }
@@ -406,8 +510,9 @@ func TestCoverage_VNet(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 4 {
-		t.Fatalf("expected CoveredCount 4, got %d", model.CoveredCount)
+	expected := 4
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
@@ -731,8 +836,9 @@ func TestCoverage_DataCollectionRule(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 65 {
-		t.Fatalf("expected CoveredCount 65, got %d", model.CoveredCount)
+	expected := 65
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 }
@@ -758,8 +864,9 @@ func TestCoverage_WebSite(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 3 {
-		t.Fatalf("expected CoveredCount 3, got %d", model.CoveredCount)
+	expected := 3
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 }
@@ -848,8 +955,9 @@ func TestCoverage_AKS(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 33 {
-		t.Fatalf("expected TotalCount 33, got %d", model.CoveredCount)
+	expected := 33
+	if model.CoveredCount != expected {
+		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 
 }
@@ -947,8 +1055,9 @@ func TestCoverage_CosmosDB(t *testing.T) {
 		t.Fatalf("process coverage: %v", err)
 	}
 
-	if model.CoveredCount != 33 {
-		t.Fatalf("expected CoveredCount 33, got %d", model.CoveredCount)
+	expected := 33
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -1170,9 +1279,14 @@ func TestCoverage_DataFactoryPipelines(t *testing.T) {
 		},
 	}
 
-	_, err := testCoverage(t, tc)
+	model, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
+	}
+
+	expected := 11
+	if model.CoveredCount != expected {
+		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
@@ -1201,8 +1315,9 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	if model.CoveredCount != 2 {
-		t.Fatalf("expected TotalCount 2, got %d", model.CoveredCount)
+	expected := 2
+	if model.CoveredCount != expected {
+		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -1233,40 +1348,44 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		t.Fatalf("expected properties variants, got none")
 	}
 
-	if v, ok := (*(*model.Properties)["properties"].Variants)["AzureStorage"]; !ok || v == nil {
-		t.Fatalf("expected properties variant AzureStorage, got none")
+	if v, ok := (*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"]; !ok || v == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService, got none")
 	}
 
-	if (*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties == nil {
-		t.Fatalf("expected properties variant AzureStorage properties, got none")
+	if v := (*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].VariantType; v == nil || *v != "AzureStorage" {
+		t.Fatalf("expected properties variant AzureStorageLinkedService variant type AzureStorage")
 	}
 
-	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"]; !ok || v == nil {
-		t.Fatalf("expected properties variant AzureStorage type property, got none")
+	if (*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService properties, got none")
 	}
 
-	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["type"].IsAnyCovered {
-		t.Fatalf("expected properties variant AzureStorage type IsAnyCovered true, got false")
+	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["type"]; !ok || v == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService type property, got none")
 	}
 
-	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"]; !ok || v == nil {
-		t.Fatalf("expected properties variant AzureStorage typeProperties property, got none")
+	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["type"].IsAnyCovered {
+		t.Fatalf("expected properties variant AzureStorageLinkedService type IsAnyCovered true, got false")
 	}
 
-	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].IsAnyCovered {
-		t.Fatalf("expected properties variant AzureStorage typeProperties IsAnyCovered true, got false")
+	if v, ok := (*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["typeProperties"]; !ok || v == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService typeProperties property, got none")
 	}
 
-	if (*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties == nil {
-		t.Fatalf("expected properties variant AzureStorage typeProperties properties, got none")
+	if !(*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["typeProperties"].IsAnyCovered {
+		t.Fatalf("expected properties variant AzureStorageLinkedService typeProperties IsAnyCovered true, got false")
 	}
 
-	if v, ok := (*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"]; !ok || v == nil {
-		t.Fatalf("expected properties variant AzureStorage typeProperties connectionString property, got none")
+	if (*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["typeProperties"].Properties == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService typeProperties properties, got none")
 	}
 
-	if !(*(*(*(*model.Properties)["properties"].Variants)["AzureStorage"].Properties)["typeProperties"].Properties)["connectionString"].IsAnyCovered {
-		t.Fatalf("expected properties variant AzureStorage typeProperties connectionString IsAnyCovered true, got false")
+	if v, ok := (*(*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["typeProperties"].Properties)["connectionString"]; !ok || v == nil {
+		t.Fatalf("expected properties variant AzureStorageLinkedService typeProperties connectionString property, got none")
+	}
+
+	if !(*(*(*(*model.Properties)["properties"].Variants)["AzureStorageLinkedService"].Properties)["typeProperties"].Properties)["connectionString"].IsAnyCovered {
+		t.Fatalf("expected properties variant AzureStorageLinkedService typeProperties connectionString IsAnyCovered true, got false")
 	}
 }
 

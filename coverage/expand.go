@@ -17,7 +17,7 @@ const msExtensionDiscriminator = "x-ms-discriminator-value"
 
 var (
 	// {swaggerPath: doc Object}
-	swaggerCache, _ = lru.New[string, *loads.Document](20)
+	swaggerCache, _ = lru.New[string, *loads.Document](30)
 
 	// {swaggerPath: {parentModelName: {childModelName: nil}}}
 	allOfTableCache, _ = lru.New[string, map[string]map[string]interface{}](10)
@@ -206,7 +206,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	// expand properties
 	for k, v := range input.Properties {
-		properties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), identifier+"."+k, root, resolvedDiscriminator, resolvedModel)
+		properties[k] = expandSchema(v, swaggerPath, fmt.Sprintf("%s.%s", modelName, k), fmt.Sprintf("%s.%s", identifier, k), root, resolvedDiscriminator, resolvedModel)
 	}
 
 	// expand composition
@@ -256,7 +256,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	// expand items
 	if input.Items != nil {
-		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s[]", modelName), identifier+"[]", root, resolvedDiscriminator, resolvedModel)
+		item := expandSchema(*input.Items.Schema, swaggerPath, fmt.Sprintf("%s[]", modelName), fmt.Sprintf("%s[]", identifier), root, resolvedDiscriminator, resolvedModel)
 		output.Item = item
 	}
 
@@ -273,9 +273,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 			varSet, ok := allOfTable[modelName]
 			if ok {
 				resolvedDiscriminator[modelName] = nil
-				variants := map[string]*Model{
-					modelName: nil,
-				}
+				variants := map[string]*Model{}
 
 				// level order traverse to find all variants
 				for len(varSet) > 0 {
@@ -287,9 +285,10 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 							variantName = variantNameRaw.(string)
 						}
 
-						resolved := expandSchema(schema, swaggerPath, variantModelName, identifier+"{"+variantName+"}", root, resolvedDiscriminator, resolvedModel)
+						resolved := expandSchema(schema, swaggerPath, variantModelName, fmt.Sprintf("%s{%s}", identifier, variantName), root, resolvedDiscriminator, resolvedModel)
 						resolved.VariantType = &variantName
-						variants[variantName] = resolved
+						// in case of https://github.com/Azure/azure-rest-api-specs/issues/25104, use modelName as key
+						variants[variantModelName] = resolved
 						if varVarSet, ok := allOfTable[variantModelName]; ok {
 							for v := range varVarSet {
 								tempVarSet[v] = nil

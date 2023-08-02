@@ -117,38 +117,39 @@ func getReport(model *coverage.Model) []string {
 			}
 
 			if v.Variants != nil {
+				variantType := v.ModelName
+				if v.VariantType != nil {
+					variantType = *v.VariantType
+				}
+				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+
+				out = append(out, getChildReport(variantKey, v))
+
 				for variantType, variant := range *v.Variants {
 					variantType := variantType
-					if v.VariantType != nil {
-						variantType = *v.Item.VariantType
+					if variant.VariantType != nil {
+						variantType = *variant.VariantType
 					}
 					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-
-					if variant == nil {
-						// reference to self
-						out = append(out, getChildReport(variantKey, v))
-						continue
-					}
-
 					out = append(out, getChildReport(variantKey, variant))
 				}
 				continue
 			}
 
 			if v.Item != nil && v.Item.Variants != nil {
+				variantType := v.Item.ModelName
+				if v.Item.VariantType != nil {
+					variantType = *v.Item.VariantType
+				}
+				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+				out = append(out, getChildReport(variantKey, v))
+
 				for variantType, variant := range *v.Item.Variants {
 					variantType := variantType
-					if v.Item.VariantType != nil {
-						variantType = *v.Item.VariantType
+					if variant.VariantType != nil {
+						variantType = *variant.VariantType
 					}
 					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-
-					if variant == nil {
-						// reference to self
-						out = append(out, getChildReport(variantKey, v))
-						continue
-					}
-
 					out = append(out, getChildReport(variantKey, variant))
 				}
 				continue

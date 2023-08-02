@@ -70,20 +70,30 @@ func (m *Model) MarkCovered(root interface{}) {
 	case map[string]interface{}:
 		isMatchProperty := true
 		if m.Discriminator != nil && m.Variants != nil {
+		Loop:
 			for k, v := range value {
 				if k == *m.Discriminator {
-					variant, ok := (*m.Variants)[v.(string)]
-					if !ok {
-						log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
+					if m.ModelName == v.(string) {
+						break Loop
 					}
-					if variant == nil {
+					if m.VariantType != nil && *m.VariantType == v.(string) {
+						break Loop
+					}
+					if variant, ok := (*m.Variants)[v.(string)]; ok {
+						isMatchProperty = false
+						variant.MarkCovered(value)
+
 						break
 					}
+					for _, variant := range *m.Variants {
+						if variant.VariantType != nil && *variant.VariantType == v.(string) {
+							isMatchProperty = false
+							variant.MarkCovered(value)
 
-					isMatchProperty = false
-					(*m.Variants)[v.(string)].MarkCovered(value)
-
-					break
+							break Loop
+						}
+					}
+					log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
 				}
 			}
 		}
