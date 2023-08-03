@@ -15,8 +15,7 @@ func TestDataSource_NewDataSourceFromExample(t *testing.T) {
 	}
 	if r == nil {
 		t.Fatal("expect valid resource, but got nil")
-	}
-	if r.ApiVersion != "2020-06-01" {
+	} else if r.ApiVersion != "2020-06-01" {
 		t.Fatalf("expect api-version 2020-06-01, but got %s", r.ApiVersion)
 	}
 
