@@ -74,10 +74,10 @@ func (m *Model) MarkCovered(root interface{}) {
 			for k, v := range value {
 				if k == *m.Discriminator {
 					if m.ModelName == v.(string) {
-						break Loop
+						break
 					}
 					if m.VariantType != nil && *m.VariantType == v.(string) {
-						break Loop
+						break
 					}
 					if variant, ok := (*m.Variants)[v.(string)]; ok {
 						isMatchProperty = false

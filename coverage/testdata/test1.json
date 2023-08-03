@@ -55,7 +55,7 @@
           "type": "string"
         }
       },
-        "x-ms-discriminator-value": "animal.pet"
+      "x-ms-discriminator-value": "animal.pet"
     },
     "dog": {
       "type": "object",
