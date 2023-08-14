@@ -74,12 +74,14 @@ func (c CleanupCommand) Execute() int {
 	if err != nil {
 		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
 	}
+
 	state, err := terraform.Show()
 	if err != nil {
 		log.Fatalf("[ERROR] error getting state: %+v\n", err)
 	}
 
 	passReport := tf.NewPassReportFromState(state)
+	idAddressMap := tf.NewIdAdressFromState(state)
 
 	reportDir := fmt.Sprintf("armstrong_cleanup_reports_%s", time.Now().Format(time.Stamp))
 	reportDir = strings.ReplaceAll(reportDir, ":", "")
@@ -109,6 +111,11 @@ func (c CleanupCommand) Execute() int {
 	errorReport := types.ErrorReport{}
 	if destroyErr != nil {
 		errorReport := tf.NewCleanupErrorReport(destroyErr, logs)
+		for i, _ := range errorReport.Errors {
+			if address, ok := idAddressMap[errorReport.Errors[i].Id]; ok {
+				errorReport.Errors[i].Label = address
+			}
+		}
 		storeCleanupErrorReport(errorReport, reportDir)
 	}
 
@@ -153,7 +160,7 @@ func storeCleanupReport(passReport types.PassReport, reportDir string, reportNam
 
 func storeCleanupErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
-		log.Printf("[WARN] found an error when deleting %s, address: azapi_resource.%s\n", r.Type, r.Label)
+		log.Printf("[WARN] found an error when deleting %s, address: %s\n", r.Type, r.Label)
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.CleanupErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {

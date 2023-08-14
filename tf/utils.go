@@ -334,3 +334,19 @@ func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.Erro
 	}
 	return out
 }
+
+func NewIdAdressFromState(state *tfjson.State) map[string]string {
+	out := map[string]string{}
+	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		log.Printf("[WARN] new id address mapping from state: state is nil")
+		return out
+	}
+	for _, res := range state.Values.RootModule.Resources {
+		id := ""
+		if v, ok := res.AttributeValues["id"]; ok {
+			id = v.(string)
+		}
+		out[id] = res.Address
+	}
+	return out
+}
