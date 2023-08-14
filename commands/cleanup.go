@@ -111,7 +111,7 @@ func (c CleanupCommand) Execute() int {
 	errorReport := types.ErrorReport{}
 	if destroyErr != nil {
 		errorReport := tf.NewCleanupErrorReport(destroyErr, logs)
-		for i, _ := range errorReport.Errors {
+		for i := range errorReport.Errors {
 			if address, ok := idAddressMap[errorReport.Errors[i].Id]; ok {
 				errorReport.Errors[i].Label = address
 			}
