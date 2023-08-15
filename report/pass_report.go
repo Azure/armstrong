@@ -25,6 +25,12 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 	content := passedReportTemplate
 	content = strings.ReplaceAll(content, "${resource_type}", strings.Join(resourceTypes, "\n"))
 
+	content = addCoverageReport(content, coverageReport)
+
+	return content
+}
+
+func addCoverageReport(content string, coverageReport coverage.CoverageReport) string {
 	fullyCoveredPath := make([]string, 0)
 	partiallyCoveredPath := make([]string, 0)
 	for k, v := range coverageReport.Coverages {
@@ -60,10 +66,10 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 [swagger](%[3]v)
 <blockquote>
 <details open>
-<summary><span%[4]v>body(%[5]v/%[6]v)</span></summary>
+<summary><span%[4]v>%[5]v(%[6]v/%[7]v)</span></summary>
 <blockquote>
 
-%[7]v
+%[8]v
 
 </blockquote>
 </details>
@@ -72,11 +78,12 @@ func PassedMarkdownReport(passReport types.PassReport, coverageReport coverage.C
 </details>
 
 ---
-`, k.Type, k.ApiPath, v.SourceFile, getStyle(v.IsFullyCovered), v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
+`, k.Type, k.ApiPath, v.SourceFile, getStyle(v.IsFullyCovered), v.ModelName, v.CoveredCount, v.TotalCount, strings.Join(reportDetail, "\n\n")))
 	}
 
 	sort.Strings(coverages)
 	content = strings.ReplaceAll(content, "${coverage_details}", strings.Join(coverages, "\n"))
+
 	return content
 }
 
@@ -110,15 +117,42 @@ func getReport(model *coverage.Model) []string {
 			}
 
 			if v.Variants != nil {
-				for variantType, variant := range *v.Variants {
-					out = append(out, getChildReport(fmt.Sprintf("%s{%s}", k, variantType), variant))
+				variantType := v.ModelName
+				if v.VariantType != nil {
+					variantType = *v.VariantType
 				}
+				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+
+				out = append(out, getChildReport(variantKey, v))
+
+				for variantType, variant := range *v.Variants {
+					variantType := variantType
+					if variant.VariantType != nil {
+						variantType = *variant.VariantType
+					}
+					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+					out = append(out, getChildReport(variantKey, variant))
+				}
+				continue
 			}
 
 			if v.Item != nil && v.Item.Variants != nil {
-				for variantType, variant := range *v.Item.Variants {
-					out = append(out, getChildReport(fmt.Sprintf("%s{%s}", k, variantType), variant))
+				variantType := v.Item.ModelName
+				if v.Item.VariantType != nil {
+					variantType = *v.Item.VariantType
 				}
+				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+				out = append(out, getChildReport(variantKey, v))
+
+				for variantType, variant := range *v.Item.Variants {
+					variantType := variantType
+					if variant.VariantType != nil {
+						variantType = *variant.VariantType
+					}
+					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
+					out = append(out, getChildReport(variantKey, variant))
+				}
+				continue
 			}
 
 			out = append(out, getChildReport(k, v))

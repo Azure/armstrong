@@ -22,11 +22,13 @@ type Model struct {
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
 	Item                    *Model             `json:"Item,omitempty"`
+	ModelName               string             `json:"ModelName,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
 	Variants                *map[string]*Model `json:"Variants,omitempty"`
+	VariantType             *string            `json:"VariantType,omitempty"`
 }
 
 func (m *Model) MarkCovered(root interface{}) {
@@ -66,39 +68,58 @@ func (m *Model) MarkCovered(root interface{}) {
 		}
 
 	case map[string]interface{}:
-		if m.Discriminator != nil {
+		isMatchProperty := true
+		if m.Discriminator != nil && m.Variants != nil {
+		Loop:
 			for k, v := range value {
 				if k == *m.Discriminator {
-					if m.Variants == nil {
-						log.Printf("[ERROR] unexpected discriminator %s in %s\n", k, m.Identifier)
+					if m.ModelName == v.(string) {
+						break
 					}
-					if _, ok := (*m.Variants)[v.(string)]; !ok {
-						log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
+					if m.VariantType != nil && *m.VariantType == v.(string) {
+						break
 					}
-					(*m.Variants)[v.(string)].MarkCovered(value)
-					break
+					if variant, ok := (*m.Variants)[v.(string)]; ok {
+						isMatchProperty = false
+						variant.MarkCovered(value)
+
+						break
+					}
+					for _, variant := range *m.Variants {
+						if variant.VariantType != nil && *variant.VariantType == v.(string) {
+							isMatchProperty = false
+							variant.MarkCovered(value)
+
+							break Loop
+						}
+					}
+					log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
 				}
 			}
 		}
-		for k, v := range value {
-			if m.Properties == nil {
-				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+
+		if isMatchProperty {
+			for k, v := range value {
+				if m.Properties == nil {
+					if !m.HasAdditionalProperties {
+						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+					}
+					return
 				}
-				return
-			}
-			if _, ok := (*m.Properties)[k]; !ok {
-				if !m.HasAdditionalProperties && m.Discriminator == nil {
-					log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+				if _, ok := (*m.Properties)[k]; !ok {
+					if !m.HasAdditionalProperties {
+						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+						return
+					}
 				}
+				(*m.Properties)[k].MarkCovered(v)
 			}
-			(*m.Properties)[k].MarkCovered(v)
 		}
 
 	case nil:
 
 	default:
-		log.Fatalf("[ERROR] unexpect type %T for json unmarshaled value", value)
+		log.Printf("[ERROR] unexpect type %T for json unmarshaled value", value)
 	}
 }
 
@@ -137,6 +158,9 @@ func (m *Model) CountCoverage() (int, int) {
 
 	if m.Properties != nil {
 		for _, v := range *m.Properties {
+			if v.IsReadOnly {
+				continue
+			}
 			covered, total := v.CountCoverage()
 			m.CoveredCount += covered
 			m.TotalCount += total

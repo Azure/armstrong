@@ -1,13 +1,14 @@
 package coverage
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	openapispec "github.com/go-openapi/spec"
@@ -15,7 +16,7 @@ import (
 )
 
 const (
-	indexFileURL = "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json"
+	indexFileURL = "https://raw.githubusercontent.com/teowa/azure-rest-api-index-file/main/index.json.zip"
 	azureRepoURL = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
 )
 
@@ -28,19 +29,39 @@ func GetIndex() (*azidx.Index, error) {
 
 	resp, err := http.Get(indexFileURL)
 	if err != nil {
-		return nil, fmt.Errorf("get index file (%v): %v", indexFileURL, err)
+		return nil, fmt.Errorf("get index file from %v: %+v", indexFileURL, err)
 	}
 
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read index file: %v", err)
+		return nil, fmt.Errorf("download index file zip: %+v", err)
+	}
+
+	zipReader, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	if err != nil {
+		return nil, fmt.Errorf("read index file zip: %+v", err)
+	}
+
+	var unzippedIndexBytes []byte
+	for _, zipFile := range zipReader.File {
+		if strings.EqualFold(zipFile.Name, "index.json") {
+			unzippedIndexBytes, err = readZipFile(zipFile)
+			if err != nil {
+				return nil, fmt.Errorf("unzip index file: %+v", err)
+			}
+			break
+		}
+	}
+
+	if len(unzippedIndexBytes) == 0 {
+		return nil, fmt.Errorf("index file not found in zip")
 	}
 
 	var index azidx.Index
-	if err := json.Unmarshal(b, &index); err != nil {
-		return nil, fmt.Errorf("unmarshal index file: %v", err)
+	if err := json.Unmarshal(unzippedIndexBytes, &index); err != nil {
+		return nil, fmt.Errorf("unmarshal index file: %+v", err)
 	}
 	indexCache = &index
 
@@ -63,15 +84,29 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
 	uRL, err := url.Parse(resourceURL)
 	if err != nil {
-		return nil, fmt.Errorf("parsing URL %s: %v", resourceURL, err)
+		return nil, fmt.Errorf("parsing URL %s: %+v", resourceURL, err)
 	}
 	ref, err := index.Lookup("PUT", *uRL)
 	if err != nil {
 		return nil, err
 	}
 
-	swaggerPath := filepath.Join(azureRepoURL, ref.GetURL().Path)
-	operation, err := openapispec.ResolvePathItemWithBase(nil, openapispec.Ref{Ref: *ref}, &openapispec.ExpandOptions{RelativeBase: azureRepoURL + "/" + strings.Split(ref.GetURL().Path, "/")[0]})
+	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoURL)
+	if err != nil {
+		return nil, err
+	}
+	if model.ModelName == "" {
+		return nil, fmt.Errorf("PUT model not found for %s", ref.String())
+	}
+
+	return model, nil
+}
+
+func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*SwaggerModel, error) {
+	_, swaggerPath := SchemaNamePathFromRef(swaggerRepo, ref)
+
+	relativeBase := swaggerRepo + strings.Split(ref.GetURL().Path, "/")[0]
+	operation, err := openapispec.ResolvePathItemWithBase(nil, ref, &openapispec.ExpandOptions{RelativeBase: relativeBase})
 
 	if err != nil {
 		return nil, err
@@ -82,20 +117,39 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 
 	var modelName string
 	for _, param := range operation.Parameters {
-		if param.In == "body" {
-			var modelRelativePath string
-			modelName, modelRelativePath = SchemaNamePathFromRef(param.Schema.Ref)
-			if modelRelativePath != "" {
-				swaggerPath = filepath.Join(filepath.Dir(swaggerPath), modelRelativePath)
+		paramRef := param.Ref
+		if paramRef.String() != "" {
+			refParam, err := openapispec.ResolveParameterWithBase(nil, param.Ref, &openapispec.ExpandOptions{RelativeBase: swaggerPath})
+			if err != nil {
+				return nil, fmt.Errorf("resolve param ref %q: %+v", param.Ref.String(), err)
 			}
+
+			// Update the param
+			param = *refParam
+		}
+		if param.In == "body" {
+			if paramRef.String() != "" {
+				modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, paramRef)
+			}
+
+			if param.Schema.Ref.String() != "" {
+				modelName, swaggerPath = SchemaNamePathFromRef(swaggerPath, param.Schema.Ref)
+			}
+			break
 		}
 	}
-
-	swaggerPath = strings.Replace(swaggerPath, "https:/", "https://", 1)
-
 	return &SwaggerModel{
 		ApiPath:     apiPath,
 		ModelName:   modelName,
 		SwaggerPath: swaggerPath,
 	}, nil
+}
+
+func readZipFile(zf *zip.File) ([]byte, error) {
+	f, err := zf.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
 }

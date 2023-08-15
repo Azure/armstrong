@@ -1,0 +1,75 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "",
+    "title": ""
+  },
+  "paths": {
+    "/path1": {
+      "put": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/location"
+          },
+          {
+            "$ref": "./test2.json#/parameters/version"
+          },
+          {
+            "$ref": "./test2.json#/parameters/input1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "location": {
+      "in": "query",
+      "name": "location",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "animal": {
+      "type": "object",
+      "discriminator": "odata.type",
+      "properties": {
+        "odata.type": {
+          "type": "string"
+        }
+      }
+    },
+    "pet": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/animal"
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "x-ms-discriminator-value": "animal.pet"
+    },
+    "dog": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/pet"
+        }
+      ],
+      "properties": {
+        "is_barking": {
+          "type": "boolean"
+        }
+      },
+      "x-ms-discriminator-value": "animal.pet.dog"
+    }
+  }
+}

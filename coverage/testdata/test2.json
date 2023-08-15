@@ -1,0 +1,23 @@
+{
+  "swagger": "2.0",
+  "paths": {},
+  "info": {
+    "version": "",
+    "title": ""
+  },
+  "parameters": {
+    "input1": {
+      "name": "input",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "$ref": "./test1.json#/definitions/pet"
+      }
+    },
+    "version": {
+      "in": "query",
+      "name": "version",
+      "type": "string"
+    }
+  }
+}
