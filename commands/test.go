@@ -187,7 +187,7 @@ func storePassReport(passReport types.PassReport, coverageReport coverage.Covera
 
 func storeErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
-		log.Printf("[WARN] found an error when create %s, address: azapi_resource.%s\n", r.Type, r.Label)
+		log.Printf("[WARN] found an error when creating %s, address: azapi_resource.%s\n", r.Type, r.Label)
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.ErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {

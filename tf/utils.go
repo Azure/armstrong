@@ -318,3 +318,47 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 	}
 	return out
 }
+
+func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
+	out := types.ErrorReport{
+		Errors: make([]types.Error, 0),
+		Logs:   logs,
+	}
+	res := strings.Split(applyErr.Error(), "Error: deleting")
+	for _, e := range res {
+		var id, apiVersion string
+		errorMessage := e
+		if lastIndex := strings.LastIndex(e, "------"); lastIndex != -1 {
+			errorMessage = errorMessage[0:lastIndex]
+		}
+		if matches := regexp.MustCompile(`ResourceId \\"(.+)\\" / Api Version \\"(.+)\\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
+			id = matches[0][1]
+			apiVersion = matches[0][2]
+		} else {
+			continue
+		}
+
+		out.Errors = append(out.Errors, types.Error{
+			Id:      id,
+			Type:    fmt.Sprintf("%s@%s", utils.GetResourceType(id), apiVersion),
+			Message: errorMessage,
+		})
+	}
+	return out
+}
+
+func NewIdAdressFromState(state *tfjson.State) map[string]string {
+	out := map[string]string{}
+	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
+		log.Printf("[WARN] new id address mapping from state: state is nil")
+		return out
+	}
+	for _, res := range state.Values.RootModule.Resources {
+		id := ""
+		if v, ok := res.AttributeValues["id"]; ok {
+			id = v.(string)
+		}
+		out[id] = res.Address
+	}
+	return out
+}
