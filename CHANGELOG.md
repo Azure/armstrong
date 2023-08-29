@@ -1,3 +1,12 @@
+## v0.11.0
+FEATURES:
+- Support coverage report
+- Support cleanup report
+
+ENHANCEMENTS:
+
+BUG FIXES:
+
 ## v0.10.0
 
 FEATURES:
