@@ -130,9 +130,9 @@ func (c TestCommand) Execute() int {
 
 			coverageReport, err := tf.NewCoverageReportFromState(state)
 			if err != nil {
-				log.Printf("[ERROR] error produce coverage report: %+v", err)
+				log.Printf("[ERROR] error producing coverage report: %+v", err)
 			}
-			log.Printf("[INFO] the coverage report has been produced.")
+			log.Printf("[INFO] coverage report has been produced.")
 			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
 			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
 		} else {

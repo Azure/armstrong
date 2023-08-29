@@ -135,8 +135,10 @@ func (c CleanupCommand) Execute() int {
 		}
 	}
 
-	passReport.Resources = resources
-	storeCleanupReport(passReport, reportDir, partialPassedReportFileName)
+	if len(resources) > 0 {
+		passReport.Resources = resources
+		storeCleanupReport(passReport, reportDir, partialPassedReportFileName)
+	}
 
 	log.Println("[INFO] ---------------- Summary ----------------")
 	log.Printf("[INFO] %d resources passed the cleanup tests.", len(passReport.Resources))
