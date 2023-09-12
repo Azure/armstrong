@@ -1,11 +1,9 @@
-package loader
+package azurerm
 
 import (
 	_ "embed"
 	"encoding/json"
 	"os"
-
-	"github.com/ms-henglu/armstrong/types"
 )
 
 type MappingJsonDependencyLoader struct {
@@ -15,33 +13,23 @@ type MappingJsonDependencyLoader struct {
 //go:embed mappings.json
 var mappingsJson string
 
-func (m MappingJsonDependencyLoader) Load() ([]types.Dependency, error) {
-	var mappings []types.Mapping
+func (m MappingJsonDependencyLoader) Load() ([]Mapping, error) {
+	var mappings []Mapping
 	var data []byte
 	var err error
 	if len(m.MappingJsonFilepath) > 0 {
 		data, err = os.ReadFile(m.MappingJsonFilepath)
 		if err != nil {
-			return []types.Dependency{}, err
+			return nil, err
 		}
 	} else {
 		data = []byte(mappingsJson)
 	}
 	err = json.Unmarshal(data, &mappings)
 	if err != nil {
-		return []types.Dependency{}, err
+		return nil, err
 	}
-	deps := make([]types.Dependency, 0)
-	for _, mapping := range mappings {
-		deps = append(deps, types.Dependency{
-			Pattern:              mapping.IdPattern,
-			ExampleConfiguration: mapping.ExampleConfiguration,
-			ResourceType:         mapping.ResourceType,
-			ReferredProperty:     "id",
-		})
-	}
-
-	return deps, nil
+	return mappings, nil
 }
 
 var _ DependencyLoader = MappingJsonDependencyLoader{}

@@ -1,9 +1,8 @@
-package resource
+package types
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/ms-henglu/armstrong/resource/types"
-
 	"github.com/ms-henglu/armstrong/hcl"
 )
 
@@ -15,8 +14,16 @@ type AzapiDefinition struct {
 	AzureResourceType string // example: Microsoft.Network/virtualNetworks
 	ApiVersion        string // example: 2020-06-01
 	Body              interface{}
-	AdditionalFields  map[string]types.Value // fields like resource_id, parent_id, name, location, action, method
+	AdditionalFields  map[string]Value // fields like resource_id, parent_id, name, location, action, method
+	BodyFormat        BodyFormat       // hcl or json
 }
+
+type BodyFormat string
+
+const (
+	BodyFormatHcl  BodyFormat = "hcl"
+	BodyFormatJson BodyFormat = "json"
+)
 
 type Kind string
 
@@ -45,11 +52,18 @@ func (def AzapiDefinition) String() string {
 			}
 		}
 		if len(bodyMap) > 0 {
-			expressions += fmt.Sprintf(`
+			if def.BodyFormat == BodyFormatJson {
+				jsonBody, _ := json.MarshalIndent(bodyMap, "", "    ")
+				expressions += fmt.Sprintf(`<<BODY
+%s
+BODY`, jsonBody)
+			} else {
+				expressions += fmt.Sprintf(`
   body = jsonencode(%[1]s)`, hcl.MarshalIndent(bodyMap, "  ", "  "))
+			}
 		}
 	}
-	for _, field := range []string{"schema_validation_enabled", "depends_on"} {
+	for _, field := range []string{"schema_validation_enabled", "ignore_casing", "ignore_missing_property", "depends_on"} {
 		if value, ok := def.AdditionalFields[field]; ok {
 			expressions += fmt.Sprintf(`
   %[1]s = %[2]s`, field, value)
@@ -63,7 +77,7 @@ func (def AzapiDefinition) String() string {
 }
 
 func (def AzapiDefinition) DeepCopy() AzapiDefinition {
-	additionalFields := make(map[string]types.Value)
+	additionalFields := make(map[string]Value)
 	for k, v := range def.AdditionalFields {
 		additionalFields[k] = v.DeepCopy()
 	}

@@ -347,7 +347,7 @@ func Test_Format(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		log.Printf("[DEBUG] Testing path: %v", testcase.ApiPath.Path)
-		actuals := resource.Format(testcase.ApiPath)
+		actuals := resource.NewAzapiDefinitionsFromSwagger(testcase.ApiPath)
 		expecteds := testcase.Expected
 		if len(actuals) != len(expecteds) {
 			t.Errorf("expected %d definitions, got %d", len(expecteds), len(actuals))

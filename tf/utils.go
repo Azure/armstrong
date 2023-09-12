@@ -3,14 +3,14 @@ package tf
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/resource/utils"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/ms-henglu/armstrong/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type Action string
@@ -97,7 +97,7 @@ func NewPassReportFromState(state *tfjson.State) types.PassReport {
 		Resources: make([]types.Resource, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Printf("[WARN] new pass report from state: state is nil")
+		logrus.Warnf("new pass report from state: state is nil")
 		return out
 	}
 	for _, res := range state.Values.RootModule.Resources {
@@ -149,7 +149,7 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[ERROR] panic when producing coverage report from state: %+v", r)
+			logrus.Errorf("panic when producing coverage report from state: %+v", r)
 		}
 	}()
 
@@ -157,7 +157,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Print("[WARN] new coverage report from state: state is nil")
+		logrus.Warnf("new coverage report from state: state is nil")
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
@@ -190,7 +190,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[ERROR] panic when producing coverage report: %+v", r)
+			logrus.Errorf("panic when producing coverage report: %+v", r)
 		}
 	}()
 
@@ -311,7 +311,7 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 		}
 		out.Errors = append(out.Errors, types.Error{
 			Id:      id,
-			Type:    fmt.Sprintf("%s@%s", utils.GetResourceType(id), apiVersion),
+			Type:    fmt.Sprintf("%s@%s", utils.ResourceTypeOfResourceId(id), apiVersion),
 			Label:   label,
 			Message: errorMessage,
 		})
@@ -340,7 +340,7 @@ func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.Erro
 
 		out.Errors = append(out.Errors, types.Error{
 			Id:      id,
-			Type:    fmt.Sprintf("%s@%s", utils.GetResourceType(id), apiVersion),
+			Type:    fmt.Sprintf("%s@%s", utils.ResourceTypeOfResourceId(id), apiVersion),
 			Message: errorMessage,
 		})
 	}
@@ -350,7 +350,7 @@ func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.Erro
 func NewIdAdressFromState(state *tfjson.State) map[string]string {
 	out := map[string]string{}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Printf("[WARN] new id address mapping from state: state is nil")
+		logrus.Warnf("new id address mapping from state: state is nil")
 		return out
 	}
 	for _, res := range state.Values.RootModule.Resources {

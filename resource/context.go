@@ -1,4 +1,4 @@
-package res
+package resource
 
 import (
 	"fmt"
@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/ms-henglu/armstrong/dependency"
+	"github.com/ms-henglu/armstrong/resource/resolver"
+	"github.com/ms-henglu/armstrong/resource/types"
 	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/zclconf/go-cty/cty"
@@ -17,8 +19,8 @@ type Context struct {
 	File               *hclwrite.File
 	locationVarBlock   *hclwrite.Block
 	terraformBlock     *hclwrite.Block
-	KnownPatternMap    map[string]Reference
-	ReferenceResolvers []ReferenceResolver
+	KnownPatternMap    map[string]types.Reference
+	ReferenceResolvers []resolver.ReferenceResolver
 	azapiAddingMap     map[string]bool
 }
 
@@ -45,9 +47,9 @@ variable "location" {
 }
 `
 
-func NewContext(referenceResolvers []ReferenceResolver) *Context {
-	knownPatternMap := make(map[string]Reference)
-	referenceResolvers = append([]ReferenceResolver{NewKnownReferenceResolver(knownPatternMap)}, referenceResolvers...)
+func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
+	knownPatternMap := make(map[string]types.Reference)
+	referenceResolvers = append([]resolver.ReferenceResolver{resolver.NewKnownReferenceResolver(knownPatternMap)}, referenceResolvers...)
 	c := Context{
 		KnownPatternMap:    knownPatternMap,
 		ReferenceResolvers: referenceResolvers,
@@ -60,6 +62,7 @@ func NewContext(referenceResolvers []ReferenceResolver) *Context {
 func (c *Context) InitFile(content string) error {
 	file, diags := hclwrite.ParseConfig([]byte(content), "", hcl.InitialPos)
 	if diags.HasErrors() {
+		logrus.Errorf("failed to parse input:\n%v", content)
 		return diags
 	}
 	var locationVarBlock, terraformBlock *hclwrite.Block
@@ -73,13 +76,20 @@ func (c *Context) InitFile(content string) error {
 			terraformBlock = block
 		}
 	}
+	if terraformBlock == nil {
+		logrus.Warnf("terraform block not found in the input.")
+	}
+	if locationVarBlock == nil {
+		logrus.Warnf("location variable block not found in the input.")
+	}
 	c.File = file
 	c.terraformBlock = terraformBlock
 	c.locationVarBlock = locationVarBlock
 	return nil
 }
 
-func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
+func (c *Context) AddAzapiDefinition(input types.AzapiDefinition) error {
+	logrus.Debugf("adding azapi definition: \n%v", input)
 	if c.azapiAddingMap[input.Identifier()] {
 		return fmt.Errorf("azapi definition already added: %v", input.Identifier())
 	}
@@ -89,12 +99,12 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 	}()
 	def := input.DeepCopy()
 	// find all id placeholders from def
-	placeHolders := make([]PropertyDependencyMapping, 0)
+	placeHolders := make([]types.PropertyDependencyMapping, 0)
 	rootFields := []string{"parent_id", "resource_id"}
 	for _, field := range rootFields {
 		if value, ok := def.AdditionalFields[field]; ok {
-			if literalValue, ok := value.(StringLiteralValue); ok {
-				placeHolders = append(placeHolders, PropertyDependencyMapping{
+			if literalValue, ok := value.(types.StringLiteralValue); ok {
+				placeHolders = append(placeHolders, types.PropertyDependencyMapping{
 					ValuePath:    field,
 					LiteralValue: literalValue.Literal,
 				})
@@ -102,7 +112,6 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 		}
 	}
 	if def.Body != nil {
-		// TODO: only add resource ID/UUID to the mappings?
 		mappings := GetKeyValueMappings(def.Body, "")
 		for _, mapping := range mappings {
 			if utils.IsResourceId(mapping.LiteralValue) {
@@ -110,10 +119,13 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 			}
 		}
 	}
+	logrus.Debugf("found %d id placeholders", len(placeHolders))
 
 	// find all dependencies that match the id placeholders
 	for i, placeHolder := range placeHolders {
+		logrus.Debugf("processing id placeholder: %s", placeHolder.LiteralValue)
 		if utils.IsAction(placeHolder.LiteralValue) {
+			logrus.Debugf("skip action: %s", placeHolder.LiteralValue)
 			continue
 		}
 
@@ -127,17 +139,22 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 			if result == nil {
 				continue
 			}
+			logrus.Debugf("found dependency by resolver: %T", resolver)
 			switch {
 			case result.Reference.IsKnown():
 				placeHolders[i].Reference = result.Reference
+				logrus.Debugf("dependency resolved, ref: %v", result.Reference)
 			case result.HclToAdd != "":
+				logrus.Debugf("found dependency:\n %v", result.HclToAdd)
 				ref, err := c.AddHcl(result.HclToAdd, true)
 				if err != nil {
 					return err
 				}
 				c.KnownPatternMap[pattern.String()] = *ref
 				placeHolders[i].Reference = ref
+				logrus.Debugf("dependency resolved, ref: %v", ref)
 			case result.AzapiDefinitionToAdd != nil:
+				logrus.Debugf("found dependency:\n %v", result.AzapiDefinitionToAdd)
 				err = c.AddAzapiDefinition(*result.AzapiDefinitionToAdd)
 				if err != nil {
 					return err
@@ -147,16 +164,18 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 					return fmt.Errorf("resource type address not found: %v after adding azapi definition to the context, azapi def: %v", pattern, result.AzapiDefinitionToAdd)
 				}
 				placeHolders[i].Reference = &ref
+				logrus.Debugf("dependency resolved, ref: %v", ref)
 			}
 			break
 		}
 	}
 
 	// replace the id placeholders with the dependency address
+	logrus.Debugf("replacing id placeholders with dependency address...")
 	for _, filed := range rootFields {
 		for _, placeHolder := range placeHolders {
 			if placeHolder.ValuePath == filed && placeHolder.Reference.IsKnown() {
-				def.AdditionalFields[filed] = NewReferenceValue(placeHolder.Reference.String())
+				def.AdditionalFields[filed] = types.NewReferenceValue(placeHolder.Reference.String())
 				break
 			}
 		}
@@ -178,7 +197,8 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 
 	// add extra dependencies
 	if def.ResourceName == "azapi_resource_list" {
-		var ref *Reference
+		logrus.Debugf("adding extra dependencies for azapi_resource_list...")
+		var ref *types.Reference
 		for pattern, r := range c.KnownPatternMap {
 			if strings.HasSuffix(pattern, strings.ToLower(":"+def.AzureResourceType)) {
 				ref = &r
@@ -190,7 +210,9 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 			if ref.Kind == "data" {
 				addr = fmt.Sprintf(`data.%s.%s`, ref.Name, ref.Label)
 			}
-			def.AdditionalFields["depends_on"] = NewRawValue(fmt.Sprintf(`[%s]`, addr))
+			def.AdditionalFields["depends_on"] = types.NewRawValue(fmt.Sprintf(`[%s]`, addr))
+		} else {
+			logrus.Debugf("no `depends_on` dependency found for azapi_resource_list: %v", def)
 		}
 	}
 
@@ -201,11 +223,13 @@ func (c *Context) AddAzapiDefinition(input AzapiDefinition) error {
 	if def.AdditionalFields["action"] == nil && def.ResourceName != "azapi_resource_list" {
 		pattern := dependency.NewPattern(def.Id)
 		c.KnownPatternMap[pattern.String()] = *ref
+		logrus.Debugf("adding known pattern: %s, ref: %s", pattern, *ref)
 	}
 	return nil
 }
 
-func (c *Context) AddHcl(input string, skipWhenDuplicate bool) (*Reference, error) {
+func (c *Context) AddHcl(input string, skipWhenDuplicate bool) (*types.Reference, error) {
+	logrus.Debugf("adding hcl:\n%v, skipWhenDuplicate: %v", input, skipWhenDuplicate)
 	inputFile, diags := hclwrite.ParseConfig([]byte(input), "", hcl.InitialPos)
 	if diags.HasErrors() {
 		logrus.Warnf("failed to parse input:\n%v", input)
@@ -245,6 +269,7 @@ func (c *Context) AddHcl(input string, skipWhenDuplicate bool) (*Reference, erro
 		if conflictBlock == nil {
 			continue
 		}
+		logrus.Debugf("found conflict: %s %v", conflictBlock.Type(), conflictBlock.Labels())
 		// if the resource types are the same, there is no conflict
 		if utils.TypeValue(block) == utils.TypeValue(conflictBlock) && skipWhenDuplicate {
 			continue
@@ -257,6 +282,7 @@ func (c *Context) AddHcl(input string, skipWhenDuplicate bool) (*Reference, erro
 				break
 			}
 		}
+		logrus.Debugf("renaming labels: %v -> %v", labels[1], newLabel)
 		block.SetLabels([]string{labels[0], newLabel})
 		input = string(inputFile.BuildTokens(nil).Bytes())
 
@@ -376,7 +402,7 @@ func (c *Context) AddHcl(input string, skipWhenDuplicate bool) (*Reference, erro
 		if len(labels) != 2 {
 			return nil, fmt.Errorf("label is invalid: %v, input:\n%v", labels, input)
 		}
-		return &Reference{
+		return &types.Reference{
 			Label:    labels[1],
 			Kind:     lastBlock.Type(),
 			Name:     labels[0],
@@ -391,16 +417,16 @@ func (c *Context) String() string {
 }
 
 // GetKeyValueMappings returns a list of key and value of input
-func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependencyMapping {
+func GetKeyValueMappings(parameters interface{}, path string) []types.PropertyDependencyMapping {
 	if parameters == nil {
-		return []PropertyDependencyMapping{}
+		return []types.PropertyDependencyMapping{}
 	}
-	results := make([]PropertyDependencyMapping, 0)
+	results := make([]types.PropertyDependencyMapping, 0)
 	switch param := parameters.(type) {
 	case map[string]interface{}:
 		for key, value := range param {
 			results = append(results, GetKeyValueMappings(value, path+"."+key)...)
-			results = append(results, PropertyDependencyMapping{
+			results = append(results, types.PropertyDependencyMapping{
 				ValuePath:    path + "." + key,
 				LiteralValue: key,
 				IsKey:        true,
@@ -411,7 +437,7 @@ func GetKeyValueMappings(parameters interface{}, path string) []PropertyDependen
 			results = append(results, GetKeyValueMappings(value, path+"."+strconv.Itoa(index))...)
 		}
 	case string:
-		results = append(results, PropertyDependencyMapping{
+		results = append(results, types.PropertyDependencyMapping{
 			ValuePath:    path,
 			LiteralValue: param,
 			IsKey:        false,

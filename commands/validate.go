@@ -3,24 +3,24 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/tf"
+	"github.com/sirupsen/logrus"
 )
 
 type ValidateCommand struct {
-	Ui         cli.Ui
+	verbose    bool
 	workingDir string
 }
 
 func (c *ValidateCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("validate")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
-	fs.Usage = func() { c.Ui.Error(c.Help()) }
+	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
+	fs.Usage = func() { logrus.Error(c.Help()) }
 	return fs
 }
 
@@ -39,8 +39,11 @@ func (c ValidateCommand) Synopsis() string {
 func (c ValidateCommand) Run(args []string) int {
 	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		logrus.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
+	}
+	if c.verbose {
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 	return c.Execute()
 }
@@ -48,28 +51,28 @@ func (c ValidateCommand) Run(args []string) int {
 func (c ValidateCommand) Execute() int {
 	wd, err := os.Getwd()
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
 		return 1
 	}
 	if c.workingDir != "" {
 		wd, err = filepath.Abs(c.workingDir)
 		if err != nil {
-			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			logrus.Error(fmt.Sprintf("working directory is invalid: %+v", err))
 			return 1
 		}
 	}
 	terraform, err := tf.NewTerraform(wd, true)
 	if err != nil {
-		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
+		logrus.Fatalf("creating terraform executable: %+v\n", err)
 	}
 
-	log.Printf("[INFO] prepare working directory\n")
+	logrus.Infof("running terraform init...")
 	_ = terraform.Init()
 
-	log.Println("[INFO] running plan command to check changes...")
+	logrus.Infof("running terraform plan to check the changes...")
 	plan, err := terraform.Plan()
 	if err != nil {
-		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
+		logrus.Fatalf("running terraform plan: %+v", err)
 	}
 
 	_ = tf.GetChanges(plan)

@@ -1,14 +1,12 @@
-package loader
-
-import "github.com/ms-henglu/armstrong/types"
+package azurerm
 
 type HardcodeDependencyLoader struct {
 }
 
-func (h HardcodeDependencyLoader) Load() ([]types.Dependency, error) {
-	return []types.Dependency{
+func (h HardcodeDependencyLoader) Load() ([]Mapping, error) {
+	return []Mapping{
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.Network/virtualNetworks/subnets",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.Network/virtualNetworks/subnets",
 			ExampleConfiguration: `
 provider "azurerm" {
 	  features {}
@@ -33,11 +31,10 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 `,
-			ResourceType:     "azurerm_subnet",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_subnet",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.Sql/servers/databases",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.Sql/servers/databases",
 			ExampleConfiguration: `
 provider "azurerm" {
   features {}
@@ -70,11 +67,10 @@ resource "azurerm_mssql_database" "test" {
   server_id      = azurerm_mssql_server.test.id
 }
 `,
-			ResourceType:     "azurerm_mssql_database",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_mssql_database",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforMariaDB/servers",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforMariaDB/servers",
 			ExampleConfiguration: `
 provider "azurerm" {
   features {}
@@ -104,11 +100,10 @@ resource "azurerm_mariadb_server" "example" {
   ssl_enforcement_enabled       = true
 }
 `,
-			ResourceType:     "azurerm_mariadb_server",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_mariadb_server",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforMySQL/flexibleServers",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforMySQL/flexibleServers",
 			ExampleConfiguration: `
 provider "azurerm" {
   features {}
@@ -129,11 +124,10 @@ resource "azurerm_mysql_flexible_server" "example" {
   sku_name               = "GP_Standard_D2ds_v4"
 }
 `,
-			ResourceType:     "azurerm_mysql_flexible_server",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_mysql_flexible_server",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforPostgreSQL/flexibleServers",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.DBforPostgreSQL/flexibleServers",
 			ExampleConfiguration: `
 provider "azurerm" {
   features {}
@@ -158,11 +152,10 @@ resource "azurerm_postgresql_flexible_server" "example" {
 
 }
 `,
-			ResourceType:     "azurerm_postgresql_flexible_server",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_postgresql_flexible_server",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.Sql/servers",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.Sql/servers",
 			ExampleConfiguration: `
 resource "azurerm_resource_group" "example" {
   name     = "database-rg"
@@ -198,11 +191,10 @@ resource "azurerm_mssql_server" "example" {
   }
 }
 `,
-			ResourceType:     "azurerm_mssql_server",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_mssql_server",
 		},
 		{
-			Pattern: "/subscriptions/resourceGroups/providers/Microsoft.Synapse/workspaces",
+			IdPattern: "/subscriptions/resourceGroups/providers/Microsoft.Synapse/workspaces",
 			ExampleConfiguration: `
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -237,125 +229,105 @@ resource "azurerm_synapse_workspace" "example" {
   }
 }
 `,
-			ResourceType:     "azurerm_synapse_workspace",
-			ReferredProperty: "id",
+			ResourceType: "azurerm_synapse_workspace",
 		},
 		// override those customer managed key resource which is not a real resource
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_log_analytics_cluster_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_eventhub_namespace_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_cognitive_account_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_storage_account_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_kusto_cluster_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_databricks_workspace_customer_managed_key",
-			ReferredProperty:     "id",
 		},
 		// override role assignment
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_synapse_role_assignment",
-			ReferredProperty:     "id",
 		},
 		// override all kinds of associations
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_network_interface_nat_rule_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_subnet_route_table_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_network_interface_application_security_group_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_virtual_desktop_workspace_application_group_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_nat_gateway_public_ip_prefix_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_management_group_subscription_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_network_interface_application_gateway_backend_address_pool_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_subnet_nat_gateway_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_subnet_network_security_group_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_network_interface_backend_address_pool_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_network_interface_security_group_association",
-			ReferredProperty:     "id",
 		},
 		{
-			Pattern:              "",
+			IdPattern:            "",
 			ExampleConfiguration: "",
 			ResourceType:         "azurerm_nat_gateway_public_ip_association",
-			ReferredProperty:     "id",
 		},
 	}, nil
 }

@@ -10,15 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/coverage"
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/sirupsen/logrus"
 )
 
 type TestCommand struct {
-	Ui         cli.Ui
 	verbose    bool
 	workingDir string
 }
@@ -27,7 +26,7 @@ func (c *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
-	fs.Usage = func() { c.Ui.Error(c.Help()) }
+	fs.Usage = func() { logrus.Error(c.Help()) }
 	return fs
 }
 
@@ -46,8 +45,11 @@ func (c TestCommand) Synopsis() string {
 func (c TestCommand) Run(args []string) int {
 	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		logrus.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
+	}
+	if c.verbose {
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 	return c.Execute()
 }
@@ -61,13 +63,13 @@ func (c TestCommand) Execute() int {
 	log.Println("[INFO] ----------- run tests ---------")
 	wd, err := os.Getwd()
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
 		return 1
 	}
 	if c.workingDir != "" {
 		wd, err = filepath.Abs(c.workingDir)
 		if err != nil {
-			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			logrus.Error(fmt.Sprintf("working directory is invalid: %+v", err))
 			return 1
 		}
 	}

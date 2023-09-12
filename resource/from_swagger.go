@@ -3,12 +3,12 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ms-henglu/armstrong/resource/types"
 	"net/http"
 	"os"
 	"strings"
 
 	pluralize "github.com/gertd/go-pluralize"
+	"github.com/ms-henglu/armstrong/resource/types"
 	"github.com/ms-henglu/armstrong/swagger"
 	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
@@ -17,7 +17,7 @@ import (
 
 var pluralizeClient = pluralize.NewClient()
 
-func Format(apiPath swagger.ApiPath) []types.AzapiDefinition {
+func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefinition {
 	methodMap := make(map[string]bool)
 	for _, method := range apiPath.Methods {
 		methodMap[method] = true

@@ -1,7 +1,11 @@
-package loader
+package azurerm
 
-import "github.com/ms-henglu/armstrong/types"
+type Mapping struct {
+	ResourceType         string `json:"resourceType"`
+	ExampleConfiguration string `json:"exampleConfiguration,omitempty"`
+	IdPattern            string `json:"idPattern"`
+}
 
 type DependencyLoader interface {
-	Load() ([]types.Dependency, error)
+	Load() ([]Mapping, error)
 }

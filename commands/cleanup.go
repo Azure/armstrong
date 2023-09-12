@@ -3,21 +3,19 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/sirupsen/logrus"
 )
 
 type CleanupCommand struct {
-	Ui         cli.Ui
 	verbose    bool
 	workingDir string
 }
@@ -26,7 +24,7 @@ func (c *CleanupCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("cleanup")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
-	fs.Usage = func() { c.Ui.Error(c.Help()) }
+	fs.Usage = func() { logrus.Error(c.Help()) }
 	return fs
 }
 
@@ -45,8 +43,11 @@ func (c CleanupCommand) Synopsis() string {
 func (c CleanupCommand) Run(args []string) int {
 	f := c.flags()
 	if err := f.Parse(args); err != nil {
-		c.Ui.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
+		logrus.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
+	}
+	if c.verbose {
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 	return c.Execute()
 }
@@ -57,27 +58,27 @@ func (c CleanupCommand) Execute() int {
 		partialPassedReportFileName = "cleanup_partial_passed_report.md"
 	)
 
-	log.Println("[INFO] ----------- cleanup resources ---------")
+	logrus.Infof("cleaning up resources...")
 	wd, err := os.Getwd()
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("failed to get working directory: %+v", err))
+		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
 		return 1
 	}
 	if c.workingDir != "" {
 		wd, err = filepath.Abs(c.workingDir)
 		if err != nil {
-			c.Ui.Error(fmt.Sprintf("working directory is invalid: %+v", err))
+			logrus.Error(fmt.Sprintf("working directory is invalid: %+v", err))
 			return 1
 		}
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
-		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
+		logrus.Fatalf("creating terraform executable: %+v", err)
 	}
 
 	state, err := terraform.Show()
 	if err != nil {
-		log.Fatalf("[ERROR] error getting state: %+v\n", err)
+		logrus.Fatalf("failed to get terraform state: %+v", err)
 	}
 
 	passReport := tf.NewPassReportFromState(state)
@@ -89,23 +90,23 @@ func (c CleanupCommand) Execute() int {
 	reportDir = path.Join(wd, reportDir)
 	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
-		log.Fatalf("[ERROR] error creating report dir %s: %+v", reportDir, err)
+		logrus.Fatalf("failed to create report directory: %+v", err)
 	}
 
-	log.Println("[INFO] prepare working directory")
+	logrus.Infof("running terraform init...")
 	_ = terraform.Init()
-	log.Println("[INFO] running destroy command to cleanup resources...")
+	logrus.Infof("running terraform destroy...")
 	destroyErr := terraform.Destroy()
 	if destroyErr != nil {
-		log.Printf("[ERROR] error cleaning up resources: %+v\n", destroyErr)
+		logrus.Errorf("failed to destroy resources: %+v", destroyErr)
 	} else {
-		log.Println("[INFO] all resources are cleaned up")
+		logrus.Infof("all resources are cleaned up")
 		storeCleanupReport(passReport, reportDir, allPassedReportFileName)
 	}
 
 	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
-		log.Printf("[ERROR] parsing log.txt: %+v", err)
+		logrus.Errorf("failed to parse log.txt: %+v", err)
 	}
 
 	errorReport := types.ErrorReport{}
@@ -140,10 +141,10 @@ func (c CleanupCommand) Execute() int {
 		storeCleanupReport(passReport, reportDir, partialPassedReportFileName)
 	}
 
-	log.Println("[INFO] ---------------- Summary ----------------")
-	log.Printf("[INFO] %d resources passed the cleanup tests.", len(passReport.Resources))
+	logrus.Infof("---------------- Summary ----------------")
+	logrus.Infof("%d resources passed the cleanup tests.", len(passReport.Resources))
 	if len(errorReport.Errors) != 0 {
-		log.Printf("[INFO] %d errors when cleanup the testing resources.", len(errorReport.Errors))
+		logrus.Infof("%d errors when cleanup the testing resources.", len(errorReport.Errors))
 	}
 
 	return 0
@@ -153,22 +154,22 @@ func storeCleanupReport(passReport types.PassReport, reportDir string, reportNam
 	if len(passReport.Resources) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.CleanupMarkdownReport(passReport)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+			logrus.Errorf("failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", reportName)
+			logrus.Infof("markdown report saved to %s", reportName)
 		}
 	}
 }
 
 func storeCleanupErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
-		log.Printf("[WARN] found an error when deleting %s, address: %s\n", r.Type, r.Label)
+		logrus.Warnf("found an error when deleting %s, address: %s\n", r.Type, r.Label)
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.CleanupErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
+			logrus.Errorf("failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
+			logrus.Infof("markdown report saved to %s", markdownFilename)
 		}
 	}
 }

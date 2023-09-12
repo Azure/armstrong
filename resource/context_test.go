@@ -1,13 +1,13 @@
-package res_test
+package resource_test
 
 import (
 	"testing"
 
-	"github.com/ms-henglu/armstrong/res"
+	"github.com/ms-henglu/armstrong/resource"
 )
 
 func Test_NewContextInit(t *testing.T) {
-	context := res.NewContext(nil)
+	context := resource.NewContext(nil)
 	expected := `terraform {
   required_providers {
     azapi = {
@@ -29,7 +29,6 @@ variable "location" {
   type    = string
   default = "westeurope"
 }
-
 `
 	actual := context.String()
 	if actual != expected {
