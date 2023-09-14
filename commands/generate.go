@@ -303,7 +303,7 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 	}
 
 	resourceTypes := make([]string, 0)
-	for resourceType, _ := range azapiDefinitionByResourceType {
+	for resourceType := range azapiDefinitionByResourceType {
 		slices.SortFunc(azapiDefinitionByResourceType[resourceType], func(i, j types.AzapiDefinition) int {
 			return azapiDefinitionOrder(i) - azapiDefinitionOrder(j)
 		})

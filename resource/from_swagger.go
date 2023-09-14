@@ -34,7 +34,7 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 	}
 
 	label := defaultLabel(apiPath.ResourceType)
-
+	caser := cases.Title(language.Und, cases.NoLower)
 	switch {
 	case len(methodMap) == 1 && methodMap[http.MethodGet]:
 		def.Kind = types.KindDataSource
@@ -44,8 +44,8 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 			parentId := utils.ScopeOfListAction(apiPath.Path)
 			def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(parentId)
 			resourceName := def.AzureResourceType[strings.LastIndex(def.AzureResourceType, "/")+1:]
-			scope := cases.Title(language.Make(utils.ResourceTypeOfResourceId(parentId)))
-			def.Label = fmt.Sprintf("list%sBy%s", cases.Title(language.Make(resourceName)), scope)
+			scope := caser.String(defaultLabel(utils.ResourceTypeOfResourceId(parentId)))
+			def.Label = fmt.Sprintf("list%sBy%s", caser.String(resourceName), scope)
 		case swagger.ApiTypeResource:
 			def.ResourceName = "azapi_resource"
 			def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(utils.ParentIdOfResourceId(apiPath.Path))
