@@ -3,6 +3,8 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"net/http"
 	"os"
 	"strings"
@@ -42,8 +44,8 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 			parentId := utils.ScopeOfListAction(apiPath.Path)
 			def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(parentId)
 			resourceName := def.AzureResourceType[strings.LastIndex(def.AzureResourceType, "/")+1:]
-			scope := strings.Title(defaultLabel(utils.ResourceTypeOfResourceId(parentId)))
-			def.Label = fmt.Sprintf("list%sBy%s", strings.Title(resourceName), scope)
+			scope := cases.Title(language.Make(utils.ResourceTypeOfResourceId(parentId)))
+			def.Label = fmt.Sprintf("list%sBy%s", cases.Title(language.Make(resourceName)), scope)
 		case swagger.ApiTypeResource:
 			def.ResourceName = "azapi_resource"
 			def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(utils.ParentIdOfResourceId(apiPath.Path))

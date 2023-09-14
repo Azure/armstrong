@@ -55,7 +55,10 @@ func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
 		ReferenceResolvers: referenceResolvers,
 		azapiAddingMap:     make(map[string]bool),
 	}
-	c.InitFile(DefaultProviderConfig)
+	err := c.InitFile(DefaultProviderConfig)
+	if err != nil {
+		logrus.Errorf("failed to init context: %v", err)
+	}
 	return &c
 }
 

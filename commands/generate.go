@@ -174,7 +174,11 @@ func (c GenerateCommand) fromExamplePath() int {
 		resolver.NewAzapiResourcePlaceholderResolver(),
 	}
 	context := resource.NewContext(referenceResolvers)
-	context.InitFile(allTerraformConfig(wd))
+	err = context.InitFile(allTerraformConfig(wd))
+	if err != nil {
+		logrus.Errorf("initializing terraform configurations: %+v", err)
+		return 1
+	}
 
 	logrus.Infof("generating terraform configurations...")
 	err = context.AddAzapiDefinition(example)

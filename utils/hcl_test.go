@@ -114,11 +114,7 @@ data "azapi_resource_list" "listDomainsByApp" {
 
 `,
 			Expected: []string{
-				"",
-				"",
-				"",
-				"",
-				"Microsoft.Resources/resourceGruops@2020-06-1",
+				"Microsoft.Resources/resourceGroups@2020-06-01",
 				"Microsoft.AppPlatform/Spring@2023-05-01-preview",
 				"Microsoft.AppPlatform/Spring/apps@2023-05-01-preview",
 				"Microsoft.AppPlatform/Spring/apps/domains@2022-04-01",
@@ -135,6 +131,9 @@ data "azapi_resource_list" "listDomainsByApp" {
 		}
 		actuals := make([]string, 0)
 		for _, block := range file.Body().Blocks() {
+			if block.Type() != "data" && block.Type() != "resource" {
+				continue
+			}
 			actual := utils.TypeValue(block)
 			actuals = append(actuals, actual)
 		}
