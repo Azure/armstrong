@@ -18,14 +18,18 @@ import (
 )
 
 type TestCommand struct {
-	verbose    bool
-	workingDir string
+	verbose          bool
+	workingDir       string
+	destroyAfterTest bool
+	swaggerPath      string
 }
 
 func (c *TestCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
+	fs.BoolVar(&c.destroyAfterTest, "destroy-after-test", false, "whether to destroy the created resources after each test")
+	fs.StringVar(&c.swaggerPath, "swagger", "", "path to the .json swagger which is being test")
 	fs.Usage = func() { logrus.Error(c.Help()) }
 	return fs
 }
@@ -140,7 +144,25 @@ func (c TestCommand) Execute() int {
 		} else {
 			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
 		}
+
 		return 0
+	}
+
+	if applyErr == nil {
+		if c.destroyAfterTest {
+			destroyErr := terraform.Destroy()
+			if destroyErr != nil {
+				log.Printf("[ERROR] error running terraform destroy: %+v\n", destroyErr)
+			} else {
+				log.Println("[INFO] test resource has been deleted")
+			}
+		}
+	}
+
+	if c.swaggerPath != "" {
+		if report.StoreApiTestReport(wd, c.swaggerPath) != nil {
+			log.Fatalf("[ERROR] error storing api test report: %+v", err)
+		}
 	}
 
 	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
