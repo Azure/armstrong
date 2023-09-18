@@ -5,7 +5,6 @@ import (
 	"path"
 	"testing"
 
-	"github.com/mitchellh/cli"
 	"github.com/ms-henglu/armstrong/commands"
 	"github.com/ms-henglu/armstrong/tf"
 )
@@ -43,16 +42,7 @@ func runGenerateCommand(args [][]string, t *testing.T) {
 	}
 	defer os.RemoveAll(wd)
 
-	ui := &cli.ColoredUi{
-		ErrorColor: cli.UiColorRed,
-		WarnColor:  cli.UiColorYellow,
-		Ui: &cli.BasicUi{
-			Writer:      os.Stdout,
-			Reader:      os.Stdin,
-			ErrorWriter: os.Stderr,
-		},
-	}
-	command := commands.GenerateCommand{Ui: ui}
+	command := commands.GenerateCommand{}
 
 	for _, arg := range args {
 		res := command.Run(append([]string{"-working-dir", wd}, arg...))
