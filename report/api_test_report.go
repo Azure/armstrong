@@ -84,7 +84,10 @@ func StoreApiTestReport(wd string, swaggerPath string) error {
 
 	reportFileName := fmt.Sprintf("%s.html", ApiTestReportFileName)
 	cmd = exec.Command("oav", "validate-traffic", traceLogPath, swaggerPath, "--report", path.Join(testResultPath, reportFileName))
-	cmd.Run()
+	if err = cmd.Run(); err != nil {
+		logrus.Infof("oav validates errors from traffic: %+v", err)
+	}
+
 	if _, err = os.Stat(path.Join(testResultPath, reportFileName)); os.IsNotExist(err) {
 		return fmt.Errorf("failed to generate test report")
 	}
@@ -258,7 +261,7 @@ func readApiTestHistoryReport(swaggerPath string, apiTestReportFilePath string) 
 		return nil, fmt.Errorf("error during Unmarshal() for file(%s): %+v", apiTestReportFilePath, err)
 	}
 
-	for k, _ := range result {
+	for k := range result {
 		if v, exists := payload[k]; exists {
 			result[k] = v
 		}
@@ -282,7 +285,10 @@ func retrieveOavReport(filePath string, testReportPath string) (*ApiTestReport, 
 	}
 
 	cmd := exec.Command("oav", "validate-traffic", traceLogPath, filePath, "--report", htmlReportFilePath)
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		logrus.Infof("oav validates errors from traffic: %+v", err)
+	}
+
 	if _, err := os.Stat(path.Join(testReportPath, jsonReportFilePath)); os.IsNotExist(err) {
 		return nil, fmt.Errorf("[ERROR] failed to generate report for: %s", testReportPath)
 	}
@@ -363,6 +369,10 @@ func mergeApiTestTraceFiles(wd string, traceLogPath string) error {
 
 	destIndex := 1
 	err := filepath.WalkDir(wd, func(walkPath string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() {
 			traceDir := filepath.Join(walkPath, TestResultDirName, TraceLogDirName)
 			if _, err = os.Stat(traceDir); !os.IsNotExist(err) {
@@ -385,6 +395,10 @@ func mergeApiTestTraceFiles(wd string, traceLogPath string) error {
 
 func copyApiTestTraceFiles(src string, dest string, destIndex int) (int, error) {
 	err := filepath.WalkDir(src, func(walkPath string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() || !strings.HasSuffix(d.Name(), ".json") {
 			return nil
 		}
