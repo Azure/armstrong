@@ -31,6 +31,9 @@ func main() {
 		"cleanup": func() (cli.Command, error) {
 			return &commands.CleanupCommand{}, nil
 		},
+		"api-test-generate-report": func() (cli.Command, error) {
+			return &commands.ApiTestGenerateReportCommand{}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()
