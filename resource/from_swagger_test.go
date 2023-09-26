@@ -1,14 +1,14 @@
 package resource_test
 
 import (
-	"github.com/ms-henglu/armstrong/resource"
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/swagger"
-	"log"
 	"os"
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/ms-henglu/armstrong/resource"
+	"github.com/ms-henglu/armstrong/resource/types"
+	"github.com/ms-henglu/armstrong/swagger"
 )
 
 func Test_Format(t *testing.T) {
@@ -346,7 +346,7 @@ func Test_Format(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] Testing path: %v", testcase.ApiPath.Path)
+		t.Logf("[DEBUG] Testing path: %v", testcase.ApiPath.Path)
 		actuals := resource.NewAzapiDefinitionsFromSwagger(testcase.ApiPath)
 		expecteds := testcase.Expected
 		if len(actuals) != len(expecteds) {

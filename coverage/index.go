@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
 	openapispec "github.com/go-openapi/spec"
 	"github.com/magodo/azure-rest-api-index/azidx"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -65,7 +65,7 @@ func GetIndex() (*azidx.Index, error) {
 	}
 	indexCache = &index
 
-	log.Printf("[INFO] load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
+	logrus.Infof("load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
 	return indexCache, nil
 }
 

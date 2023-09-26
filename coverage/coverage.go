@@ -2,8 +2,9 @@ package coverage
 
 import (
 	"fmt"
-	"log"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Model struct {
@@ -44,7 +45,7 @@ func (m *Model) MarkCovered(root interface{}) {
 		if m.Enum != nil {
 			strValue := fmt.Sprintf("%v", value)
 			if _, ok := (*m.Enum)[strValue]; !ok {
-				log.Printf("[WARN] unexpected enum %s in %s\n", value, m.Identifier)
+				logrus.Warnf("unexpected enum %s in %s\n", value, m.Identifier)
 			}
 
 			(*m.Enum)[strValue] = true
@@ -52,7 +53,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case bool:
 		if m.Bool == nil {
-			log.Printf("[ERROR] unexpected bool %v in %v\n", value, m.Identifier)
+			logrus.Errorf("unexpected bool %v in %v\n", value, m.Identifier)
 		}
 		(*m.Bool)[strconv.FormatBool(value)] = true
 
@@ -60,7 +61,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case []interface{}:
 		if m.Item == nil {
-			log.Printf("[ERROR] unexpected array in %s\n", m.Identifier)
+			logrus.Errorf("unexpected array in %s\n", m.Identifier)
 		}
 
 		for _, item := range value {
@@ -93,7 +94,7 @@ func (m *Model) MarkCovered(root interface{}) {
 							break Loop
 						}
 					}
-					log.Printf("[ERROR] unexpected variant %s in %s\n", v.(string), m.Identifier)
+					logrus.Errorf("unexpected variant %s in %s\n", v.(string), m.Identifier)
 				}
 			}
 		}
@@ -102,13 +103,13 @@ func (m *Model) MarkCovered(root interface{}) {
 			for k, v := range value {
 				if m.Properties == nil {
 					if !m.HasAdditionalProperties {
-						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
 					}
 					return
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
 					if !m.HasAdditionalProperties {
-						log.Printf("[WARN] unexpected key %s in %s\n", k, m.Identifier)
+						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
 						return
 					}
 				}
@@ -119,7 +120,7 @@ func (m *Model) MarkCovered(root interface{}) {
 	case nil:
 
 	default:
-		log.Printf("[ERROR] unexpect type %T for json unmarshaled value", value)
+		logrus.Errorf("unexpect type %T for json unmarshaled value", value)
 	}
 }
 
