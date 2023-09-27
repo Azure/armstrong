@@ -56,7 +56,7 @@ func (t *Terraform) SetLogEnabled(enabled bool) {
 }
 
 func (t *Terraform) Init() error {
-	if _, err := os.Stat(".terraform"); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(t.exec.WorkingDir(), ".terraform")); os.IsNotExist(err) {
 		return t.exec.Init(context.Background(), tfexec.Upgrade(false))
 	}
 	logrus.Infof("skip running init command because .terraform folder exists")

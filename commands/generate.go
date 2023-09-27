@@ -16,7 +16,6 @@ import (
 	"github.com/ms-henglu/armstrong/resource/resolver"
 	"github.com/ms-henglu/armstrong/resource/types"
 	"github.com/ms-henglu/armstrong/swagger"
-	"github.com/ms-henglu/armstrong/tf"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
@@ -349,35 +348,8 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 		if err != nil {
 			logrus.Errorf("writing %s: %+v", filename, err)
 		}
-
-		// TODO: remove the following code
-		if err := postCheck(path.Join(wd, folderName)); err != nil {
-			logrus.Errorf("post check: %+v", err)
-		}
-		os.RemoveAll(path.Join(wd, folderName, "log.txt"))
-		os.RemoveAll(path.Join(wd, folderName, "tfplan"))
 	}
 	return 0
-}
-
-func postCheck(workingDirectory string) error {
-	logrus.Infof("post check for %s...", workingDirectory)
-	t, err := tf.NewTerraform(workingDirectory, false)
-	if err != nil {
-		return err
-	}
-	validateOutput, err := t.Validate()
-	if err != nil {
-		return err
-	}
-	if !validateOutput.Valid {
-		return fmt.Errorf("invalid terraform configuration: %+v", validateOutput)
-	}
-	_, err = t.Plan()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func azapiDefinitionOrder(azapiDefinition types.AzapiDefinition) int {

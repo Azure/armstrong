@@ -292,6 +292,9 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
 	}
+	if applyErr == nil {
+		return out
+	}
 	res := strings.Split(applyErr.Error(), "Error: creating/updating")
 	for _, e := range res {
 		var id, apiVersion, label string

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -63,7 +65,6 @@ func (c TestCommand) Execute() int {
 		partialPassedReportFileName = "partial_passed_report.md"
 	)
 
-	logrus.Infof("----------- run tests ---------")
 	wd, err := os.Getwd()
 	if err != nil {
 		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
@@ -123,67 +124,85 @@ func (c TestCommand) Execute() int {
 	reportDir = strings.ReplaceAll(reportDir, ":", "")
 	reportDir = strings.ReplaceAll(reportDir, " ", "_")
 	reportDir = path.Join(wd, reportDir)
+	logrus.Infof("creating report directory %s\n", reportDir)
 	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
 		logrus.Fatalf("error creating report dir %s: %+v", reportDir, err)
 	}
 
-	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
-		if state, err := terraform.Show(); err == nil {
-			passReport := tf.NewPassReportFromState(state)
-			logrus.Infof("%d resources passed the tests.", len(passReport.Resources))
-
-			coverageReport, err := tf.NewCoverageReportFromState(state)
-			if err != nil {
-				logrus.Errorf("error producing coverage report: %+v", err)
-			}
-			logrus.Infof("coverage report has been produced.")
-			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
-			logrus.Infof("all reports have been saved in the report directory: %s, please check.", reportDir)
-		} else {
-			logrus.Fatalf("error showing terraform state: %+v", err)
-		}
-
-		return 0
-	}
-
-	if applyErr == nil {
-		if c.destroyAfterTest {
-			destroyErr := terraform.Destroy()
-			if destroyErr != nil {
-				logrus.Errorf("error running terraform destroy: %+v\n", destroyErr)
-			} else {
-				logrus.Infof("test resource has been deleted")
-			}
-		}
-	}
-
-	if c.swaggerPath != "" {
-		if report.StoreApiTestReport(wd, c.swaggerPath) != nil {
-			logrus.Fatalf("error storing api test report: %+v", err)
-		}
-	}
-
+	logrus.Infof("parsing log.txt...")
 	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
 		logrus.Errorf("parsing log.txt: %+v", err)
 	}
 
-	errorReport := types.ErrorReport{}
-	if applyErr != nil {
-		errorReport = tf.NewErrorReport(applyErr, logs)
-		storeErrorReport(errorReport, reportDir)
+	logrus.Infof("generating reports...")
+	var passReport types.PassReport
+	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
+		if state, err := terraform.Show(); err == nil {
+			passReport = tf.NewPassReportFromState(state)
+			coverageReport, err := tf.NewCoverageReportFromState(state)
+			if err != nil {
+				logrus.Errorf("error producing coverage report: %+v", err)
+			}
+			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
+		} else {
+			logrus.Fatalf("error showing terraform state: %+v", err)
+		}
+	} else {
+		passReport = tf.NewPassReport(plan)
+		coverageReport, err := tf.NewCoverageReport(plan)
+		if err != nil {
+			logrus.Errorf("error producing coverage report: %+v", err)
+		}
+		storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 	}
+
+	errorReport := tf.NewErrorReport(applyErr, logs)
+	storeErrorReport(errorReport, reportDir)
 
 	diffReport := tf.NewDiffReport(plan, logs)
 	storeDiffReport(diffReport, reportDir)
 
-	passReport := tf.NewPassReport(plan)
-	coverageReport, err := tf.NewCoverageReport(plan)
-	if err != nil {
-		logrus.Errorf("error produce coverage report: %+v", err)
+	if applyErr == nil && c.destroyAfterTest {
+		logrus.Infof("running destroy command to delete resources...")
+		destroyErr := terraform.Destroy()
+		if destroyErr != nil {
+			logrus.Errorf("error running terraform destroy: %+v\n", destroyErr)
+		} else {
+			logrus.Infof("test resource has been deleted")
+		}
+	} else {
+		logrus.Infof("the created resources will not be destroyed because either there is an error or destroy-after-test flag is not set")
 	}
-	storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
+
+	logrus.Infof("generating traces...")
+	traceDir := path.Join(wd, "traces")
+	if !utils.Exists(traceDir) {
+		err = os.Mkdir(traceDir, 0755)
+		if err != nil {
+			logrus.Errorf("error creating trace dir %s: %+v", traceDir, err)
+		}
+	}
+	cmd := exec.Command("pal", "-i", path.Join(wd, "log.txt"), "-m", "oav", "-o", traceDir)
+	err = cmd.Run()
+	if err != nil {
+		logrus.Errorf("error running pal: %+v", err)
+	}
+
+	logrus.Infof("copying traces to report directory...")
+	if err := utils.Copy(traceDir, path.Join(reportDir, "traces")); err != nil {
+		logrus.Errorf("error copying traces: %+v", err)
+	}
+
+	if c.swaggerPath != "" {
+		logrus.Infof("generating api test report...")
+		if _, err = report.OavValidateTraffic(traceDir, c.swaggerPath, reportDir); err != nil {
+			logrus.Errorf("error storing api test report: %+v", err)
+		}
+	} else {
+		logrus.Warnf("no swagger file provided, api test report will not be generated")
+	}
 
 	logrus.Infof("---------------- Summary ----------------")
 	logrus.Infof("%d resources passed the tests.", len(passReport.Resources))
@@ -194,7 +213,7 @@ func (c TestCommand) Execute() int {
 		logrus.Infof("%d API issues.", len(diffReport.Diffs))
 	}
 	logrus.Infof("all reports have been saved in the report directory: %s, please check.", reportDir)
-	return 1
+	return 0
 }
 
 func storePassReport(passReport types.PassReport, coverageReport coverage.CoverageReport, reportDir string, reportName string) {
