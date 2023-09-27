@@ -44,6 +44,7 @@ func (c ValidateCommand) Run(args []string) int {
 	}
 	if c.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Infof("verbose mode enabled")
 	}
 	return c.Execute()
 }

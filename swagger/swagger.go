@@ -55,6 +55,7 @@ func Load(swaggerPath string) ([]ApiPath, error) {
 
 		methods := make([]string, 0)
 		exampleMap := make(map[string]string)
+		operationIdMap := make(map[string]string)
 		for method, operation := range operationMap {
 			methods = append(methods, method)
 			// the example is in the Extensions["x-ms-examples"], here's an example:
@@ -81,12 +82,13 @@ func Load(swaggerPath string) ([]ApiPath, error) {
 			if len(exampleList) > 0 {
 				exampleMap[method] = exampleList[0]
 			}
+			operationIdMap[method] = operation.ID
 		}
 
 		sort.Strings(methods)
 		apiPath.Methods = methods
 		apiPath.ExampleMap = exampleMap
-
+		apiPath.OperationIdMap = operationIdMap
 		apiPaths = append(apiPaths, apiPath)
 	}
 

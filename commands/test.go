@@ -55,6 +55,7 @@ func (c TestCommand) Run(args []string) int {
 	}
 	if c.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Infof("verbose mode enabled")
 	}
 	return c.Execute()
 }
@@ -173,7 +174,7 @@ func (c TestCommand) Execute() int {
 			logrus.Infof("test resource has been deleted")
 		}
 	} else {
-		logrus.Infof("the created resources will not be destroyed because either there is an error or destroy-after-test flag is not set")
+		logrus.Warnf("the created resources will not be destroyed because either there is an error or destroy-after-test flag is not set")
 	}
 
 	logrus.Infof("generating traces...")

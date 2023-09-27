@@ -88,6 +88,7 @@ func (c GenerateCommand) Run(args []string) int {
 	logrus.Debugf("flags: %+v", f)
 	if c.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Infof("verbose mode enabled")
 	}
 	if c.swaggerPath != "" && c.path != "" && c.readmePath != "" {
 		logrus.Error("only one of 'swagger', 'path' and 'readme' can be specified")
@@ -217,6 +218,10 @@ func (c GenerateCommand) fromExamplePath() int {
 }
 
 func (c GenerateCommand) fromSwaggerPath() int {
+	swaggerPath, err := filepath.Abs(c.swaggerPath)
+	if err == nil {
+		c.swaggerPath = swaggerPath
+	}
 	logrus.Infof("loading swagger spec: %s...", c.swaggerPath)
 	file, err := os.Stat(c.swaggerPath)
 	if err != nil {
