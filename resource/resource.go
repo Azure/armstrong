@@ -49,7 +49,10 @@ func NewResourceFromExample(filepath string) (*Resource, error) {
 				}
 				mappings = append(mappings, GetKeyValueMappings(body, "")...)
 
-				apiVersion = parametersMap["api-version"].(string)
+				if apiVer, ok := parametersMap["api-version"].(string); ok {
+					apiVersion = apiVer
+				}
+
 			}
 		}
 
