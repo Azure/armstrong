@@ -362,13 +362,16 @@ func azapiDefinitionOrder(azapiDefinition types.AzapiDefinition) int {
 	case "azapi_resource":
 		return 0
 	case "azapi_update_resource":
-		return 1
-	case "azapi_resource_action":
 		return 2
-	case "azapi_resource_list":
+	case "azapi_resource_action":
+		if actionField := azapiDefinition.AdditionalFields["action"]; actionField == nil || actionField.String() == "" {
+			return 1
+		}
 		return 3
+	case "azapi_resource_list":
+		return 4
 	}
-	return 4
+	return 5
 }
 
 func appendContent(filename string, hclContent string) error {
