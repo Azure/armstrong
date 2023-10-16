@@ -8,10 +8,7 @@ import (
 
 func Exists(filepath string) bool {
 	_, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 func CopyWithOptions(srcDir, dstDir, prefixForDstFile string) error {

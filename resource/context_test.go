@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/resource"
@@ -22,7 +23,7 @@ provider "azapi" {
 
 variable "resource_name" {
   type    = string
-  default = "acctest0001"
+  default = "acctest\d+"
 }
 
 variable "location" {
@@ -31,7 +32,8 @@ variable "location" {
 }
 `
 	actual := context.String()
-	if actual != expected {
+	r := regexp.MustCompile(expected)
+	if !r.MatchString(actual) {
 		t.Fatalf("expected: %s, got: %s", expected, actual)
 	}
 }

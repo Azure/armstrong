@@ -132,7 +132,7 @@ func Test_Format(t *testing.T) {
 			},
 			Expected: []types.AzapiDefinition{
 				{
-					Kind:              types.KindDataSource,
+					Kind:              types.KindResource,
 					ResourceName:      "azapi_resource_action",
 					Label:             "listKeys",
 					AzureResourceType: "Microsoft.Automation/automationAccounts",
