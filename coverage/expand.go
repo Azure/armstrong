@@ -2,7 +2,6 @@ package coverage
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"github.com/go-openapi/loads"
 	openapiSpec "github.com/go-openapi/spec"
 	"github.com/hashicorp/golang-lru/v2"
+	"github.com/sirupsen/logrus"
 )
 
 // http://azure.github.io/autorest/extensions/#x-ms-discriminator-value
@@ -138,7 +138,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 			case int:
 				enumMap[fmt.Sprintf("%v", t)] = false
 			default:
-				log.Printf("[ERROR] unknown enum type %T", t)
+				logrus.Errorf("unknown enum type %T", t)
 				enumMap[fmt.Sprintf("%v", t)] = false
 			}
 		}
@@ -152,7 +152,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 	if input.Ref.String() != "" {
 		resolved, err := openapiSpec.ResolveRefWithBase(root, &input.Ref, &openapiSpec.ExpandOptions{RelativeBase: swaggerPath})
 		if err != nil {
-			log.Panicf("[ERROR] resolve ref %s from %s: %+v", input.Ref.String(), swaggerPath, err)
+			logrus.Panicf("resolve ref %s from %s: %+v", input.Ref.String(), swaggerPath, err)
 		}
 
 		modelName, refSwaggerPath := SchemaNamePathFromRef(swaggerPath, input.Ref)
@@ -160,7 +160,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if refSwaggerPath != swaggerPath {
 			doc, err := loadSwagger(refSwaggerPath)
 			if err != nil {
-				log.Panicf("[ERROR] load swagger %s: %+v", refSwaggerPath, err)
+				logrus.Panicf("load swagger %s: %+v", refSwaggerPath, err)
 			}
 
 			refRoot = doc.Spec()
@@ -235,7 +235,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 			if p, ok := properties[v]; ok {
 				p.IsRequired = true
 			} else {
-				log.Printf("[WARN] required property %s not found in %s", v, modelName)
+				logrus.Warnf("required property %s not found in %s", v, modelName)
 			}
 		}
 
@@ -267,7 +267,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 		if _, hasResolvedDiscriminator := resolvedDiscriminator[modelName]; !hasResolvedDiscriminator {
 			allOfTable, err := getAllOfTable(swaggerPath)
 			if err != nil {
-				log.Panicf("[ERROR] get variant table %s: %+v", swaggerPath, err)
+				logrus.Panicf("get variant table %s: %+v", swaggerPath, err)
 			}
 
 			varSet, ok := allOfTable[modelName]

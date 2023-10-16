@@ -37,6 +37,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 	caser := cases.Title(language.Und, cases.NoLower)
 	switch {
 	case len(methodMap) == 1 && methodMap[http.MethodGet]:
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s", apiPath.OperationIdMap[http.MethodGet]),
+			fmt.Sprintf("%s %s", http.MethodGet, apiPath.Path),
+		}
 		def.Kind = types.KindDataSource
 		switch apiPath.ApiType {
 		case swagger.ApiTypeList:
@@ -63,6 +67,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 			}
 		}
 	case len(methodMap) == 1 && methodMap[http.MethodPost]:
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s", apiPath.OperationIdMap[http.MethodPost]),
+			fmt.Sprintf("%s %s", http.MethodPost, apiPath.Path),
+		}
 		def.ResourceName = "azapi_resource_action"
 		def.AdditionalFields["method"] = types.NewStringLiteralValue(http.MethodPost)
 		def.AdditionalFields["resource_id"] = types.NewStringLiteralValue(ResourceIdFromActionPath(apiPath.Path))
@@ -77,9 +85,6 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 		def.Kind = types.KindResource
 		examplePath := apiPath.ExampleMap[http.MethodPost]
 		if requestBody, err := RequestBodyFromExample(examplePath); err == nil {
-			if requestBody == nil {
-				def.Kind = types.KindDataSource
-			}
 			def.Body = requestBody
 		} else {
 			logrus.Warnf("failed to get request body from example, "+
@@ -87,6 +92,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 		}
 
 	case methodMap[http.MethodGet] && methodMap[http.MethodPut] && methodMap[http.MethodDelete]:
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s, %s, %s", apiPath.OperationIdMap[http.MethodPut], apiPath.OperationIdMap[http.MethodGet], apiPath.OperationIdMap[http.MethodDelete]),
+			fmt.Sprintf("PUT GET DELETE %s", apiPath.Path),
+		}
 		def.Kind = types.KindResource
 		def.ResourceName = "azapi_resource"
 		def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(utils.ParentIdOfResourceId(apiPath.Path))
@@ -115,6 +124,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 		}
 
 	case methodMap[http.MethodPut] && methodMap[http.MethodGet]:
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s, %s", apiPath.OperationIdMap[http.MethodPut], apiPath.OperationIdMap[http.MethodGet]),
+			fmt.Sprintf("PUT GET %s", apiPath.Path),
+		}
 		def.Kind = types.KindResource
 		def.ResourceName = "azapi_update_resource"
 		def.AdditionalFields["parent_id"] = types.NewStringLiteralValue(utils.ParentIdOfResourceId(apiPath.Path))
@@ -129,6 +142,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 		}
 
 	case methodMap[http.MethodPut]:
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s", apiPath.OperationIdMap[http.MethodPut]),
+			fmt.Sprintf("PUT %s", apiPath.Path),
+		}
 		def.Kind = types.KindResource
 		def.ResourceName = "azapi_resource_action"
 		def.AdditionalFields["resource_id"] = types.NewStringLiteralValue(ResourceIdFromActionPath(apiPath.Path))
@@ -160,6 +177,10 @@ func NewAzapiDefinitionsFromSwagger(apiPath swagger.ApiPath) []types.AzapiDefini
 			ApiVersion:        apiPath.ApiVersion,
 			BodyFormat:        types.BodyFormatHcl,
 			AdditionalFields:  make(map[string]types.Value),
+		}
+		def.LeadingComments = []string{
+			fmt.Sprintf("OperationId: %s", apiPath.OperationIdMap[http.MethodPatch]),
+			fmt.Sprintf("PATCH %s", apiPath.Path),
 		}
 		def.Kind = types.KindResource
 		def.ResourceName = "azapi_resource_action"

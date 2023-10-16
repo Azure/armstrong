@@ -3,8 +3,8 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -14,6 +14,7 @@ import (
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,6 +55,7 @@ func (c TestCommand) Run(args []string) int {
 	}
 	if c.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Infof("verbose mode enabled")
 	}
 	return c.Execute()
 }
@@ -64,7 +66,6 @@ func (c TestCommand) Execute() int {
 		partialPassedReportFileName = "partial_passed_report.md"
 	)
 
-	log.Println("[INFO] ----------- run tests ---------")
 	wd, err := os.Getwd()
 	if err != nil {
 		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
@@ -79,16 +80,16 @@ func (c TestCommand) Execute() int {
 	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
-		log.Fatalf("[ERROR] error creating terraform executable: %+v\n", err)
+		logrus.Fatalf("error creating terraform executable: %+v\n", err)
 	}
 
-	log.Printf("[INFO] prepare working directory\n")
+	logrus.Infof("prepare working directory\n")
 	_ = terraform.Init()
 
-	log.Println("[INFO] running plan command to check changes...")
+	logrus.Infof("running plan command to check changes...")
 	plan, err := terraform.Plan()
 	if err != nil {
-		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
+		logrus.Fatalf("error running terraform plan: %+v\n", err)
 	}
 
 	actions := tf.GetChanges(plan)
@@ -105,133 +106,151 @@ func (c TestCommand) Execute() int {
 			delete++
 		}
 	}
-	log.Printf("[INFO] found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", create+replace+update+delete, create, replace, update, delete)
-	log.Println("[INFO] running apply command to provision test resource...")
+	logrus.Infof("found %d changes in total, create: %d, replace: %d, update: %d, delete: %d\n", create+replace+update+delete, create, replace, update, delete)
+	logrus.Infof("running apply command to provision test resource...")
 	applyErr := terraform.Apply()
 	if applyErr != nil {
-		log.Printf("[ERROR] error running terraform apply: %+v\n", applyErr)
+		logrus.Errorf("error running terraform apply: %+v\n", applyErr)
 	} else {
-		log.Println("[INFO] test resource has been provisioned")
+		logrus.Infof("test resource has been provisioned")
 	}
 
-	log.Println("[INFO] running plan command to verify test resource...")
+	logrus.Infof("running plan command to verify test resource...")
 	plan, err = terraform.Plan()
 	if err != nil {
-		log.Fatalf("[ERROR] error running terraform plan: %+v\n", err)
+		logrus.Fatalf("error running terraform plan: %+v\n", err)
 	}
 
 	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
 	reportDir = strings.ReplaceAll(reportDir, ":", "")
 	reportDir = strings.ReplaceAll(reportDir, " ", "_")
 	reportDir = path.Join(wd, reportDir)
+	logrus.Infof("creating report directory %s\n", reportDir)
 	err = os.Mkdir(reportDir, 0755)
 	if err != nil {
-		log.Fatalf("[ERROR] error creating report dir %s: %+v", reportDir, err)
+		logrus.Fatalf("error creating report dir %s: %+v", reportDir, err)
 	}
 
-	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
-		if state, err := terraform.Show(); err == nil {
-			passReport := tf.NewPassReportFromState(state)
-			log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
-
-			coverageReport, err := tf.NewCoverageReportFromState(state)
-			if err != nil {
-				log.Printf("[ERROR] error producing coverage report: %+v", err)
-			}
-			log.Printf("[INFO] coverage report has been produced.")
-			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
-			log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
-		} else {
-			log.Fatalf("[ERROR] error showing terraform state: %+v", err)
-		}
-
-		return 0
-	}
-
-	if applyErr == nil {
-		if c.destroyAfterTest {
-			destroyErr := terraform.Destroy()
-			if destroyErr != nil {
-				log.Printf("[ERROR] error running terraform destroy: %+v\n", destroyErr)
-			} else {
-				log.Println("[INFO] test resource has been deleted")
-			}
-		}
-	}
-
-	if c.swaggerPath != "" {
-		if report.StoreApiTestReport(wd, c.swaggerPath) != nil {
-			log.Fatalf("[ERROR] error storing api test report: %+v", err)
-		}
-	}
-
+	logrus.Infof("parsing log.txt...")
 	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
 	if err != nil {
-		log.Printf("[ERROR] parsing log.txt: %+v", err)
+		logrus.Errorf("parsing log.txt: %+v", err)
 	}
 
-	errorReport := types.ErrorReport{}
-	if applyErr != nil {
-		errorReport = tf.NewErrorReport(applyErr, logs)
-		storeErrorReport(errorReport, reportDir)
+	logrus.Infof("generating reports...")
+	var passReport types.PassReport
+	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
+		if state, err := terraform.Show(); err == nil {
+			passReport = tf.NewPassReportFromState(state)
+			coverageReport, err := tf.NewCoverageReportFromState(state)
+			if err != nil {
+				logrus.Errorf("error producing coverage report: %+v", err)
+			}
+			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
+		} else {
+			logrus.Fatalf("error showing terraform state: %+v", err)
+		}
+	} else {
+		passReport = tf.NewPassReport(plan)
+		coverageReport, err := tf.NewCoverageReport(plan)
+		if err != nil {
+			logrus.Errorf("error producing coverage report: %+v", err)
+		}
+		storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 	}
+
+	errorReport := tf.NewErrorReport(applyErr, logs)
+	storeErrorReport(errorReport, reportDir)
 
 	diffReport := tf.NewDiffReport(plan, logs)
 	storeDiffReport(diffReport, reportDir)
 
-	passReport := tf.NewPassReport(plan)
-	coverageReport, err := tf.NewCoverageReport(plan)
-	if err != nil {
-		log.Printf("[ERROR] error produce coverage report: %+v", err)
+	if applyErr == nil && c.destroyAfterTest {
+		logrus.Infof("running destroy command to delete resources...")
+		destroyErr := terraform.Destroy()
+		if destroyErr != nil {
+			logrus.Errorf("error running terraform destroy: %+v\n", destroyErr)
+		} else {
+			logrus.Infof("test resource has been deleted")
+		}
+	} else {
+		logrus.Warnf("the created resources will not be destroyed because either there is an error or destroy-after-test flag is not set")
 	}
-	storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 
-	log.Println("[INFO] ---------------- Summary ----------------")
-	log.Printf("[INFO] %d resources passed the tests.", len(passReport.Resources))
+	logrus.Infof("generating traces...")
+	traceDir := path.Join(wd, "traces")
+	if !utils.Exists(traceDir) {
+		err = os.Mkdir(traceDir, 0755)
+		if err != nil {
+			logrus.Errorf("error creating trace dir %s: %+v", traceDir, err)
+		}
+	}
+	cmd := exec.Command("pal", "-i", path.Join(wd, "log.txt"), "-m", "oav", "-o", traceDir)
+	err = cmd.Run()
+	if err != nil {
+		logrus.Errorf("error running pal: %+v", err)
+	}
+
+	logrus.Infof("copying traces to report directory...")
+	if err := utils.Copy(traceDir, path.Join(reportDir, "traces")); err != nil {
+		logrus.Errorf("error copying traces: %+v", err)
+	}
+
+	if c.swaggerPath != "" {
+		logrus.Infof("generating api test report...")
+		if _, err = report.OavValidateTraffic(traceDir, c.swaggerPath, reportDir); err != nil {
+			logrus.Errorf("error storing api test report: %+v", err)
+		}
+	} else {
+		logrus.Warnf("no swagger file provided, api test report will not be generated")
+	}
+
+	logrus.Infof("---------------- Summary ----------------")
+	logrus.Infof("%d resources passed the tests.", len(passReport.Resources))
 	if len(errorReport.Errors) != 0 {
-		log.Printf("[INFO] %d errors when creating the testing resources.", len(errorReport.Errors))
+		logrus.Infof("%d errors when creating the testing resources.", len(errorReport.Errors))
 	}
 	if len(diffReport.Diffs) != 0 {
-		log.Printf("[INFO] %d API issues.", len(diffReport.Diffs))
+		logrus.Infof("%d API issues.", len(diffReport.Diffs))
 	}
-	log.Printf("[INFO] all reports have been saved in the report directory: %s, please check.", reportDir)
-	return 1
+	logrus.Infof("all reports have been saved in the report directory: %s, please check.", reportDir)
+	return 0
 }
 
 func storePassReport(passReport types.PassReport, coverageReport coverage.CoverageReport, reportDir string, reportName string) {
 	if len(passReport.Resources) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+			logrus.Warnf("failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", reportName)
+			logrus.Infof("markdown report saved to %s", reportName)
 		}
 	}
 }
 
 func storeErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
-		log.Printf("[WARN] found an error when creating %s, address: azapi_resource.%s\n", r.Type, r.Label)
+		logrus.Warnf("found an error when creating %s, address: azapi_resource.%s\n", r.Type, r.Label)
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.ErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
+			logrus.Warnf("failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
+			logrus.Infof("markdown report saved to %s", markdownFilename)
 		}
 	}
 }
 
 func storeDiffReport(diffReport types.DiffReport, reportDir string) {
 	for _, r := range diffReport.Diffs {
-		log.Printf("[WARN] found differences between response and configuration:\n\naddress: %s\n\n%s\n", r.Address, report.DiffMessageTerraform(r.Change))
-		log.Printf("[INFO] report:\n\naddresss: %s\t%s\n", r.Address, report.DiffMessageReadable(r.Change))
+		logrus.Warnf("found differences between response and configuration:\n\naddress: %s\n\n%s\n", r.Address, report.DiffMessageTerraform(r.Change))
+		logrus.Infof("report:\n\naddresss: %s\t%s\n", r.Address, report.DiffMessageReadable(r.Change))
 		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), strings.TrimPrefix(r.Address, "azapi_resource."))
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.DiffMarkdownReport(r, diffReport.Logs)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save markdown report to %s: %+v", markdownFilename, err)
+			logrus.Warnf("failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", markdownFilename)
+			logrus.Infof("markdown report saved to %s", markdownFilename)
 		}
 	}
 }

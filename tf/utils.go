@@ -161,7 +161,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
-		if !strings.HasPrefix(res.Address, "azapi_") {
+		if res.Type != "azapi_resource" {
 			continue
 		}
 
@@ -202,7 +202,7 @@ func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
 	}
 
 	for _, resourceChange := range plan.ResourceChanges {
-		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+		if resourceChange.Type != "azapi_resource" {
 			continue
 		}
 		if resourceChange == nil || resourceChange.Change == nil {
@@ -291,6 +291,9 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 	out := types.ErrorReport{
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
+	}
+	if applyErr == nil {
+		return out
 	}
 	res := strings.Split(applyErr.Error(), "Error: creating/updating")
 	for _, e := range res {

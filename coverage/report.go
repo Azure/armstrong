@@ -2,8 +2,9 @@ package coverage
 
 import (
 	"fmt"
-	"log"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type ArmResource struct {
@@ -24,7 +25,7 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 
 	}
 
-	log.Printf("[INFO] matched API path: %s; modelSwawggerPath: %s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
+	logrus.Infof("matched API path: %s; modelSwawggerPath: %s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
 
 	resource := ArmResource{
 		ApiPath: swaggerModel.ApiPath,

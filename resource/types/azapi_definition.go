@@ -16,6 +16,7 @@ type AzapiDefinition struct {
 	Body              interface{}
 	AdditionalFields  map[string]Value // fields like resource_id, parent_id, name, location, action, method
 	BodyFormat        BodyFormat       // hcl or json
+	LeadingComments   []string
 }
 
 type BodyFormat string
@@ -69,11 +70,19 @@ BODY`, jsonBody)
   %[1]s = %[2]s`, field, value)
 		}
 	}
-	return fmt.Sprintf(
+	config := fmt.Sprintf(
 		`%[1]s "%[2]s" "%[3]s" {
 %[4]s
 }
 `, def.Kind, def.ResourceName, def.Label, expressions)
+	if len(def.LeadingComments) > 0 {
+		comment := ""
+		for _, line := range def.LeadingComments {
+			comment += fmt.Sprintf("// %s\n", line)
+		}
+		config = comment + config
+	}
+	return config
 }
 
 func (def AzapiDefinition) DeepCopy() AzapiDefinition {
@@ -81,6 +90,9 @@ func (def AzapiDefinition) DeepCopy() AzapiDefinition {
 	for k, v := range def.AdditionalFields {
 		additionalFields[k] = v.DeepCopy()
 	}
+
+	leadingComments := make([]string, len(def.LeadingComments))
+	copy(leadingComments, def.LeadingComments)
 	return AzapiDefinition{
 		Id:                def.Id,
 		Kind:              def.Kind,
@@ -90,6 +102,7 @@ func (def AzapiDefinition) DeepCopy() AzapiDefinition {
 		ApiVersion:        def.ApiVersion,
 		Body:              def.Body,
 		AdditionalFields:  additionalFields,
+		LeadingComments:   leadingComments,
 	}
 }
 

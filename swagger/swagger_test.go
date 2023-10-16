@@ -1,7 +1,6 @@
 package swagger_test
 
 import (
-	"log"
 	"os"
 	"path"
 	"testing"
@@ -143,7 +142,7 @@ func Test_LoadSwagger(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] testcase: %s", testcase.Input)
+		t.Logf("[DEBUG] testcase: %s", testcase.Input)
 		apiPaths, err := swagger.Load(testcase.Input)
 		if err != nil && !testcase.ExpectError {
 			t.Errorf("unexpected error: %+v", err)
@@ -155,7 +154,7 @@ func Test_LoadSwagger(t *testing.T) {
 			t.Errorf("expected %d api paths but got %d", len(testcase.ApiPaths), len(apiPaths))
 		}
 		for i, apiPath := range apiPaths {
-			log.Printf("[DEBUG] api path: %+v", testcase.ApiPaths[i].Path)
+			t.Logf("[DEBUG] api path: %+v", testcase.ApiPaths[i].Path)
 			if apiPath.Path != testcase.ApiPaths[i].Path {
 				t.Errorf("expected api path %s but got %s", testcase.ApiPaths[i].Path, apiPath.Path)
 			}

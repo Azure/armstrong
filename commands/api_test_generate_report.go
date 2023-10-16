@@ -3,12 +3,12 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"github.com/ms-henglu/armstrong/report"
-	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ms-henglu/armstrong/report"
+	"github.com/sirupsen/logrus"
 )
 
 type ApiTestGenerateReportCommand struct {
@@ -46,7 +46,6 @@ func (c ApiTestGenerateReportCommand) Run(args []string) int {
 }
 
 func (c ApiTestGenerateReportCommand) Execute() int {
-	log.Println("[INFO] ----------- generate API Test Report ---------")
 	wd, err := os.Getwd()
 	if err != nil {
 		logrus.Error(fmt.Sprintf("failed to get working directory: %+v", err))
@@ -61,8 +60,9 @@ func (c ApiTestGenerateReportCommand) Execute() int {
 		}
 	}
 
-	if report.GenerateApiTestReports(wd, c.swaggerPath) != nil {
-		log.Fatalf("[ERROR] failed to generate API Test Report: %+v", err)
+	if err := report.GenerateApiTestReports(wd, c.swaggerPath); err != nil {
+		logrus.Errorf("failed to generate API Test Report: %+v", err)
+		return 1
 	}
 
 	return 0

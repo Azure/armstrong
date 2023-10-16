@@ -1,7 +1,6 @@
 package utils_test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/utils"
@@ -101,7 +100,7 @@ func Test_ResourceTypeOfResourceId(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] testcase: %s", testcase.Input)
+		t.Logf("[DEBUG] testcase: %s", testcase.Input)
 		actual := utils.ResourceTypeOfResourceId(testcase.Input)
 		if actual != testcase.Expect {
 			t.Fatalf("[ERROR] expect %s, actual %s", testcase.Expect, actual)
@@ -153,7 +152,7 @@ func Test_PrentIdOfResourceId(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] testcase: %s", testcase.Input)
+		t.Logf("[DEBUG] testcase: %s", testcase.Input)
 		actual := utils.ParentIdOfResourceId(testcase.Input)
 		if actual != testcase.Expect {
 			t.Fatalf("[ERROR] expect %s, actual %s", testcase.Expect, actual)

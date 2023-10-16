@@ -2,8 +2,10 @@ package resource
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -45,6 +47,7 @@ variable "location" {
   type    = string
   default = "westeurope"
 }
+
 `
 
 func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
@@ -62,6 +65,8 @@ func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
 	return &c
 }
 
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 func (c *Context) InitFile(content string) error {
 	file, diags := hclwrite.ParseConfig([]byte(content), "", hcl.InitialPos)
 	if diags.HasErrors() {
@@ -72,8 +77,11 @@ func (c *Context) InitFile(content string) error {
 	for _, block := range file.Body().Blocks() {
 		switch block.Type() {
 		case "variable":
-			if block.Labels()[0] == "location" {
+			switch block.Labels()[0] {
+			case "location":
 				locationVarBlock = block
+			case "resource_name":
+				block.Body().SetAttributeValue("default", cty.StringVal(fmt.Sprintf("acctest%04d", r.Intn(10000))))
 			}
 		case "terraform":
 			terraformBlock = block

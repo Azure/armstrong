@@ -1,7 +1,6 @@
 package autorest
 
 import (
-	"log"
 	"os"
 	"path"
 	"testing"
@@ -51,7 +50,7 @@ func Test_ParseAutoRestConfig(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] testcase: %+v", testcase.Input)
+		t.Logf("[DEBUG] testcase: %+v", testcase.Input)
 		actual := ParseAutoRestConfig(testcase.Input)
 		if len(actual) != len(testcase.Expected) {
 			t.Errorf("expected %d packages, got %d", len(testcase.Expected), len(actual))
@@ -91,7 +90,7 @@ input-file:
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] testcase: %+v", testcase.Input)
+		t.Logf("[DEBUG] testcase: %+v", testcase.Input)
 
 		actual, err := ParseYamlConfig(testcase.Input)
 		if testcase.ExpectError != (err != nil) {

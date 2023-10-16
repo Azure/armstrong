@@ -16,7 +16,6 @@ import (
 	"github.com/ms-henglu/armstrong/resource/resolver"
 	"github.com/ms-henglu/armstrong/resource/types"
 	"github.com/ms-henglu/armstrong/swagger"
-	"github.com/ms-henglu/armstrong/tf"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
@@ -89,6 +88,7 @@ func (c GenerateCommand) Run(args []string) int {
 	logrus.Debugf("flags: %+v", f)
 	if c.verbose {
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Infof("verbose mode enabled")
 	}
 	if c.swaggerPath != "" && c.path != "" && c.readmePath != "" {
 		logrus.Error("only one of 'swagger', 'path' and 'readme' can be specified")
@@ -218,6 +218,10 @@ func (c GenerateCommand) fromExamplePath() int {
 }
 
 func (c GenerateCommand) fromSwaggerPath() int {
+	swaggerPath, err := filepath.Abs(c.swaggerPath)
+	if err == nil {
+		c.swaggerPath = swaggerPath
+	}
 	logrus.Infof("loading swagger spec: %s...", c.swaggerPath)
 	file, err := os.Stat(c.swaggerPath)
 	if err != nil {
@@ -349,35 +353,8 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 		if err != nil {
 			logrus.Errorf("writing %s: %+v", filename, err)
 		}
-
-		// TODO: remove the following code
-		if err := postCheck(path.Join(wd, folderName)); err != nil {
-			logrus.Errorf("post check: %+v", err)
-		}
-		os.RemoveAll(path.Join(wd, folderName, "log.txt"))
-		os.RemoveAll(path.Join(wd, folderName, "tfplan"))
 	}
 	return 0
-}
-
-func postCheck(workingDirectory string) error {
-	logrus.Infof("post check for %s...", workingDirectory)
-	t, err := tf.NewTerraform(workingDirectory, false)
-	if err != nil {
-		return err
-	}
-	validateOutput, err := t.Validate()
-	if err != nil {
-		return err
-	}
-	if !validateOutput.Valid {
-		return fmt.Errorf("invalid terraform configuration: %+v", validateOutput)
-	}
-	_, err = t.Plan()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func azapiDefinitionOrder(azapiDefinition types.AzapiDefinition) int {
@@ -385,13 +362,16 @@ func azapiDefinitionOrder(azapiDefinition types.AzapiDefinition) int {
 	case "azapi_resource":
 		return 0
 	case "azapi_update_resource":
-		return 1
-	case "azapi_resource_action":
 		return 2
-	case "azapi_resource_list":
+	case "azapi_resource_action":
+		if actionField := azapiDefinition.AdditionalFields["action"]; actionField == nil || actionField.String() == "" {
+			return 1
+		}
 		return 3
+	case "azapi_resource_list":
+		return 4
 	}
-	return 4
+	return 5
 }
 
 func appendContent(filename string, hclContent string) error {

@@ -1,7 +1,6 @@
 package dependency_test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/dependency"
@@ -71,7 +70,7 @@ func Test_NewPattern(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		log.Printf("[DEBUG] input: %s", testcase.input)
+		t.Logf("[DEBUG] input: %s", testcase.input)
 		actual := dependency.NewPattern(testcase.input)
 		if actual.AzureResourceType != testcase.expected.AzureResourceType {
 			t.Errorf("expected %s, got %s", testcase.expected.AzureResourceType, actual.AzureResourceType)
