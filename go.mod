@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/terraform-json v0.13.0
 	github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f
 	github.com/mitchellh/cli v1.1.2
+	github.com/ms-henglu/pal v0.4.0
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/sirupsen/logrus v1.9.3
 	github.com/zclconf/go-cty v1.9.1
@@ -85,7 +86,6 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/ms-henglu/pal v0.4.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/posener/complete v1.1.1 // indirect

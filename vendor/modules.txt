@@ -421,10 +421,7 @@ github.com/mitchellh/mapstructure
 github.com/mitchellh/reflectwalk
 # github.com/ms-henglu/pal v0.4.0
 ## explicit; go 1.19
-github.com/ms-henglu/pal
 github.com/ms-henglu/pal/formatter
-github.com/ms-henglu/pal/formatter/azapi
-github.com/ms-henglu/pal/formatter/azapi/hcl
 github.com/ms-henglu/pal/provider
 github.com/ms-henglu/pal/rawlog
 github.com/ms-henglu/pal/trace
