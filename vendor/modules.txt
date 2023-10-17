@@ -419,6 +419,17 @@ github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.2
 ## explicit
 github.com/mitchellh/reflectwalk
+# github.com/ms-henglu/pal v0.4.0
+## explicit; go 1.19
+github.com/ms-henglu/pal
+github.com/ms-henglu/pal/formatter
+github.com/ms-henglu/pal/formatter/azapi
+github.com/ms-henglu/pal/formatter/azapi/hcl
+github.com/ms-henglu/pal/provider
+github.com/ms-henglu/pal/rawlog
+github.com/ms-henglu/pal/trace
+github.com/ms-henglu/pal/types
+github.com/ms-henglu/pal/utils
 # github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 ## explicit; go 1.16
 github.com/nsf/jsondiff

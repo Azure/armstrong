@@ -1,5 +1,7 @@
 package types
 
+import paltypes "github.com/ms-henglu/pal/types"
+
 type PassReport struct {
 	Resources []Resource
 }
@@ -11,7 +13,7 @@ type Resource struct {
 
 type DiffReport struct {
 	Diffs []Diff
-	Logs  []RequestTrace
+	Logs  []paltypes.RequestTrace
 }
 
 type Diff struct {
@@ -28,7 +30,7 @@ type Change struct {
 
 type ErrorReport struct {
 	Errors []Error
-	Logs   []RequestTrace
+	Logs   []paltypes.RequestTrace
 }
 
 type Error struct {

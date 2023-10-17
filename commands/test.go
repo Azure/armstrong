@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -15,6 +14,9 @@ import (
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
 	"github.com/ms-henglu/armstrong/utils"
+	"github.com/ms-henglu/pal/formatter"
+	"github.com/ms-henglu/pal/trace"
+	paltypes "github.com/ms-henglu/pal/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -132,7 +134,7 @@ func (c TestCommand) Execute() int {
 	}
 
 	logrus.Infof("parsing log.txt...")
-	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
+	logs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
 	if err != nil {
 		logrus.Errorf("parsing log.txt: %+v", err)
 	}
@@ -185,12 +187,8 @@ func (c TestCommand) Execute() int {
 			logrus.Errorf("error creating trace dir %s: %+v", traceDir, err)
 		}
 	}
-	cmd := exec.Command("pal", "-i", path.Join(wd, "log.txt"), "-m", "oav", "-o", traceDir)
-	err = cmd.Run()
-	if err != nil {
-		logrus.Errorf("error running pal: %+v", err)
-	}
 
+	storeOavTraffic(logs, traceDir)
 	logrus.Infof("copying traces to report directory...")
 	if err := utils.Copy(traceDir, path.Join(reportDir, "traces")); err != nil {
 		logrus.Errorf("error copying traces: %+v", err)
@@ -251,6 +249,25 @@ func storeDiffReport(diffReport types.DiffReport, reportDir string) {
 			logrus.Warnf("failed to save markdown report to %s: %+v", markdownFilename, err)
 		} else {
 			logrus.Infof("markdown report saved to %s", markdownFilename)
+		}
+	}
+}
+
+func storeOavTraffic(traces []paltypes.RequestTrace, output string) {
+	format := formatter.OavTrafficFormatter{}
+	files, err := os.ReadDir(output)
+	if err != nil {
+		logrus.Warnf("failed to read trace output directory: %v", err)
+	}
+	index := len(files)
+	for _, t := range traces {
+		out := format.Format(t)
+		index = index + 1
+		outputPath := path.Join(output, fmt.Sprintf("trace-%d.json", index))
+		if err := os.WriteFile(outputPath, []byte(out), 0644); err != nil {
+			logrus.Warnf("failed to write file: %v", err)
+		} else {
+			logrus.Debugf("trace saved to %s", outputPath)
 		}
 	}
 }

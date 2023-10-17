@@ -10,6 +10,7 @@ import (
 	"github.com/ms-henglu/armstrong/coverage"
 	"github.com/ms-henglu/armstrong/types"
 	"github.com/ms-henglu/armstrong/utils"
+	paltypes "github.com/ms-henglu/pal/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,7 +55,7 @@ func GetChanges(plan *tfjson.Plan) []Action {
 	return actions
 }
 
-func NewDiffReport(plan *tfjson.Plan, logs []types.RequestTrace) types.DiffReport {
+func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffReport {
 	out := types.DiffReport{
 		Diffs: make([]types.Diff, 0),
 		Logs:  logs,
@@ -287,7 +288,7 @@ func expandIdentity(input []interface{}) map[string]interface{} {
 	return config
 }
 
-func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
+func NewErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorReport {
 	out := types.ErrorReport{
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
@@ -322,7 +323,7 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 	return out
 }
 
-func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
+func NewCleanupErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorReport {
 	out := types.ErrorReport{
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
@@ -350,7 +351,7 @@ func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.Erro
 	return out
 }
 
-func NewIdAdressFromState(state *tfjson.State) map[string]string {
+func NewIdAddressFromState(state *tfjson.State) map[string]string {
 	out := map[string]string{}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
 		logrus.Warnf("new id address mapping from state: state is nil")

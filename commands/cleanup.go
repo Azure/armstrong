@@ -12,6 +12,7 @@ import (
 	"github.com/ms-henglu/armstrong/report"
 	"github.com/ms-henglu/armstrong/tf"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/ms-henglu/pal/trace"
 	"github.com/sirupsen/logrus"
 )
 
@@ -83,7 +84,7 @@ func (c CleanupCommand) Execute() int {
 	}
 
 	passReport := tf.NewPassReportFromState(state)
-	idAddressMap := tf.NewIdAdressFromState(state)
+	idAddressMap := tf.NewIdAddressFromState(state)
 
 	reportDir := fmt.Sprintf("armstrong_cleanup_reports_%s", time.Now().Format(time.Stamp))
 	reportDir = strings.ReplaceAll(reportDir, ":", "")
@@ -98,48 +99,44 @@ func (c CleanupCommand) Execute() int {
 	_ = terraform.Init()
 	logrus.Infof("running terraform destroy...")
 	destroyErr := terraform.Destroy()
-	if destroyErr != nil {
-		logrus.Errorf("failed to destroy resources: %+v", destroyErr)
-	} else {
-		logrus.Infof("all resources are cleaned up")
-		storeCleanupReport(passReport, reportDir, allPassedReportFileName)
-	}
-
-	logs, err := report.ParseLogs(path.Join(wd, "log.txt"))
-	if err != nil {
-		logrus.Errorf("failed to parse log.txt: %+v", err)
-	}
 
 	errorReport := types.ErrorReport{}
 	if destroyErr != nil {
-		errorReport := tf.NewCleanupErrorReport(destroyErr, logs)
+		logrus.Errorf("failed to destroy resources: %+v", destroyErr)
+
+		logs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
+		if err != nil {
+			logrus.Errorf("failed to parse log.txt: %+v", err)
+		}
+
+		errorReport = tf.NewCleanupErrorReport(destroyErr, logs)
 		for i := range errorReport.Errors {
 			if address, ok := idAddressMap[errorReport.Errors[i].Id]; ok {
 				errorReport.Errors[i].Label = address
 			}
 		}
 		storeCleanupErrorReport(errorReport, reportDir)
-	}
 
-	resources := make([]types.Resource, 0)
-	if state, err := terraform.Show(); err == nil && state != nil && state.Values != nil && state.Values.RootModule != nil && state.Values.RootModule.Resources != nil {
-		for _, passRes := range passReport.Resources {
-			isDeleted := true
-			for _, res := range state.Values.RootModule.Resources {
-				if passRes.Address == res.Address {
-					isDeleted = false
-					break
+		resources := make([]types.Resource, 0)
+		if state, err := terraform.Show(); err == nil && state != nil && state.Values != nil && state.Values.RootModule != nil && state.Values.RootModule.Resources != nil {
+			for _, passRes := range passReport.Resources {
+				isDeleted := true
+				for _, res := range state.Values.RootModule.Resources {
+					if passRes.Address == res.Address {
+						isDeleted = false
+						break
+					}
+				}
+				if isDeleted {
+					resources = append(resources, passRes)
 				}
 			}
-			if isDeleted {
-				resources = append(resources, passRes)
-			}
 		}
-	}
-
-	if len(resources) > 0 {
 		passReport.Resources = resources
 		storeCleanupReport(passReport, reportDir, partialPassedReportFileName)
+	} else {
+		logrus.Infof("all resources are cleaned up")
+		storeCleanupReport(passReport, reportDir, allPassedReportFileName)
 	}
 
 	logrus.Infof("---------------- Summary ----------------")

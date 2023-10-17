@@ -1,54 +1,64 @@
 package report
 
 import (
-	"os"
-	"regexp"
-	"strconv"
+	"encoding/json"
+	"fmt"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/types"
+	paltypes "github.com/ms-henglu/pal/types"
 )
 
-func ParseLogs(filepath string) ([]types.RequestTrace, error) {
-	data, err := os.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-	logs := make([]types.RequestTrace, 0)
-	logPrefixReg, _ := regexp.Compile(`^\d{4}-\d{2}-\d{2}`)
-	temp := ""
-	lines := strings.Split(string(data), "\n")
-	for _, line := range lines {
-		if logPrefixReg.MatchString(line) {
-			if (strings.Contains(temp, "OUTGOING REQUEST") || strings.Contains(temp, "REQUEST/RESPONSE")) && strings.Contains(temp, "management.azure.com") {
-				logs = append(logs, NewRequestTrace(temp))
-			}
-			temp = ""
-		}
-		temp += line + "\n"
-	}
-
-	return logs, nil
+func IsUrlMatchWithId(url string, id string) bool {
+	return strings.HasPrefix(url, id+"?")
 }
 
-func NewRequestTrace(raw string) types.RequestTrace {
-	trace := types.RequestTrace{}
+func RequestTraceToString(r paltypes.RequestTrace) string {
+	return fmt.Sprintf(`%s %s
+Status Code: %d
+------------ Request ------------
+%s
+------------ Response ------------
+%s
 
-	methodReg, _ := regexp.Compile(`([A-Z]+)\shttps`)
-	if matches := methodReg.FindAllStringSubmatch(raw, -1); len(matches) > 0 && len(matches[0]) == 2 {
-		trace.HttpMethod = matches[0][1]
+`, r.Method, r.Url, r.StatusCode, HttpRequestToString(r.Request), HttpResponseToString(r.Response))
+}
+
+func HttpRequestToString(r *paltypes.HttpRequest) string {
+	if r == nil {
+		return ""
 	}
-
-	statusCodeReg, _ := regexp.Compile(`RESPONSE\sStatus:\s(\d+)`)
-	if matches := statusCodeReg.FindAllStringSubmatch(raw, -1); len(matches) > 0 && len(matches[0]) == 2 {
-		trace.StatusCode, _ = strconv.ParseInt(matches[0][1], 10, 32)
+	headers := ""
+	for k, v := range r.Headers {
+		headers += fmt.Sprintf("%s: %s\n", k, v)
 	}
-
-	idReg, _ := regexp.Compile(`management\.azure\.com(.+)\?api-version`)
-	if matches := idReg.FindAllStringSubmatch(raw, -1); len(matches) > 0 && len(matches[0]) == 2 {
-		trace.ID = matches[0][1]
+	bodyContent := r.Body
+	var body interface{}
+	if err := json.Unmarshal([]byte(bodyContent), &body); err == nil {
+		if data, err := json.MarshalIndent(body, "", "  "); err == nil {
+			bodyContent = string(data)
+		}
 	}
+	return fmt.Sprintf(`%s
+---
+%s
+`, headers, bodyContent)
+}
 
-	trace.Content = raw
-	return trace
+func HttpResponseToString(r *paltypes.HttpResponse) string {
+	if r == nil {
+		return ""
+	}
+	headers := ""
+	for k, v := range r.Headers {
+		headers += fmt.Sprintf("%s: %s\n", k, v)
+	}
+	bodyContent := r.Body
+	var body interface{}
+	if err := json.Unmarshal([]byte(bodyContent), &body); err == nil {
+		if data, err := json.MarshalIndent(body, "", "  "); err == nil {
+			bodyContent = string(data)
+		}
+	}
+	return fmt.Sprintf(`%s------
+%s`, headers, bodyContent)
 }
