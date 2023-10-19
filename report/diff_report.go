@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"github.com/ms-henglu/armstrong/types"
+	paltypes "github.com/ms-henglu/pal/types"
 )
 
 //go:embed diff_report.md
 var diffReportTemplate string
 
-func DiffMarkdownReport(report types.Diff, logs []types.RequestTrace) string {
+func DiffMarkdownReport(report types.Diff, logs []paltypes.RequestTrace) string {
 	parts := strings.Split(report.Type, "@")
 	resourceType := ""
 	apiVersion := ""
@@ -46,47 +47,20 @@ func DiffMarkdownReport(report types.Diff, logs []types.RequestTrace) string {
 	return content
 }
 
-func RequestTracesContent(id string, logs []types.RequestTrace) string {
+func RequestTracesContent(id string, logs []paltypes.RequestTrace) string {
 	content := ""
 	index := len(logs) - 1
-	if log, i := findLastLog(logs, id, "GET", "REQUEST/RESPONSE", index); i != -1 {
-		st := strings.Index(log.Content, "GET https")
-		ed := strings.Index(log.Content, ": timestamp=")
-		trimContent := log.Content
-		if st < ed {
-			trimContent = log.Content[st:ed]
+	for ; index >= 0; index-- {
+		if IsUrlMatchWithId(logs[index].Url, id) && logs[index].Method == "GET" {
+			content = RequestTraceToString(logs[index])
+			break
 		}
-		content = trimContent
-		index = i
 	}
-	if log, i := findLastLog(logs, id, "PUT", "REQUEST/RESPONSE", index); i != -1 {
-		st := strings.Index(log.Content, "RESPONSE Status")
-		ed := strings.Index(log.Content, ": timestamp=")
-		trimContent := log.Content
-		if st < ed {
-			trimContent = log.Content[st:ed]
+	for ; index >= 0; index-- {
+		if IsUrlMatchWithId(logs[index].Url, id) && logs[index].Method == "PUT" {
+			content = RequestTraceToString(logs[index]) + "\n\n\n" + content
+			break
 		}
-		content = trimContent + "\n\n\n" + content
-		index = i
-	}
-	if log, i := findLastLog(logs, id, "PUT", "OUTGOING REQUEST", index); i != -1 {
-		st := strings.Index(log.Content, "PUT https")
-		ed := strings.Index(log.Content, ": timestamp=")
-		trimContent := log.Content
-		if st < ed {
-			trimContent = log.Content[st:ed]
-		}
-		content = trimContent + "\n\n" + content
 	}
 	return content
-}
-
-func findLastLog(logs []types.RequestTrace, id string, method string, substr string, index int) (types.RequestTrace, int) {
-	for i := index; i >= 0; i-- {
-		log := logs[i]
-		if log.ID == id && log.HttpMethod == method && strings.Contains(log.Content, substr) {
-			return log, i
-		}
-	}
-	return types.RequestTrace{}, -1
 }

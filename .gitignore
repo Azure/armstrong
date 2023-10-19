@@ -12,6 +12,7 @@ commands/.temp
 
 # never upload the build to git
 armstrong
+armstrong.exe
 
 # test output
 coverage/test_coverage_report*.md

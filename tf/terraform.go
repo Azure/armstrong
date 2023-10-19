@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/sirupsen/logrus"
 )
 
 type Terraform struct {
@@ -46,7 +47,7 @@ func (t *Terraform) SetLogEnabled(enabled bool) {
 	if enabled && t.LogEnabled {
 		t.exec.SetStdout(os.Stdout)
 		t.exec.SetStderr(os.Stderr)
-		t.exec.SetLogger(log.New(os.Stdout, "", 0))
+		t.exec.SetLogger(logrus.StandardLogger())
 	} else {
 		t.exec.SetStdout(io.Discard)
 		t.exec.SetStderr(io.Discard)
@@ -55,10 +56,10 @@ func (t *Terraform) SetLogEnabled(enabled bool) {
 }
 
 func (t *Terraform) Init() error {
-	if _, err := os.Stat(".terraform"); os.IsNotExist(err) {
+	if _, err := os.Stat(path.Join(t.exec.WorkingDir(), ".terraform")); os.IsNotExist(err) {
 		return t.exec.Init(context.Background(), tfexec.Upgrade(false))
 	}
-	log.Println("[INFO] skip running init command because .terraform folder exists")
+	logrus.Infof("skip running init command because .terraform folder exists")
 	return nil
 }
 

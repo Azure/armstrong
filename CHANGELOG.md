@@ -1,3 +1,9 @@
+## V0.12.0
+FEATURES:
+- Generate multiple test cases from one or multiple swagger spec files.
+- Support using verified azapi examples as automatically generated dependencies.
+- Support `azapi_resource_id` data source as automatically generated dependencies.
+
 ## v0.11.0
 FEATURES:
 - Support coverage report

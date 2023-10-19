@@ -3,7 +3,6 @@ package coverage_test
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -185,7 +184,7 @@ func testExpandAll(t *testing.T, azureRepoDir, testResultPath string) result {
 
 	b, err := json.MarshalIndent(res, "", "\t")
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	if testResultPath == "" {

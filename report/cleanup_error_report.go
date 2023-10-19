@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"github.com/ms-henglu/armstrong/types"
+	paltypes "github.com/ms-henglu/pal/types"
 )
 
 //go:embed cleanup_error_report.md
 var cleanupErrorReportTemplate string
 
-func CleanupErrorMarkdownReport(report types.Error, logs []types.RequestTrace) string {
+func CleanupErrorMarkdownReport(report types.Error, logs []paltypes.RequestTrace) string {
 	parts := strings.Split(report.Type, "@")
 	resourceType := ""
 	apiVersion := ""
@@ -27,41 +28,20 @@ func CleanupErrorMarkdownReport(report types.Error, logs []types.RequestTrace) s
 	return content
 }
 
-func CleanupAllRequestTracesContent(id string, logs []types.RequestTrace) string {
+func CleanupAllRequestTracesContent(id string, logs []paltypes.RequestTrace) string {
 	content := ""
-	for i := len(logs) - 1; i >= 0; i-- {
-		if !strings.EqualFold(id, logs[i].ID) {
-			continue
-		}
-		log := logs[i]
-		if log.HttpMethod == "GET" && strings.Contains(log.Content, "REQUEST/RESPONSE") {
-			st := strings.Index(log.Content, "GET https")
-			ed := strings.Index(log.Content, ": timestamp=")
-			trimContent := log.Content
-			if st < ed {
-				trimContent = log.Content[st:ed]
-			}
-			content = trimContent + "\n\n\n" + content
-		} else if log.HttpMethod == "DELETE" {
-			if strings.Contains(log.Content, "REQUEST/RESPONSE") {
-				st := strings.Index(log.Content, "RESPONSE Status")
-				ed := strings.Index(log.Content, ": timestamp=")
-				trimContent := log.Content
-				if st < ed {
-					trimContent = log.Content[st:ed]
-				}
-				content = trimContent + "\n\n\n" + content
-			} else if strings.Contains(log.Content, "OUTGOING REQUEST") {
-				st := strings.Index(log.Content, "DELETE https")
-				ed := strings.Index(log.Content, ": timestamp=")
-				trimContent := log.Content
-				if st < ed {
-					trimContent = log.Content[st:ed]
-				}
-				content = trimContent + "\n\n" + content
-			}
+	index := len(logs) - 1
+	for ; index >= 0; index-- {
+		if IsUrlMatchWithId(logs[index].Url, id) && logs[index].Method == "DELETE" {
+			content = RequestTraceToString(logs[index])
+			break
 		}
 	}
-
+	for ; index >= 0; index-- {
+		if IsUrlMatchWithId(logs[index].Url, id) && logs[index].Method == "GET" {
+			content = RequestTraceToString(logs[index]) + "\n\n\n" + content
+			break
+		}
+	}
 	return content
 }

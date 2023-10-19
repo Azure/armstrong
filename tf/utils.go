@@ -3,14 +3,15 @@ package tf
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/resource/utils"
 	"github.com/ms-henglu/armstrong/types"
+	"github.com/ms-henglu/armstrong/utils"
+	paltypes "github.com/ms-henglu/pal/types"
+	"github.com/sirupsen/logrus"
 )
 
 type Action string
@@ -54,7 +55,7 @@ func GetChanges(plan *tfjson.Plan) []Action {
 	return actions
 }
 
-func NewDiffReport(plan *tfjson.Plan, logs []types.RequestTrace) types.DiffReport {
+func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffReport {
 	out := types.DiffReport{
 		Diffs: make([]types.Diff, 0),
 		Logs:  logs,
@@ -97,7 +98,7 @@ func NewPassReportFromState(state *tfjson.State) types.PassReport {
 		Resources: make([]types.Resource, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Printf("[WARN] new pass report from state: state is nil")
+		logrus.Warnf("new pass report from state: state is nil")
 		return out
 	}
 	for _, res := range state.Values.RootModule.Resources {
@@ -146,10 +147,10 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, error) {
+func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[ERROR] panic when producing coverage report from state: %+v", r)
+			logrus.Errorf("panic when producing coverage report from state: %+v", r)
 		}
 	}()
 
@@ -157,11 +158,11 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Print("[WARN] new coverage report from state: state is nil")
+		logrus.Warnf("new coverage report from state: state is nil")
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
-		if !strings.HasPrefix(res.Address, "azapi_") {
+		if res.Type != "azapi_resource" {
 			continue
 		}
 
@@ -179,7 +180,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 			return out, err
 		}
 
-		err = out.AddCoverageFromState(id, resourceType, body)
+		err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
 		if err != nil {
 			return out, err
 		}
@@ -187,10 +188,10 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 	return out, nil
 }
 
-func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
+func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[ERROR] panic when producing coverage report: %+v", r)
+			logrus.Errorf("panic when producing coverage report: %+v", r)
 		}
 	}()
 
@@ -202,7 +203,7 @@ func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
 	}
 
 	for _, resourceChange := range plan.ResourceChanges {
-		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+		if resourceChange.Type != "azapi_resource" {
 			continue
 		}
 		if resourceChange == nil || resourceChange.Change == nil {
@@ -229,7 +230,7 @@ func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
 				return out, err
 			}
 
-			err = out.AddCoverageFromState(id, resourceType, body)
+			err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
 			if err != nil {
 				return out, err
 			}
@@ -287,10 +288,13 @@ func expandIdentity(input []interface{}) map[string]interface{} {
 	return config
 }
 
-func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
+func NewErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorReport {
 	out := types.ErrorReport{
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
+	}
+	if applyErr == nil {
+		return out
 	}
 	res := strings.Split(applyErr.Error(), "Error: creating/updating")
 	for _, e := range res {
@@ -311,7 +315,7 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 		}
 		out.Errors = append(out.Errors, types.Error{
 			Id:      id,
-			Type:    fmt.Sprintf("%s@%s", utils.GetResourceType(id), apiVersion),
+			Type:    fmt.Sprintf("%s@%s", utils.ResourceTypeOfResourceId(id), apiVersion),
 			Label:   label,
 			Message: errorMessage,
 		})
@@ -319,7 +323,7 @@ func NewErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport
 	return out
 }
 
-func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.ErrorReport {
+func NewCleanupErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorReport {
 	out := types.ErrorReport{
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
@@ -340,17 +344,17 @@ func NewCleanupErrorReport(applyErr error, logs []types.RequestTrace) types.Erro
 
 		out.Errors = append(out.Errors, types.Error{
 			Id:      id,
-			Type:    fmt.Sprintf("%s@%s", utils.GetResourceType(id), apiVersion),
+			Type:    fmt.Sprintf("%s@%s", utils.ResourceTypeOfResourceId(id), apiVersion),
 			Message: errorMessage,
 		})
 	}
 	return out
 }
 
-func NewIdAdressFromState(state *tfjson.State) map[string]string {
+func NewIdAddressFromState(state *tfjson.State) map[string]string {
 	out := map[string]string{}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
-		log.Printf("[WARN] new id address mapping from state: state is nil")
+		logrus.Warnf("new id address mapping from state: state is nil")
 		return out
 	}
 	for _, res := range state.Values.RootModule.Resources {

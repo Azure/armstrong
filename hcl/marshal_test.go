@@ -1,7 +1,6 @@
 package hcl_test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/hcl"
@@ -67,7 +66,7 @@ func Test_MarshalIndent(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		log.Printf("input: %v", tc.input)
+		t.Logf("input: %v", tc.input)
 		output := hcl.MarshalIndent(tc.input, "", "  ")
 		if tc.expect != output {
 			t.Fatalf("expect %s but got %s", tc.expect, output)
