@@ -147,7 +147,7 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, error) {
+func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			logrus.Errorf("panic when producing coverage report from state: %+v", r)
@@ -180,7 +180,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 			return out, err
 		}
 
-		err = out.AddCoverageFromState(id, resourceType, body)
+		err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
 		if err != nil {
 			return out, err
 		}
@@ -188,7 +188,7 @@ func NewCoverageReportFromState(state *tfjson.State) (coverage.CoverageReport, e
 	return out, nil
 }
 
-func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
+func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			logrus.Errorf("panic when producing coverage report: %+v", r)
@@ -230,7 +230,7 @@ func NewCoverageReport(plan *tfjson.Plan) (coverage.CoverageReport, error) {
 				return out, err
 			}
 
-			err = out.AddCoverageFromState(id, resourceType, body)
+			err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
 			if err != nil {
 				return out, err
 			}
