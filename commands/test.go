@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -56,6 +57,7 @@ func (c TestCommand) Run(args []string) int {
 		return 1
 	}
 	if c.verbose {
+		log.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Infof("verbose mode enabled")
 	}
@@ -144,7 +146,7 @@ func (c TestCommand) Execute() int {
 	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
 		if state, err := terraform.Show(); err == nil {
 			passReport = tf.NewPassReportFromState(state)
-			coverageReport, err := tf.NewCoverageReportFromState(state)
+			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
 			if err != nil {
 				logrus.Errorf("error producing coverage report: %+v", err)
 			}
@@ -154,7 +156,7 @@ func (c TestCommand) Execute() int {
 		}
 	} else {
 		passReport = tf.NewPassReport(plan)
-		coverageReport, err := tf.NewCoverageReport(plan)
+		coverageReport, err := tf.NewCoverageReport(plan, c.swaggerPath)
 		if err != nil {
 			logrus.Errorf("error producing coverage report: %+v", err)
 		}
@@ -195,12 +197,12 @@ func (c TestCommand) Execute() int {
 	}
 
 	if c.swaggerPath != "" {
-		logrus.Infof("generating api test report...")
+		logrus.Infof("generating swagger accuracy report...")
 		if _, err = report.OavValidateTraffic(traceDir, c.swaggerPath, reportDir); err != nil {
-			logrus.Errorf("error storing api test report: %+v", err)
+			logrus.Errorf("error storing swagger accuracy report: %+v", err)
 		}
 	} else {
-		logrus.Warnf("no swagger file provided, api test report will not be generated")
+		logrus.Warnf("no swagger file provided, swagger accuracy report will not be generated")
 	}
 
 	logrus.Infof("---------------- Summary ----------------")

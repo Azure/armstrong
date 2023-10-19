@@ -16,13 +16,23 @@ type CoverageReport struct {
 	Coverages map[ArmResource]*Model
 }
 
-func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, jsonBody map[string]interface{}) error {
+func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, jsonBody map[string]interface{}, swaggerPath string) error {
 	apiVersion := strings.Split(resourceType, "@")[1]
 
-	swaggerModel, err := GetModelInfoFromIndex(resourceId, apiVersion)
-	if err != nil {
-		return fmt.Errorf("error find the path for %s from index: %+v", resourceId, err)
-
+	var swaggerModel *SwaggerModel
+	if swaggerPath != "" {
+		swaggerModelFromLocal, err := GetModelInfoFromLocalDir(resourceId, apiVersion, swaggerPath)
+		if err != nil {
+			logrus.Warnf("error find the path for %s from local dir: %+v", resourceId, err)
+		}
+		swaggerModel = swaggerModelFromLocal
+	}
+	if swaggerModel == nil {
+		swaggerModelFromIndex, err := GetModelInfoFromIndex(resourceId, apiVersion)
+		if err != nil {
+			return fmt.Errorf("error find the path for %s from index: %+v", resourceId, err)
+		}
+		swaggerModel = swaggerModelFromIndex
 	}
 
 	logrus.Infof("matched API path: %s; modelSwawggerPath: %s\n", swaggerModel.ApiPath, swaggerModel.SwaggerPath)
