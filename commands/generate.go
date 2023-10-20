@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"github.com/ms-henglu/armstrong/resource/resolver"
 	"github.com/ms-henglu/armstrong/resource/types"
 	"github.com/ms-henglu/armstrong/swagger"
+	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
@@ -87,6 +89,7 @@ func (c GenerateCommand) Run(args []string) int {
 	}
 	logrus.Debugf("flags: %+v", f)
 	if c.verbose {
+		log.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Infof("verbose mode enabled")
 	}
@@ -231,15 +234,11 @@ func (c GenerateCommand) fromSwaggerPath() int {
 	if file.IsDir() {
 		logrus.Infof("swagger spec is a directory")
 		logrus.Infof("loading swagger spec directory: %s...", c.swaggerPath)
-		files, err := os.ReadDir(c.swaggerPath)
+		filenames, err := utils.ListFiles(c.swaggerPath, ".json", 1)
 		if err != nil {
 			logrus.Fatalf("reading swagger spec directory: %+v", err)
 		}
-		for _, file := range files {
-			if !strings.HasSuffix(file.Name(), ".json") || file.IsDir() {
-				continue
-			}
-			filename := path.Join(c.swaggerPath, file.Name())
+		for _, filename := range filenames {
 			logrus.Infof("parsing swagger spec: %s...", filename)
 			apiPaths, err := swagger.Load(filename)
 			if err != nil {
@@ -295,8 +294,9 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 		azapiDefinitionsAll = append(azapiDefinitionsAll, resource.NewAzapiDefinitionsFromSwagger(apiPath)...)
 	}
 
-	for i := range azapiDefinitionsAll {
-		if c.useRawJsonPayload {
+	if c.useRawJsonPayload {
+		logrus.Infof("using raw json payload in 'body'...")
+		for i := range azapiDefinitionsAll {
 			azapiDefinitionsAll[i].BodyFormat = types.BodyFormatJson
 		}
 	}

@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,6 +44,7 @@ func (c ValidateCommand) Run(args []string) int {
 		return 1
 	}
 	if c.verbose {
+		log.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Infof("verbose mode enabled")
 	}

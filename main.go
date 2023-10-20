@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+	"log"
 	"os"
 
 	"github.com/mitchellh/cli"
@@ -10,6 +12,7 @@ import (
 
 func main() {
 	logrus.SetLevel(logrus.InfoLevel)
+	log.SetOutput(io.Discard)
 
 	c := &cli.CLI{
 		Name:       "armstrong",
@@ -31,8 +34,8 @@ func main() {
 		"cleanup": func() (cli.Command, error) {
 			return &commands.CleanupCommand{}, nil
 		},
-		"api-test-generate-report": func() (cli.Command, error) {
-			return &commands.ApiTestGenerateReportCommand{}, nil
+		"report": func() (cli.Command, error) {
+			return &commands.ReportCommand{}, nil
 		},
 	}
 

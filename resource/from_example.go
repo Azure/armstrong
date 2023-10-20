@@ -69,6 +69,10 @@ func NewAzapiDefinitionFromExample(exampleFilepath string, kind string) (types.A
 	if example.Parameters != nil && example.Parameters["api-version"] != nil {
 		apiVersion = example.Parameters["api-version"].(string)
 	}
+	if apiVersion == "" {
+		apiVersion = "TODO"
+		logrus.Warnf("found no api-version from example, please specify it manually")
+	}
 
 	out := types.AzapiDefinition{
 		Id:                id,
