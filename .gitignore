@@ -1,5 +1,6 @@
 dist/
 .idea/
+.vscode/
 coverage.txt
 internal/schemas/.terraform/
 internal/schemas/.terraform.lock.hcl
