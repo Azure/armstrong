@@ -22,35 +22,23 @@ const (
 )
 
 type ApiTestReport struct {
-	ApiVersion      string           `json:"apiVersion"`
-	CoverageResults []CoverageResult `json:"coverageResultsForRendering"`
+	CoveredSpecFiles        []string              `json:"coveredSpecFiles"`
+	UnCoveredOperationsList []UnCoveredOperations `json:"unCoveredOperationsList"`
+	Errors                  []ErrorItem           `json:"errors"`
 }
 
-type CoverageResult struct {
-	Spec                    string               `json:"spec"`
-	GeneralErrorsInnerList  []GeneralErrorsInner `json:"generalErrorsInnerList"`
-	UnCoveredOperationsList []UnCoveredOperation `json:"unCoveredOperationsList"`
-	Tested                  bool
+type UnCoveredOperations struct {
+	Spec         string   `json:"spec"`
+	OperationIds []string `json:"operationIds"`
 }
 
-type GeneralErrorsInner struct {
-	ErrorsForRendering []ErrorForRendering `json:"errorsForRendering"`
-	OperationInfo      OperationInfo       `json:"operationInfo"`
-}
-
-type OperationInfo struct {
-	OperationId string `json:"operationId"`
-}
-
-type ErrorForRendering struct {
-	Code                   string `json:"code"`
-	Message                string `json:"message"`
-	Link                   string `json:"link"`
+type ErrorItem struct {
+	Spec                   string `json:"spec"`
+	ErrorCode              string `json:"errorCode"`
+	ErrorLink              string `json:"errorLink"`
+	ErrorMessage           string `json:"errorMessage"`
+	OperationId            string `json:"operationId"`
 	SchemaPathWithPosition string `json:"schemaPathWithPosition"`
-}
-
-type UnCoveredOperation struct {
-	OperationId string `json:"operationId"`
 }
 
 type ApiTestConfig struct {
@@ -68,7 +56,7 @@ func OavValidateTraffic(traceDir string, swaggerPath string, outputDir string) (
 	htmlReportFilePath := path.Join(outputDir, fmt.Sprintf("%s.html", ApiTestReportFileName))
 	jsonReportFilePath := path.Join(outputDir, fmt.Sprintf("%s.json", ApiTestReportFileName))
 
-	cmd := exec.Command("oav", "validate-traffic", traceDir, swaggerPath, "--report", htmlReportFilePath)
+	cmd := exec.Command("oav", "validate-traffic", traceDir, swaggerPath, "--report", htmlReportFilePath, "--jsonReport", jsonReportFilePath)
 	if err := cmd.Run(); err != nil {
 		logrus.Warnf("oav validates-traffic: %+v", err)
 	}
@@ -84,11 +72,7 @@ func OavValidateTraffic(traceDir string, swaggerPath string, outputDir string) (
 		return nil, fmt.Errorf("error during Unmarshal() for file(%s): %+v", jsonReportFilePath, err)
 	}
 
-	if err = os.RemoveAll(jsonReportFilePath); err != nil {
-		logrus.Warnf("error removing test report file %s: %+v", jsonReportFilePath, err)
-	}
-
-	if payload == nil || payload.ApiVersion == "unknown" {
+	if payload == nil {
 		return nil, fmt.Errorf("oav report is empty")
 	}
 
@@ -111,30 +95,8 @@ func GenerateApiTestReports(wd string, swaggerPath string) error {
 		return fmt.Errorf("[ERROR] failed to retrieve oav report: %+v", err)
 	}
 
-	testedMap := make(map[string]bool)
-	for i, res := range report.CoverageResults {
-		spec, err := filepath.Abs(res.Spec)
-		if err != nil {
-			return err
-		}
-		testedMap[spec] = true
-		report.CoverageResults[i].Tested = true
-	}
-	swaggerFiles, err := utils.ListFiles(swaggerPath, ".json", 1)
-	if err != nil {
-		return err
-	}
-	for _, v := range swaggerFiles {
-		if _, ok := testedMap[v]; !ok {
-			report.CoverageResults = append(report.CoverageResults, CoverageResult{
-				Spec:   v,
-				Tested: false,
-			})
-		}
-	}
-
 	logrus.Infof("generating markdown report...")
-	if err = generateApiTestMarkdownReport(*report, testReportPath, path.Join(wd, ApiTestConfigFileName)); err != nil {
+	if err = generateApiTestMarkdownReport(*report, swaggerPath, testReportPath, path.Join(wd, ApiTestConfigFileName)); err != nil {
 		return fmt.Errorf("[ERROR] failed to generate markdown report: %+v", err)
 	}
 
@@ -183,7 +145,7 @@ func isSuppressedInApiTest(suppressionList []Suppression, rule string, filePath 
 	return false
 }
 
-func generateApiTestMarkdownReport(result ApiTestReport, testReportPath string, apiTestConfigFilePath string) error {
+func generateApiTestMarkdownReport(result ApiTestReport, swaggerPath string, testReportPath string, apiTestConfigFilePath string) error {
 	var config ApiTestConfig
 
 	if utils.Exists(apiTestConfigFilePath) {
@@ -203,37 +165,44 @@ func generateApiTestMarkdownReport(result ApiTestReport, testReportPath string, 
 	mdTitle := "## API TEST ERROR REPORT<br>\n|Rule|Message|\n|---|---|"
 	mdTable := make([]string, 0)
 
-	for _, rv := range result.CoverageResults {
-		rk := rv.Spec
-		if !rv.Tested {
-			if !isSuppressedInApiTest(config.SuppressionList, "SWAGGER_NOT_TEST", rk, "") {
-				mdTable = append(mdTable, fmt.Sprintf("|[SWAGGER_NOT_TEST](about:blank)|**message**: No operations in swagger is test.<br>**location**: %s", rk[strings.Index(rk, "/specification/"):]))
-			}
+	testedMap := make(map[string]bool)
+	for _, v := range result.CoveredSpecFiles {
+		v = strings.ReplaceAll(v, "\\", "/")
+		testedMap[v] = true
+	}
 
-			continue
-		}
+	swaggerFiles, err := utils.ListFiles(swaggerPath, ".json", 1)
+	if err != nil {
+		return err
+	}
 
-		for _, operation := range rv.UnCoveredOperationsList {
-			if !isSuppressedInApiTest(config.SuppressionList, "OPERATION_NOT_TEST", rk, operation.OperationId) {
-				mdTable = append(mdTable, fmt.Sprintf("|[OPERATION_NOT_TEST](about:blank)|**message**: **%s** opeartion is not test.<br>**opeartion**: %s<br>**location**: %s", operation.OperationId, operation.OperationId, rk[strings.Index(rk, "/specification/"):]))
-			}
-
-		}
-
-		for _, item := range rv.GeneralErrorsInnerList {
-			for _, errItem := range item.ErrorsForRendering {
-				location := rk[strings.Index(rk, "/specification/"):]
-				normalizedPath := filepath.ToSlash(errItem.SchemaPathWithPosition)
-				if subIndex := strings.Index(normalizedPath, "/specification/"); subIndex != -1 {
-					location = normalizedPath[subIndex:]
-				}
-
-				if !isSuppressedInApiTest(config.SuppressionList, errItem.Code, rk, item.OperationInfo.OperationId) {
-					mdTable = append(mdTable, fmt.Sprintf("|[%s](%s)|**message**: %s.<br>**opeartion**: %s<br>**location**: %s", errItem.Code, errItem.Link, errItem.Message, item.OperationInfo.OperationId, location))
-				}
+	for _, v := range swaggerFiles {
+		v = strings.ReplaceAll(v, "\\", "/")
+		if _, exists := testedMap[v]; !exists {
+			if !isSuppressedInApiTest(config.SuppressionList, "SWAGGER_NOT_TEST", v, "") {
+				mdTable = append(mdTable, fmt.Sprintf("|[SWAGGER_NOT_TEST](about:blank)|**message**: No operations in swagger is test.<br>**location**: %s", v[strings.Index(v, "/specification/"):]))
 			}
 		}
+	}
 
+	for _, operationsItem := range result.UnCoveredOperationsList {
+		for _, id := range operationsItem.OperationIds {
+			if !isSuppressedInApiTest(config.SuppressionList, "OPERATION_NOT_TEST", operationsItem.Spec, id) {
+				mdTable = append(mdTable, fmt.Sprintf("|[OPERATION_NOT_TEST](about:blank)|**message**: **%s** opeartion is not test.<br>**opeartion**: %s<br>**location**: %s", id, id, operationsItem.Spec[strings.Index(operationsItem.Spec, "/specification/"):]))
+			}
+		}
+	}
+
+	for _, errItem := range result.Errors {
+		location := errItem.Spec[strings.Index(errItem.Spec, "/specification/"):]
+		normalizedPath := filepath.ToSlash(errItem.SchemaPathWithPosition)
+		if subIndex := strings.Index(normalizedPath, "/specification/"); subIndex != -1 {
+			location = normalizedPath[subIndex:]
+		}
+
+		if !isSuppressedInApiTest(config.SuppressionList, errItem.ErrorCode, errItem.Spec, errItem.OperationId) {
+			mdTable = append(mdTable, fmt.Sprintf("|[%s](%s)|**message**: %s.<br>**opeartion**: %s<br>**location**: %s", errItem.ErrorCode, errItem.ErrorLink, errItem.ErrorMessage, errItem.OperationId, location))
+		}
 	}
 
 	sort.Strings(mdTable)
