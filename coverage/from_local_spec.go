@@ -101,7 +101,7 @@ func isPathKeyMatchWithResourceId(pathKey, resourceId string) bool {
 	i := len(pathParts) - 1
 	j := len(resourceIdParts) - 1
 	for i >= 0 && j >= 0 {
-		if i == 0 && (strings.EqualFold(pathParts[i], "{resourceid}") || strings.EqualFold(pathParts[i], "{scope}")) {
+		if i == 0 && (strings.EqualFold(pathParts[i], "{resourceid}") || strings.EqualFold(pathParts[i], "{scope}") || strings.EqualFold(pathParts[i], "{resourceUri}")) {
 			return true
 		}
 		if strings.EqualFold(pathParts[i], resourceIdParts[j]) ||
