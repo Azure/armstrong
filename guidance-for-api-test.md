@@ -50,7 +50,7 @@ armstrong validate -working-dir ./Microsoft.Automation_automationAccounts
 
 If it runs successfully, you will get the log like below:
 
-...
+```
 Plan: xx to add, 0 to change, 0 to destroy.
 ```
 
