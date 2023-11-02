@@ -82,6 +82,13 @@ func (c TestCommand) Execute() int {
 			return 1
 		}
 	}
+	if c.swaggerPath != "" {
+		c.swaggerPath, err = filepath.Abs(c.swaggerPath)
+		if err != nil {
+			logrus.Error(fmt.Sprintf("swagger file path is invalid: %+v", err))
+			return 1
+		}
+	}
 	terraform, err := tf.NewTerraform(wd, c.verbose)
 	if err != nil {
 		logrus.Fatalf("error creating terraform executable: %+v\n", err)

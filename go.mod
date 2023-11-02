@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/terraform-json v0.13.0
 	github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f
 	github.com/mitchellh/cli v1.1.2
-	github.com/ms-henglu/pal v0.4.0
+	github.com/ms-henglu/pal v0.4.1
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/sirupsen/logrus v1.9.3
 	github.com/zclconf/go-cty v1.9.1
