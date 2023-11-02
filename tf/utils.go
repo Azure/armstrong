@@ -79,6 +79,10 @@ func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffRe
 		if !beforeMapOk || !afterMapOk {
 			continue
 		}
+		if afterMap["id"] == nil {
+			logrus.Errorf("resource %s has no id", resourceChange.Address)
+			continue
+		}
 		out.Diffs = append(out.Diffs, types.Diff{
 			Id:      afterMap["id"].(string),
 			Type:    afterMap["type"].(string),

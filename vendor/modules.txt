@@ -419,7 +419,7 @@ github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.2
 ## explicit
 github.com/mitchellh/reflectwalk
-# github.com/ms-henglu/pal v0.4.0
+# github.com/ms-henglu/pal v0.4.1
 ## explicit; go 1.19
 github.com/ms-henglu/pal/formatter
 github.com/ms-henglu/pal/provider

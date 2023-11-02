@@ -42,6 +42,12 @@ func (c ReportCommand) Run(args []string) int {
 		logrus.Error(fmt.Sprintf("Error parsing command-line flags: %s", err))
 		return 1
 	}
+
+	if c.swaggerPath == "" {
+		logrus.Error("swagger path is required")
+		logrus.Infof(c.Help())
+		return 1
+	}
 	return c.Execute()
 }
 

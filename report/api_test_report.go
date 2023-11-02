@@ -56,6 +56,7 @@ func OavValidateTraffic(traceDir string, swaggerPath string, outputDir string) (
 	htmlReportFilePath := path.Join(outputDir, fmt.Sprintf("%s.html", ApiTestReportFileName))
 	jsonReportFilePath := path.Join(outputDir, fmt.Sprintf("%s.json", ApiTestReportFileName))
 
+	logrus.Debugf("oav validate-traffic %s %s --report %s --jsonReport %s", traceDir, swaggerPath, htmlReportFilePath, jsonReportFilePath)
 	cmd := exec.Command("oav", "validate-traffic", traceDir, swaggerPath, "--report", htmlReportFilePath, "--jsonReport", jsonReportFilePath)
 	if err := cmd.Run(); err != nil {
 		logrus.Warnf("oav validates-traffic: %+v", err)
