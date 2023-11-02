@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -73,7 +74,7 @@ func Load(swaggerPath string) ([]ApiPath, error) {
 							if exampleRef == nil {
 								continue
 							}
-							exampleList = append(exampleList, path.Clean(path.Join(swaggerPath, "..", exampleRef.(string))))
+							exampleList = append(exampleList, path.Clean(path.Join(filepath.ToSlash(swaggerPath), "..", exampleRef.(string))))
 						}
 					}
 				}
