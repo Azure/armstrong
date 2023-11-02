@@ -184,6 +184,12 @@ func (c TestCommand) Execute() int {
 		} else {
 			logrus.Infof("test resource has been deleted")
 		}
+		logrus.Infof("parsing log.txt...")
+		newLogs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
+		if err != nil {
+			logrus.Errorf("parsing log.txt: %+v", err)
+		}
+		logs = newLogs
 	} else {
 		logrus.Warnf("the created resources will not be destroyed because either there is an error or destroy-after-test flag is not set")
 	}
