@@ -5,6 +5,10 @@ The tool can simplify the process to test an ARM REST API. It can generate a ter
 terraform file containing the testing resource which is based on the [azapi provider](https://github.com/Azure/terraform-provider-azapi).
 It can also generate a markdown report when found API issues.
 
+## Guidance
+
+For ARM review, please refer to [guidance for API test](./docs/guidance-for-api-test.md).
+
 ## Install
 
 Install this tool: `go install github.com/ms-henglu/armstrong`, or download it from [releases](https://github.com/ms-henglu/armstrong/releases).
