@@ -573,3 +573,8 @@ resource "azapi_resource" "kafkaConfiguration" {
 3. Q: I've fixed the API issue, how to reset the test case and test it again?
 
    A: You could delete the `traces` folder under the test case folder.
+
+
+## Samples
+
+Please refer to the [sample repo](https://github.com/ms-henglu/armstrong-demo) for more details.
