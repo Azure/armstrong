@@ -1,5 +1,9 @@
 # Guidance for API Test
 
+## Video
+
+This [video](https://microsoftapc-my.sharepoint.com/:v:/g/personal/henglu_microsoft_com/EfdL8LOuGD9OoKHEXmmlYg4BOpq2rMHDMdta_drq35QW8A?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZyIsInJlZmVycmFsQXBwUGxhdGZvcm0iOiJXZWIiLCJyZWZlcnJhbE1vZGUiOiJ2aWV3In19&e=RJw6hN) demonstrates how to use this tool. 
+
 ## Prerequisites
 
 1. [Install](https://github.com/Azure/oav#how-to-install-the-tool) the latest oav
