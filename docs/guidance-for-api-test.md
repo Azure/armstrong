@@ -612,6 +612,65 @@ resource "azapi_resource" "kafkaConfiguration" {
 
     4. Add `terraform.tfvars` to `.gitignore` file to avoid checking in the sensitive information.
 
+  5. Q: How to get the current login identity's tenantId/subscriptionId?
+    
+     A: You could use the following terraform code to get the current login identity's tenantId/subscriptionId and other information.
+     
+     1. Add the following code in the test case to enable the use of the azurerm provider.
+     
+     ```hcl
+     provider "azurerm" {
+       features {}
+     }
+     ```
+
+     2. Add the following code in the test case to get the current login identity's tenantId/subscriptionId.
+     
+     ```hcl
+     data "azurerm_client_config" "current" {}
+     ```
+
+     3. Replace the tenantId/subscriptionId in the test case with the following code.
+     
+     ```hcl
+      // replace the tenantId with the following code
+      tenantId = data.azurerm_client_config.current.tenant_id
+
+      // replace the subscriptionId with the following code
+      subscriptionId = data.azurerm_client_config.current.subscription_id
+
+      // replace the Azure Client ID (Application Object ID)
+      clientId = data.azurerm_client_config.current.client_id
+
+      // replace the Azure Object ID
+      objectId = data.azurerm_client_config.current.object_id
+      ```
+
+      More details about this data source could be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config).
+
+  6. Q: How to assign a give principal to a given rule?
+
+     A: You could use the following terraform code to assign a given principal to a given role.
+     
+     1. Add the following code in the test case to enable the use of the azurerm provider.
+     
+     ```hcl
+      provider "azurerm" {
+        features {}
+      }
+     ```
+    
+      2. Add the following code in the test case to assign a given principal to a given role.
+        
+     ```hcl
+     resource "azurerm_role_assignment" "example" {
+      scope                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup"
+      role_definition_name = "Reader"
+      principal_id         = "The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to."
+     }
+     ```
+     More details about this resource could be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment).
+
 
 ## Samples
 
