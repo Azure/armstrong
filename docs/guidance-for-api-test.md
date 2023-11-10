@@ -578,6 +578,40 @@ resource "azapi_resource" "kafkaConfiguration" {
 
    A: You could delete the `traces` folder under the test case folder.
 
+4. Q: I have some sensitive information in the test case, how to hide it?
+
+   A: You could use terraform variables to hide the sensitive information. Please refer to the following example for how to use terraform variables.
+   
+   1. Define a variable in the test case. 
+   
+   ```hcl
+    variable "github_pat" {
+      type        = string
+      description = "The github personal access token"
+    }
+    ```
+
+    2. Use the variable in the test case, to replace the sensitive information.
+    
+    ```hcl
+    resource "azapi_resource" "example" {
+      ...
+      body = jsonencode({
+        properties = {
+          github_pat = var.github_pat // use the variable here
+        }
+      })
+    }
+    ```
+
+    3. Create a `terraform.tfvars` file in the test case folder, and define the variable value in it.
+    
+    ```hcl
+    github_pat = "your github personal access token"
+    ```
+
+    4. Add `terraform.tfvars` to `.gitignore` file to avoid checking in the sensitive information.
+
 
 ## Samples
 
