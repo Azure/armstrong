@@ -330,7 +330,9 @@ In this step, we will submit the test cases and summary report with swagger pull
 
 1. For the test cases, please check in the test cases. (Some unnecessary files will be automatically filtered by the .gitignore).
 
-The folder structure will look like below:
+   Here's an example of the swagger pull request: [Microsoft.Purview/stable/2021-12-01](https://github.com/Azure/azure-rest-api-specs-pr/pull/15879).
+
+   The folder structure will look like below:
 
 ```shell
 # working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
@@ -353,7 +355,10 @@ The folder structure will look like below:
         └── main.tf
 ```
 
+
 2. For the summary report, please copy all content in the generated `ArmstrongReport/SwaggerAccuracyReport.md` and paste it in a new comment of the swagger pull request for ARM reviewers to review.
+
+   Here's an example of the swagger pull request comment: [Microsoft.Purview/stable/2021-12-01](https://github.com/Azure/azure-rest-api-specs-pr/pull/15879#issuecomment-1807482719)
 
 
 ## Fix Errors
