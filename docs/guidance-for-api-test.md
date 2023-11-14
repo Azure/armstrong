@@ -676,6 +676,22 @@ resource "azapi_resource" "kafkaConfiguration" {
      ```
      More details about this resource could be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment).
 
+  7. Q: How to ignore the files that are not need to be checked in?
+
+     A: You could add the files that are not need to be checked in to `.gitignore` file. For example, the following files are not need to be checked in.
+     
+     ```shell
+     # Ignore the files that are not need to be checked in
+     # Armstrong
+     .terraform
+     tfplan
+     terraform.tfstate
+     terraform.tfstate.backup
+     .terraform.lock.hcl
+     *[Aa]rmstrong*
+     **/terraform/**/traces
+     **/terraform/**/log.txt
+     ```
 
 ## Samples
 
