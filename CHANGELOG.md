@@ -1,6 +1,7 @@
 ## v0.12.1
 BUG FIXES:
 - Fix the bug that resource types with same name but different casing are not handled correctly.
+- Fix the bug that coverage reports are generated even if there are no valid test cases.
 
 ## v0.12.0
 FEATURES:

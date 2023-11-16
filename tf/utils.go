@@ -166,7 +166,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (covera
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
-		if res.Type != "azapi_resource" {
+		if res.Type != "azapi_resource" || res.Mode != tfjson.ManagedResourceMode {
 			continue
 		}
 
