@@ -210,6 +210,12 @@ The easiest way to authenticate with Azure is to use [Azure CLI](https://docs.mi
 az login
 ```
 
+And you can use the following command to set the default subscription which will be used by Armstrong.
+
+```shell
+az account set --subscription <subscription-id>
+```
+
 Armstrong supports a number of different methods for authenticating with Azure. More details can be found [here](https://registry.terraform.io/providers/Azure/azapi/latest/docs#authenticating-to-azure).
 
 3. View the test plan. (Optional)
