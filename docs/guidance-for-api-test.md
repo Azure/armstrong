@@ -22,7 +22,7 @@ In this step, we will create a new folder to save the test code and test results
 1. Move to the folder where stores the swagger json file and examples.
 
 ```shell
-cd /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
+cd /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
 ```
 
 2. Run the following command to create a new empty folder named `terraform`.
@@ -39,7 +39,7 @@ The test case is written in [HCL](https://developer.hashicorp.com/terraform/lang
 1. Move to the folder created in the previous step.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
 
 cd terraform
 ```
@@ -47,15 +47,15 @@ cd terraform
 2. Run the following command to generate test cases.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
-armstrong generate -swagger /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/purview.json
+armstrong generate -swagger /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/purview.json
 ```
 
 You could use the relative path to specify the swagger json file. For example:
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
 armstrong generate -swagger ../purview.json
 ```
@@ -63,7 +63,7 @@ armstrong generate -swagger ../purview.json
 It also supports to specify the directory where the swagger json file resides in. For example:
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
 armstrong generate -swagger ..
 ```
@@ -74,7 +74,7 @@ Then the test cases will be generated in the folder. The test case folder name i
 The folder structure will look like below:
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
 ├── examples
 ├── purview.json
 └── terraform
@@ -197,7 +197,7 @@ In this step, we will test each test case generated in the previous step.
 1. Move to one of the test case folders.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
 cd Microsoft.Purview_accounts
 ```
@@ -217,7 +217,7 @@ Armstrong supports a number of different methods for authenticating with Azure. 
 The following command generates a speculative execution plan, showing what actions Terraform would take to apply the current configuration.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform/Microsoft.Purview_accounts
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform/Microsoft.Purview_accounts
 
 armstrong validate
 ```
@@ -229,7 +229,7 @@ More details about the usage of `armstrong validate` can be found [here](https:/
 The following command will test the test case and record the API traffic during the process. Then it will compare the API traffic with the examples to validate the correctness of the swagger definitions.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform/Microsoft.Purview_accounts
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform/Microsoft.Purview_accounts
 
 armstrong test -swagger ../.. --destroy-after-test
 ```
@@ -283,13 +283,13 @@ In this step, we will generate a summary report for all test cases.
 1. Move to the folder where stores the test cases.
 
 ```shell
-cd /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+cd /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 ```
 
 2. Run the following command to generate a summary report.
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
 armstrong report -swagger ..
 ```
@@ -301,7 +301,7 @@ More details about the usage of `armstrong report` can be found [here](https://g
 If it runs successfully, the summary reports will be generated in `ArmstrongReport` folder. The folder structure will look like below:
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01/terraform
 
 terraform
 ├── ArmstrongReport
@@ -335,7 +335,7 @@ In this step, we will submit the test cases and summary report with swagger pull
    The folder structure will look like below:
 
 ```shell
-# working directory: /Users/luheng/go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
+# working directory: /go/src/github.com/Azure/azure-rest-api-specs/specification/purview/resource-manager/Microsoft.Purview/stable/2021-12-01
 ├── examples
 ├── purview.json
 └── terraform

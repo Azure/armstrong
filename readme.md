@@ -11,7 +11,19 @@ For ARM review, please refer to [guidance for API test](./docs/guidance-for-api-
 
 ## Install
 
-Install this tool: `go install github.com/ms-henglu/armstrong`, or download it from [releases](https://github.com/ms-henglu/armstrong/releases).
+#### Install from the binary:
+
+1. Download the binary from [releases](https://github.com/ms-henglu/armstrong/releases).
+
+2. It's recommended to add the directory containing the binary to your `PATH`, so that you can run `armstrong` directly.
+
+#### Install from the source code:
+
+1. Install [Go](https://golang.org/doc/install).
+
+2. Run `go install github.com/ms-henglu/armstrong@latest` to install the latest version.
+
+3. It's recommended to add `$GOPATH/bin` to your `PATH`, so that you can run `armstrong` directly.
 
 ## Usage
 ```
