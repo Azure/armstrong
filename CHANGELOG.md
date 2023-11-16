@@ -1,4 +1,8 @@
-## V0.12.0
+## v0.12.1
+BUG FIXES:
+- Fix the bug that resource types with same name but different casing are not handled correctly.
+
+## v0.12.0
 FEATURES:
 - Generate multiple test cases from one or multiple swagger spec files.
 - Support using verified azapi examples as automatically generated dependencies.
