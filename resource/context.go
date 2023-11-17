@@ -159,7 +159,8 @@ func (c *Context) AddAzapiDefinition(input types.AzapiDefinition) error {
 				logrus.Debugf("found dependency:\n %v", result.HclToAdd)
 				ref, err := c.AddHcl(result.HclToAdd, true)
 				if err != nil {
-					return err
+					logrus.Warnf("failed to add hcl as a dependency, will continue to try other dependency resolvers: %v", err)
+					continue
 				}
 				c.KnownPatternMap[pattern.String()] = *ref
 				placeHolders[i].Reference = ref
@@ -168,7 +169,8 @@ func (c *Context) AddAzapiDefinition(input types.AzapiDefinition) error {
 				logrus.Debugf("found dependency:\n %v", result.AzapiDefinitionToAdd)
 				err = c.AddAzapiDefinition(*result.AzapiDefinitionToAdd)
 				if err != nil {
-					return err
+					logrus.Warnf("failed to add azapi definition as a dependency, will continue to try other dependency resolvers: %v", err)
+					continue
 				}
 				ref := c.KnownPatternMap[pattern.String()]
 				if !ref.IsKnown() {

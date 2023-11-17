@@ -2,6 +2,7 @@
 BUG FIXES:
 - Fix the bug that resource types with same name but different casing are not handled correctly.
 - Fix the bug that coverage reports are generated even if there are no valid test cases.
+- Fix the bug that other dependency resolvers are not called when error occurs in the previous dependency resolver.
 
 ## v0.12.0
 FEATURES:
