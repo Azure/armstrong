@@ -365,20 +365,30 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 }
 
 func azapiDefinitionOrder(azapiDefinition types.AzapiDefinition) int {
+	// 0. resource.azapi_resource
+	// 1. resource.azapi_update_resource Note: Now it will not be generated
+	// 2. azapi_resource_action with empty action
+	// 3. azapi_resource_action with action
+	// 4. data.azapi_resource
+	// 5. azapi_resource_list
+
 	switch azapiDefinition.ResourceName {
 	case "azapi_resource":
-		return 0
+		if azapiDefinition.Kind == types.KindResource {
+			return 0
+		}
+		return 4
 	case "azapi_update_resource":
-		return 2
+		return 1
 	case "azapi_resource_action":
-		if actionField := azapiDefinition.AdditionalFields["action"]; actionField == nil || actionField.String() == "" {
-			return 1
+		if actionField := azapiDefinition.AdditionalFields["action"]; actionField == nil || actionField.String() == `""` {
+			return 2
 		}
 		return 3
 	case "azapi_resource_list":
-		return 4
+		return 5
 	}
-	return 5
+	return 6
 }
 
 func appendContent(filename string, hclContent string) error {
