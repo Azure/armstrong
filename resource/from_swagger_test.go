@@ -344,6 +344,204 @@ func Test_Format(t *testing.T) {
 				},
 			}},
 		},
+		{
+			ApiPath: swagger.ApiPath{
+				Path:         "/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}",
+				ResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+				ApiVersion:   "2022-09-01-preview",
+				ApiType:      swagger.ApiTypeResource,
+				Methods:      []string{"GET", "DELETE"},
+				ExampleMap:   map[string]string{},
+			},
+			Expected: []types.AzapiDefinition{
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "get_deletedservice",
+					AzureResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+					ApiVersion:        "2022-09-01-preview",
+					AdditionalFields: map[string]types.Value{
+						"method":      types.NewStringLiteralValue("GET"),
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}"),
+					},
+				},
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "delete_deletedservice",
+					AzureResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+					ApiVersion:        "2022-09-01-preview",
+					AdditionalFields: map[string]types.Value{
+						"method":      types.NewStringLiteralValue("DELETE"),
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}"),
+						"depends_on":  types.NewRawValue("[ azapi_resource_action.get_deletedservice ]"),
+					},
+				},
+			},
+		},
+		{
+			ApiPath: swagger.ApiPath{
+				Path:         "/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}",
+				ResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+				ApiVersion:   "2022-09-01-preview",
+				ApiType:      swagger.ApiTypeResource,
+				Methods:      []string{"HEAD"},
+				ExampleMap:   map[string]string{},
+			},
+			Expected: []types.AzapiDefinition{
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "head_deletedservice",
+					AzureResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+					ApiVersion:        "2022-09-01-preview",
+					AdditionalFields: map[string]types.Value{
+						"method":      types.NewStringLiteralValue("HEAD"),
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}"),
+						"action":      types.NewStringLiteralValue(""),
+					},
+				},
+			},
+		},
+		{
+			ApiPath: swagger.ApiPath{
+				Path:         "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}",
+				ResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+				ApiVersion:   "2022-08-08",
+				ApiType:      swagger.ApiTypeList,
+				Methods:      []string{"GET", "PUT"},
+				ExampleMap: map[string]string{
+					"GET": path.Clean(path.Join(wd, "testdata", "./examples/sourceControl/getSourceControl.json")),
+					"PUT": path.Clean(path.Join(wd, "testdata", "./examples/sourceControl/createOrUpdateSourceControl.json")),
+				},
+			},
+			Expected: []types.AzapiDefinition{
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "put_sourceControl",
+					AzureResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+					ApiVersion:        "2022-08-08",
+					AdditionalFields: map[string]types.Value{
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}"),
+						"method":      types.NewStringLiteralValue("PUT"),
+					},
+					Body: map[string]interface{}{
+						"properties": map[string]interface{}{
+							"repoUrl":        "https://sampleUser.visualstudio.com/myProject/_git/myRepository",
+							"branch":         "master",
+							"folderPath":     "/folderOne/folderTwo",
+							"autoSync":       true,
+							"publishRunbook": true,
+							"sourceType":     "VsoGit",
+							"securityToken": map[string]interface{}{
+								"accessToken": "******",
+								"tokenType":   "PersonalAccessToken",
+							},
+							"description": "my description",
+						},
+					},
+				},
+				{
+					Kind:              types.KindDataSource,
+					ResourceName:      "azapi_resource",
+					Label:             "sourceControl",
+					AzureResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+					ApiVersion:        "2022-08-08",
+					AdditionalFields: map[string]types.Value{
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}"),
+						"depends_on":  types.NewRawValue("[ azapi_resource_action.put_sourceControl ]"),
+					},
+				},
+			},
+		},
+		{
+			ApiPath: swagger.ApiPath{
+				Path:         "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}",
+				ResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+				ApiVersion:   "2022-08-08",
+				ApiType:      swagger.ApiTypeList,
+				Methods:      []string{"GET", "PATCH"},
+				ExampleMap: map[string]string{
+					"GET":   path.Clean(path.Join(wd, "testdata", "./examples/sourceControl/getSourceControl.json")),
+					"PATCH": path.Clean(path.Join(wd, "testdata", "./examples/sourceControl/createOrUpdateSourceControl.json")),
+				},
+			},
+			Expected: []types.AzapiDefinition{
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "patch_sourceControl",
+					AzureResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+					ApiVersion:        "2022-08-08",
+					AdditionalFields: map[string]types.Value{
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}"),
+						"method":      types.NewStringLiteralValue("PATCH"),
+					},
+					Body: map[string]interface{}{
+						"properties": map[string]interface{}{
+							"repoUrl":        "https://sampleUser.visualstudio.com/myProject/_git/myRepository",
+							"branch":         "master",
+							"folderPath":     "/folderOne/folderTwo",
+							"autoSync":       true,
+							"publishRunbook": true,
+							"sourceType":     "VsoGit",
+							"securityToken": map[string]interface{}{
+								"accessToken": "******",
+								"tokenType":   "PersonalAccessToken",
+							},
+							"description": "my description",
+						},
+					},
+				},
+				{
+					Kind:              types.KindDataSource,
+					ResourceName:      "azapi_resource",
+					Label:             "sourceControl",
+					AzureResourceType: "Microsoft.Automation/automationAccounts/sourceControls",
+					ApiVersion:        "2022-08-08",
+					AdditionalFields: map[string]types.Value{
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/sourceControls/{sourceControlName}"),
+						"depends_on":  types.NewRawValue("[ azapi_resource_action.patch_sourceControl ]"),
+					},
+				},
+			},
+		},
+		{
+			ApiPath: swagger.ApiPath{
+				Path:         "/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}",
+				ResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+				ApiVersion:   "2022-09-01-preview",
+				ApiType:      swagger.ApiTypeResource,
+				Methods:      []string{"HEAD", "DELETE"},
+				ExampleMap:   map[string]string{},
+			},
+			Expected: []types.AzapiDefinition{
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "head_deletedservice",
+					AzureResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+					ApiVersion:        "2022-09-01-preview",
+					AdditionalFields: map[string]types.Value{
+						"method":      types.NewStringLiteralValue("HEAD"),
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}"),
+						"action":      types.NewStringLiteralValue(""),
+					},
+				},
+				{
+					Kind:              types.KindResource,
+					ResourceName:      "azapi_resource_action",
+					Label:             "delete_deletedservice",
+					AzureResourceType: "Microsoft.ApiManagement/locations/deletedservices",
+					ApiVersion:        "2022-09-01-preview",
+					AdditionalFields: map[string]types.Value{
+						"method":      types.NewStringLiteralValue("DELETE"),
+						"resource_id": types.NewStringLiteralValue("/subscriptions/{subscriptionId}/providers/Microsoft.ApiManagement/locations/{location}/deletedservices/{serviceName}"),
+					},
+				},
+			},
+		},
 	}
 	for _, testcase := range testcases {
 		t.Logf("[DEBUG] Testing path: %v", testcase.ApiPath.Path)

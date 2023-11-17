@@ -53,6 +53,9 @@ func Load(swaggerPath string) ([]ApiPath, error) {
 		if pathItem.Patch != nil {
 			operationMap[http.MethodPatch] = *pathItem.Patch
 		}
+		if pathItem.Head != nil {
+			operationMap[http.MethodHead] = *pathItem.Head
+		}
 
 		methods := make([]string, 0)
 		exampleMap := make(map[string]string)
