@@ -5,6 +5,8 @@ BUG FIXES:
 - Fix the bug that other dependency resolvers are not called when error occurs in the previous dependency resolver.
 - Fix the bug that the generated resources are not in the correct order.
 - Fix the bug that `HEAD` method and other methods combination couldn't be handled correctly.
+- Fix the bug that error reports are not generated for other azapi resources.
+- Fix the bug that error reports are not generated when error happens during the `terraform plan`.
 
 ## v0.12.0
 FEATURES:

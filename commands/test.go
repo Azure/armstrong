@@ -127,9 +127,9 @@ func (c TestCommand) Execute() int {
 	}
 
 	logrus.Infof("running plan command to verify test resource...")
-	plan, err = terraform.Plan()
-	if err != nil {
-		logrus.Fatalf("error running terraform plan: %+v\n", err)
+	plan, planErr := terraform.Plan()
+	if planErr != nil {
+		logrus.Errorf("error running terraform plan: %+v\n", planErr)
 	}
 
 	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
@@ -150,24 +150,26 @@ func (c TestCommand) Execute() int {
 
 	logrus.Infof("generating reports...")
 	var passReport types.PassReport
-	if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
-		if state, err := terraform.Show(); err == nil {
-			passReport = tf.NewPassReportFromState(state)
-			coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
+	if planErr == nil {
+		if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
+			if state, err := terraform.Show(); err == nil {
+				passReport = tf.NewPassReportFromState(state)
+				coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
+				if err != nil {
+					logrus.Errorf("error producing coverage report: %+v", err)
+				}
+				storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
+			} else {
+				logrus.Fatalf("error showing terraform state: %+v", err)
+			}
+		} else {
+			passReport = tf.NewPassReport(plan)
+			coverageReport, err := tf.NewCoverageReport(plan, c.swaggerPath)
 			if err != nil {
 				logrus.Errorf("error producing coverage report: %+v", err)
 			}
-			storePassReport(passReport, coverageReport, reportDir, allPassedReportFileName)
-		} else {
-			logrus.Fatalf("error showing terraform state: %+v", err)
+			storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 		}
-	} else {
-		passReport = tf.NewPassReport(plan)
-		coverageReport, err := tf.NewCoverageReport(plan, c.swaggerPath)
-		if err != nil {
-			logrus.Errorf("error producing coverage report: %+v", err)
-		}
-		storePassReport(passReport, coverageReport, reportDir, partialPassedReportFileName)
 	}
 
 	errorReport := tf.NewErrorReport(applyErr, logs)
@@ -176,7 +178,7 @@ func (c TestCommand) Execute() int {
 	diffReport := tf.NewDiffReport(plan, logs)
 	storeDiffReport(diffReport, reportDir)
 
-	if applyErr == nil && c.destroyAfterTest {
+	if applyErr == nil && planErr == nil && c.destroyAfterTest {
 		logrus.Infof("running destroy command to delete resources...")
 		destroyErr := terraform.Destroy()
 		if destroyErr != nil {

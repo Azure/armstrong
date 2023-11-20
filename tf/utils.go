@@ -311,7 +311,7 @@ func NewErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorRep
 			id = matches[0][1]
 			apiVersion = matches[0][2]
 		}
-		if matches := regexp.MustCompile(`resource "azapi_resource" "(.+)"`).FindAllStringSubmatch(e, -1); len(matches) != 0 {
+		if matches := regexp.MustCompile(`resource "azapi_.+" "(.+)"`).FindAllStringSubmatch(e, -1); len(matches) != 0 {
 			label = matches[0][1]
 		}
 		if len(label) == 0 {
