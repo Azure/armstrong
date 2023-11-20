@@ -305,7 +305,7 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 	for _, azapiDefinition := range azapiDefinitionsAll {
 		azureResourceType := azapiDefinition.AzureResourceType
 		// To avoid the case that there are multiple resource types with the same name but different casing
-		for resourceType, _ := range azapiDefinitionByResourceType {
+		for resourceType := range azapiDefinitionByResourceType {
 			if strings.EqualFold(resourceType, azureResourceType) {
 				azureResourceType = resourceType
 			}
