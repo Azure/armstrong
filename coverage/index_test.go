@@ -57,3 +57,29 @@ func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
 }
+
+func TestGetModelInfoFromIndexWithType_DataCollectionRule(t *testing.T) {
+	azapiResourceType := "Microsoft.Insights/dataCollectionRules@2022-06-01"
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType)
+	if err != nil {
+		t.Fatalf("get model info from index error: %+v", err)
+	}
+
+	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}"
+	if swaggerModel.ApiPath != expectedApiPath {
+		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
+	}
+}
+
+func TestGetModelInfoFromIndexWithType_DeviceSecurityGroups(t *testing.T) {
+	azapiResourceType := "Microsoft.Security/deviceSecurityGroups@2019-08-01"
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType)
+	if err != nil {
+		t.Fatalf("get model info from index error: %+v", err)
+	}
+
+	expectedApiPath := "/{resourceId}/providers/Microsoft.Security/deviceSecurityGroups/{deviceSecurityGroupName}"
+	if swaggerModel.ApiPath != expectedApiPath {
+		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
+	}
+}

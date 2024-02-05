@@ -67,6 +67,10 @@
       "properties": {
         "is_barking": {
           "type": "boolean"
+        },
+        "secret": {
+          "type": "string",
+          "x-ms-secret": true
         }
       },
       "x-ms-discriminator-value": "animal.pet.dog"

@@ -250,7 +250,7 @@ github.com/go-openapi/analysis/internal/flatten/sortref
 # github.com/go-openapi/errors v0.20.2
 ## explicit; go 1.14
 github.com/go-openapi/errors
-# github.com/go-openapi/jsonpointer v0.19.5
+# github.com/go-openapi/jsonpointer v0.19.6
 ## explicit; go 1.13
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.20.0
@@ -266,8 +266,8 @@ github.com/go-openapi/spec
 # github.com/go-openapi/strfmt v0.21.3
 ## explicit; go 1.13
 github.com/go-openapi/strfmt
-# github.com/go-openapi/swag v0.21.1
-## explicit; go 1.11
+# github.com/go-openapi/swag v0.22.3
+## explicit; go 1.18
 github.com/go-openapi/swag
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
@@ -340,8 +340,10 @@ github.com/hashicorp/golang-lru/v2/simplelru
 ## explicit; go 1.12
 github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
+github.com/hashicorp/hcl/v2/hclparse
 github.com/hashicorp/hcl/v2/hclsyntax
 github.com/hashicorp/hcl/v2/hclwrite
+github.com/hashicorp/hcl/v2/json
 # github.com/hashicorp/terraform-exec v0.15.0
 ## explicit; go 1.14
 github.com/hashicorp/terraform-exec/internal/version
@@ -380,14 +382,17 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/magodo/armid v0.0.0-20230511151020-27880e5961c3
 ## explicit; go 1.18
 github.com/magodo/armid
-# github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f
+# github.com/magodo/azure-rest-api-index v0.0.0-20240102032334-6c70ea7b6b9f
 ## explicit; go 1.20
 github.com/magodo/azure-rest-api-index/azidx
 github.com/magodo/azure-rest-api-index/azidx/specpath
+# github.com/magodo/jsonpointerpos v0.0.0-20230616092109-ca8d78efc96d
+## explicit; go 1.20
+github.com/magodo/jsonpointerpos
 # github.com/magodo/workerpool v0.0.0-20230119025400-40192d2716ea
 ## explicit; go 1.17
 github.com/magodo/workerpool
-# github.com/mailru/easyjson v0.7.6
+# github.com/mailru/easyjson v0.7.7
 ## explicit; go 1.12
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
@@ -715,9 +720,6 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.4.0
-## explicit; go 1.15
-gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

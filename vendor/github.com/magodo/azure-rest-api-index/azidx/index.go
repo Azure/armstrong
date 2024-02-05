@@ -13,6 +13,8 @@ import (
 
 	"github.com/magodo/azure-rest-api-index/azidx/specpath"
 
+	_ "embed"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-openapi/jsonpointer"
 	"github.com/go-openapi/jsonreference"
@@ -20,6 +22,9 @@ import (
 	"github.com/magodo/armid"
 	"github.com/magodo/workerpool"
 )
+
+//go:embed dedup.json
+var defaultDedup []byte
 
 type FlattenOpIndex map[OpLocator]OperationRefs
 
@@ -81,6 +86,10 @@ func (o *OperationRefs) UnmarshalJSON(b []byte) error {
 	}
 	refs := OperationRefs{}
 	for k, v := range m {
+		v, err := url.PathUnescape(v)
+		if err != nil {
+			return err
+		}
 		refs[PathPatternStr(k)] = jsonreference.MustCreateRef(v)
 	}
 	*o = refs
@@ -90,25 +99,29 @@ func (o *OperationRefs) UnmarshalJSON(b []byte) error {
 // PathPatternStr represents an API path pattern, with all the fixed segment upper cased, and all the parameterized segment as a literal "{}", or "{*}" (for x-ms-skip-url-encoding).
 type PathPatternStr string
 
+// BuildIndex builds the index file for the given specification directory.
+// Since there are duplicated specification files in the directory, that defines the same API (same API path, version, operation), users can
+// optionally specify a deduplication file. Otherwise, it will use a default dedup file instead.
 func BuildIndex(specdir string, dedupFile string) (*Index, error) {
 	specdir, err := filepath.Abs(specdir)
 	if err != nil {
 		return nil, err
 	}
-	var deduplicator Deduplicator
+
+	b := defaultDedup
 	if dedupFile != "" {
-		b, err := os.ReadFile(dedupFile)
+		b, err = os.ReadFile(dedupFile)
 		if err != nil {
 			return nil, fmt.Errorf("reading %s: %v", dedupFile, err)
 		}
-		var records DeduplicateRecords
-		if err := json.Unmarshal(b, &records); err != nil {
-			return nil, fmt.Errorf("unmarshal %s: %v", dedupFile, err)
-		}
-		deduplicator, err = records.ToDeduplicator()
-		if err != nil {
-			return nil, fmt.Errorf("converting the dedup file: %v", err)
-		}
+	}
+	var records DeduplicateRecords
+	if err := json.Unmarshal(b, &records); err != nil {
+		return nil, fmt.Errorf("unmarshal %s: %v", dedupFile, err)
+	}
+	deduplicator, err := records.ToDeduplicator()
+	if err != nil {
+		return nil, fmt.Errorf("converting the dedup file: %v", err)
 	}
 
 	var commit string
@@ -218,7 +231,18 @@ func collectSpecs(rootdir string) ([]string, error) {
 		}); err != nil {
 		return nil, err
 	}
+	// Deduplicate
+	m := map[string]struct{}{}
+	for _, v := range speclist {
+		m[v] = struct{}{}
+	}
+	speclist = make([]string, 0, len(m))
+	for k := range m {
+		speclist = append(speclist, k)
+	}
+	// Sort
 	sort.Slice(speclist, func(i, j int) bool { return speclist[i] < speclist[j] })
+
 	return speclist, nil
 }
 

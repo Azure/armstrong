@@ -37,6 +37,9 @@ func main() {
 		"report": func() (cli.Command, error) {
 			return &commands.ReportCommand{}, nil
 		},
+		"credscan": func() (cli.Command, error) {
+			return &commands.CredentialScanCommand{}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

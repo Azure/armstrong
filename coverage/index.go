@@ -22,6 +22,23 @@ const (
 
 var indexCache *azidx.Index
 
+func GetIndexFromLocalDir(swaggerPath string) (*azidx.Index, error) {
+	if indexCache != nil {
+		return indexCache, nil
+	}
+
+	index, err := azidx.BuildIndex(swaggerPath, "")
+	if err != nil {
+		logrus.Error(fmt.Sprintf("failed to build index: %+v", err))
+		return nil, err
+	}
+	logrus.Infof("index built on commit %+v", index.Commit)
+
+	indexCache = index
+
+	return index, nil
+}
+
 func GetIndex() (*azidx.Index, error) {
 	if indexCache != nil {
 		return indexCache, nil
@@ -102,12 +119,20 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	return model, nil
 }
 
+// GetModelInfoFromLocalIndex tries to build index from local swagger file and get model info from it
+func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerPath string) (*SwaggerModel, error) {
+	_, err := GetIndexFromLocalDir(swaggerPath)
+	if err != nil {
+		return nil, fmt.Errorf("build index from local dir %s: %+v", swaggerPath, err)
+	}
+	return GetModelInfoFromIndex(resourceId, apiVersion)
+}
+
 func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*SwaggerModel, error) {
 	_, swaggerPath := SchemaNamePathFromRef(swaggerRepo, ref)
 
 	relativeBase := swaggerRepo + strings.Split(ref.GetURL().Path, "/")[0]
 	operation, err := openapispec.ResolvePathItemWithBase(nil, ref, &openapispec.ExpandOptions{RelativeBase: relativeBase})
-
 	if err != nil {
 		return nil, err
 	}
@@ -152,4 +177,24 @@ func readZipFile(zf *zip.File) ([]byte, error) {
 	}
 	defer f.Close()
 	return io.ReadAll(f)
+}
+
+func MockResourceIDFromType(azapiResourceType string) (string, string) {
+	const (
+		managementGroupId = "/providers/Microsoft.Management/managementGroups/group1"
+		subscritionSeg    = "/subscriptions/00000000-0000-0000-0000-000000000000"
+		resourceGroupSeg  = "resourceGroups/rg"
+	)
+	resourceType := strings.Split(azapiResourceType, "@")[0]
+	apiVersion := strings.Split(azapiResourceType, "@")[1]
+	resourceProvider := strings.Split(resourceType, "/")[0]
+	rTypes := strings.Split(resourceType, "/")[1:]
+	typeIds := strings.Join(rTypes, "/xxx/") + "/xxx"
+
+	return fmt.Sprintf("%s/%s/providers/%s/%s", subscritionSeg, resourceGroupSeg, resourceProvider, typeIds), apiVersion
+}
+
+func GetModelInfoFromIndexWithType(azapiResourceType string) (*SwaggerModel, error) {
+	resourceId, apiVersion := MockResourceIDFromType(azapiResourceType)
+	return GetModelInfoFromIndex(resourceId, apiVersion)
 }
