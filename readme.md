@@ -164,7 +164,7 @@ Supported options:
   ```hcl
   resource "azapi_resource" "missingPropertyResource" {
     ...
-   
+
     // reason: xxx is a secret value
     ignore_missing_property = true
   }
