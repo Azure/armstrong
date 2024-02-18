@@ -213,7 +213,7 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 		if resourceChange == nil || resourceChange.Change == nil {
 			continue
 		}
-		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
+		if actions := resourceChange.Change.Actions; len(actions) == 1 && (actions[0] == tfjson.ActionNoop || actions[0] == tfjson.ActionUpdate) {
 			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
 			if !beforeMapOk {
 				continue
