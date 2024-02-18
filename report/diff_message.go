@@ -17,7 +17,7 @@ func DiffMessageTerraform(diff types.Change) string {
 
 func DiffMessageReadable(diff types.Change) string {
 	option := jsondiff.Options{
-		Added:                 jsondiff.Tag{Begin: "\033[0;32m", End: " is not returned from response\033[0m"},
+		Added:                 jsondiff.Tag{Begin: "\033[0;32m", End: " is not returned from response, if it's on purpose, please follow https://github.com/Azure/armstrong?tab=readme-ov-file#troubleshooting\033[0m"},
 		Removed:               jsondiff.Tag{Begin: "\033[0;31m", End: "\033[0m"},
 		Changed:               jsondiff.Tag{Begin: "\033[0;33m Got ", End: "\033[0m"},
 		Skipped:               jsondiff.Tag{Begin: "\033[0;90m", End: "\033[0m"},
@@ -32,7 +32,7 @@ func DiffMessageReadable(diff types.Change) string {
 
 func DiffMessageMarkdown(diff types.Change) string {
 	option := jsondiff.Options{
-		Added:                 jsondiff.Tag{Begin: "", End: " is not returned from response"},
+		Added:                 jsondiff.Tag{Begin: "", End: " is not returned from response, if it's on purpose, please follow https://github.com/Azure/armstrong?tab=readme-ov-file#troubleshooting"},
 		Removed:               jsondiff.Tag{Begin: "", End: ""},
 		Changed:               jsondiff.Tag{Begin: "Got ", End: ""},
 		Skipped:               jsondiff.Tag{Begin: "", End: ""},
