@@ -158,6 +158,18 @@ Supported options:
    
     A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources.
 
+3. Q: If some properties are on purpose missing from API response, how to skip this in test validation?
+   A: You can modify the `testing.tf` to add `ignore_missing_property = true` in target `azapi_resource`, you may also add justification in comment, e.g.: 
+
+  ```hcl
+  resource "azapi_resource" "missingPropertyResource" {
+    ...
+
+    // reason: xxx is a secret value
+    ignore_missing_property = true
+  }
+  ```
+
 ## TODO
 - [ ] Support extension scoped resource, ex: `{resourceUri}/providers/Microsoft.Advisor/recommendations/{recommendationId}`
 - [ ] Support the API path whose key segment is a variable, ex: `.../providers/Microsoft.Web/sites/{name}/host/default/{keyType}/{keyName}`
