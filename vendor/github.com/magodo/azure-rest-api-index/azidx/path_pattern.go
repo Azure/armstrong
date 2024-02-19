@@ -53,15 +53,32 @@ func ParsePathPatternFromSwagger(specFile string, swagger *spec.Swagger, path st
 
 	// Initialliy, there is only one []PathSegment in the segment set.
 	segmentSet := [][]PathSegment{{}}
-	for _, seg := range strings.Split(strings.TrimLeft(path, "/"), "/") {
+	addSegment := func(sset [][]PathSegment, s PathSegment) {
+		for i := 0; i < len(sset); i++ {
+			sset[i] = append(sset[i], s)
+		}
+	}
+	for _, seg := range strings.Split(strings.Trim(path, "/"), "/") {
 		if isParameterizedSegment(seg) {
+			segment := PathSegment{
+				IsParameter: true,
+			}
+
+			// There are very limited API paths that define more than one parameters in one segment, e.g.:
+			// https://github.com/Azure/azure-rest-api-specs/blob/b672a0b301338a570af2e5430b4b7691f909a094/specification/eventgrid/resource-manager/Microsoft.EventGrid/preview/2023-12-15-preview/EventGrid.json#L9098
+			// In this case, we simply treat it as a single parameter for now, to not complicate things too much for a minority cases
+			// (actually, currently there is only such one, and doing so won't affect the index lookup result at all).
+			if hasMultipleParameterizedSegment(seg) {
+				addSegment(segmentSet, segment)
+				continue
+			}
+
+			// In case this segment is an enum parameter, replicate the existing patterns to time of (the amount of enum variants with the variant + 1 of the original wildcard) appended
 			name := strings.Trim(seg, "{}")
 			param, ok := parameterMap[name]
 			if !ok {
 				return nil, fmt.Errorf("undefined parameter name %q", name)
 			}
-
-			// In case this segment is an enum parameter, replicate the existing patterns to time the amount of enum variants with the variant appended.
 			if param.HasEnum() {
 				var newSegmentSet [][]PathSegment
 				for _, enum := range param.Enum {
@@ -73,26 +90,27 @@ func ParsePathPatternFromSwagger(specFile string, swagger *spec.Swagger, path st
 						newSegmentSet = append(newSegmentSet, newSegs)
 					}
 				}
+				for _, segs := range segmentSet {
+					newSegs := make([]PathSegment, len(segs)+1)
+					copy(newSegs, segs)
+					newSegs[len(newSegs)-1] = PathSegment{IsParameter: true}
+					newSegmentSet = append(newSegmentSet, newSegs)
+				}
 				segmentSet = newSegmentSet
 				continue
 			}
 
-			// Regular parameter
-			segment := PathSegment{
-				IsParameter: true,
-			}
+			// Skip URL encoding
 			if v, ok := param.VendorExtensible.Extensions["x-ms-skip-url-encoding"]; ok && v.(bool) {
 				segment.IsMulti = true
 			}
-			for i := 0; i < len(segmentSet); i++ {
-				segmentSet[i] = append(segmentSet[i], segment)
-			}
+
+			addSegment(segmentSet, segment)
 			continue
 		}
 
-		for i := 0; i < len(segmentSet); i++ {
-			segmentSet[i] = append(segmentSet[i], PathSegment{FixedName: seg})
-		}
+		// Non parameterized segment
+		addSegment(segmentSet, PathSegment{FixedName: seg})
 	}
 
 	var pathPatterns []PathPattern
@@ -105,7 +123,7 @@ func ParsePathPatternFromSwagger(specFile string, swagger *spec.Swagger, path st
 
 func ParsePathPatternFromString(path string) *PathPattern {
 	var segments []PathSegment
-	for _, seg := range strings.Split(strings.TrimLeft(path, "/"), "/") {
+	for _, seg := range strings.Split(strings.Trim(path, "/"), "/") {
 		switch seg {
 		case "{}":
 			segments = append(segments, PathSegment{IsParameter: true})
@@ -120,6 +138,32 @@ func ParsePathPatternFromString(path string) *PathPattern {
 
 func isParameterizedSegment(seg string) bool {
 	return strings.HasPrefix(seg, "{") && strings.HasSuffix(seg, "}")
+}
+
+func hasMultipleParameterizedSegment(seg string) bool {
+	var (
+		found bool
+		left  bool
+	)
+	for _, c := range seg {
+		if c != '{' && c != '}' {
+			continue
+		}
+		if c == '{' {
+			left = true
+			continue
+		}
+		// this is '}'
+		if left {
+			if found {
+				return true
+			}
+			found = true
+			left = false
+			continue
+		}
+	}
+	return false
 }
 
 func (p PathPattern) String() string {

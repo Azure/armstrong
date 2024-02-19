@@ -96,7 +96,15 @@ func TestExpand_referToChildVariant(t *testing.T) {
 	}
 
 	if _, ok := (*(*model.Variants)["dog"].Properties)["is_barking"]; !ok {
-		t.Fatalf("expected variants dog properties name")
+		t.Fatalf("expected variants dog properties is_barking")
+	}
+
+	if _, ok := (*(*model.Variants)["dog"].Properties)["secret"]; !ok {
+		t.Fatalf("expected variants dog properties secret")
+	}
+
+	if ok := (*(*model.Variants)["dog"].Properties)["secret"].IsSecret; !ok {
+		t.Fatalf("expected variants dog properties secret isSecret true")
 	}
 
 }

@@ -8,12 +8,13 @@ import (
 
 	"github.com/go-openapi/loads"
 	openapiSpec "github.com/go-openapi/spec"
-	"github.com/hashicorp/golang-lru/v2"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 )
 
 // http://azure.github.io/autorest/extensions/#x-ms-discriminator-value
 const msExtensionDiscriminator = "x-ms-discriminator-value"
+const msExtensionSecret = "x-ms-secret"
 
 var (
 	// {swaggerPath: doc Object}
@@ -125,6 +126,12 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 
 	if input.ReadOnly {
 		output.IsReadOnly = input.ReadOnly
+	}
+
+	if isSecretRaw, ok := input.Extensions[msExtensionSecret]; ok && isSecretRaw != nil {
+		if isSecret, ok := isSecretRaw.(bool); ok {
+			output.IsSecret = isSecret
+		}
 	}
 
 	if input.Enum != nil {

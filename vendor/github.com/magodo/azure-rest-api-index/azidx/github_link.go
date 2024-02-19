@@ -1,15 +1,15 @@
 package azidx
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
-	"text/scanner"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-openapi/jsonpointer"
 	"github.com/go-openapi/jsonreference"
+	"github.com/magodo/jsonpointerpos"
 )
 
 func BuildGithubLink(ref jsonreference.Ref, commit, specdir string) (string, error) {
@@ -36,17 +36,13 @@ func BuildGithubLink(ref jsonreference.Ref, commit, specdir string) (string, err
 	if err != nil {
 		return "", err
 	}
-	offset, err := JSONPointerOffset(*ref.GetPointer(), string(b))
+
+	m, err := jsonpointerpos.GetPositions(string(b), []jsonpointer.Pointer{*ref.GetPointer()})
 	if err != nil {
 		return "", err
 	}
-	var sc scanner.Scanner
-	sc.Init(bytes.NewBuffer(b))
-	fmt.Println(offset)
-	for i := 0; i < int(offset); i++ {
-		sc.Next()
-	}
-	pos := sc.Pos()
+
+	pos := m[ref.GetPointer().String()]
 
 	specdir, err = filepath.Abs(specdir)
 	if err != nil {

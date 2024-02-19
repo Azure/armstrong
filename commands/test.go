@@ -40,7 +40,7 @@ func (c *TestCommand) flags() *flag.FlagSet {
 
 func (c TestCommand) Help() string {
 	helpText := `
-Usage: armstrong test [-v] [-working-dir <path to Terraform configuration files>]
+Usage: armstrong test [-v] [-working-dir <path to Terraform configuration files>] [-swagger <path/dir to the swagger files>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)

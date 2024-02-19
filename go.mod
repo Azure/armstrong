@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.10.1
 	github.com/hashicorp/terraform-exec v0.15.0
 	github.com/hashicorp/terraform-json v0.13.0
-	github.com/magodo/azure-rest-api-index v0.0.0-20230522080218-497fe558c02f
+	github.com/magodo/azure-rest-api-index v0.0.0-20240102032334-6c70ea7b6b9f
 	github.com/mitchellh/cli v1.1.2
 	github.com/ms-henglu/pal v0.4.1
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
@@ -51,9 +51,9 @@ require (
 	github.com/go-git/go-git/v5 v5.6.1 // indirect
 	github.com/go-openapi/analysis v0.21.4 // indirect
 	github.com/go-openapi/errors v0.20.2 // indirect
-	github.com/go-openapi/jsonpointer v0.19.5 // indirect
+	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/strfmt v0.21.3 // indirect
-	github.com/go-openapi/swag v0.21.1 // indirect
+	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -76,8 +76,9 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/magodo/armid v0.0.0-20230511151020-27880e5961c3 // indirect
+	github.com/magodo/jsonpointerpos v0.0.0-20230616092109-ca8d78efc96d // indirect
 	github.com/magodo/workerpool v0.0.0-20230119025400-40192d2716ea // indirect
-	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -106,5 +107,4 @@ require (
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

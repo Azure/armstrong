@@ -8,28 +8,111 @@ import (
 )
 
 type Model struct {
-	Bool                    *map[string]bool   `json:"Bool,omitempty"`
+	Bool                    *map[string]bool   `json:"Bool,omitempty"` // key is the Enum value, value is coverage status
 	BoolCoveredCount        int                `json:"BoolCoveredCount,omitempty"`
 	CoveredCount            int                `json:"CoveredCount,omitempty"`
 	Discriminator           *string            `json:"Discriminator,omitempty"`
-	Enum                    *map[string]bool   `json:"Enum,omitempty"`
+	Enum                    *map[string]bool   `json:"Enum,omitempty"` // key is the Enum value, value is coverage status
 	EnumCoveredCount        int                `json:"EnumCoveredCount,omitempty"`
 	EnumTotalCount          int                `json:"EnumTotalCount,omitempty"`
 	Format                  *string            `json:"Format,omitempty"`
 	HasAdditionalProperties bool               `json:"HasAdditionalProperties,omitempty"`
-	Identifier              string             `json:"Identifier,omitempty"`
+	Identifier              string             `json:"Identifier,omitempty"` // e.g., #.properties.accessPolicies[].permissions.certificates
 	IsAnyCovered            bool               `json:"IsAnyCovered"`
 	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
+	IsSecret                bool               `json:"IsSecret,omitempty"` // related to x-ms-secret
 	Item                    *Model             `json:"Item,omitempty"`
 	ModelName               string             `json:"ModelName,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
-	Variants                *map[string]*Model `json:"Variants,omitempty"`
-	VariantType             *string            `json:"VariantType,omitempty"`
+	Variants                *map[string]*Model `json:"Variants,omitempty"`    // variant model name is used as key, this may only contains
+	VariantType             *string            `json:"VariantType,omitempty"` // the x-ms-discriminator-value of the variant model if exists, otherwise model name
+}
+
+// CredScan scans the input payload (root) and extract the secret field and value in the secrets map.
+func (m *Model) CredScan(root interface{}, secrets map[string]string) {
+	if root == nil || m == nil || m.IsReadOnly {
+		return
+	}
+
+	// https://pkg.go.dev/encoding/json#Unmarshal
+	switch value := root.(type) {
+	case string:
+
+	case bool:
+
+	case float64:
+
+	case []interface{}:
+		if m.Item == nil {
+			logrus.Errorf("unexpected array in %s\n", m.Identifier)
+		}
+
+		for _, item := range value {
+			m.Item.CredScan(item, secrets)
+		}
+
+	case map[string]interface{}:
+		isMatchProperty := true
+		if m.Discriminator != nil && m.Variants != nil {
+		Loop:
+			for k, v := range value {
+				if k == *m.Discriminator {
+					if m.ModelName == v.(string) {
+						break
+					}
+					if m.VariantType != nil && *m.VariantType == v.(string) {
+						break
+					}
+					if variant, ok := (*m.Variants)[v.(string)]; ok {
+						isMatchProperty = false
+						variant.CredScan(value, secrets)
+
+						break
+					}
+					for _, variant := range *m.Variants {
+						if variant.VariantType != nil && *variant.VariantType == v.(string) {
+							isMatchProperty = false
+							variant.CredScan(value, secrets)
+
+							break Loop
+						}
+					}
+					logrus.Errorf("unexpected variant %s in %s\n", v.(string), m.Identifier)
+				}
+			}
+		}
+
+		if isMatchProperty {
+			for k, v := range value {
+				if m.Properties == nil {
+					if !m.HasAdditionalProperties {
+						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
+					}
+					return
+				}
+				if _, ok := (*m.Properties)[k]; !ok {
+					if !m.HasAdditionalProperties {
+						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
+						return
+					}
+				}
+				if (*m.Properties)[k].IsSecret {
+					secrets[fmt.Sprintf("%v.%v", m.Identifier, k)] = fmt.Sprintf("%v", v)
+				}
+				(*m.Properties)[k].CredScan(v, secrets)
+			}
+		}
+
+	case nil:
+
+	default:
+		logrus.Errorf("unexpect type %T for json unmarshaled value", value)
+	}
 }
 
 func (m *Model) MarkCovered(root interface{}) {
@@ -69,17 +152,21 @@ func (m *Model) MarkCovered(root interface{}) {
 		}
 
 	case map[string]interface{}:
+		// decide to match property or variant
 		isMatchProperty := true
 		if m.Discriminator != nil && m.Variants != nil {
 		Loop:
 			for k, v := range value {
 				if k == *m.Discriminator {
+					// if model name or variant type is matched, then we match the property
 					if m.ModelName == v.(string) {
 						break
 					}
 					if m.VariantType != nil && *m.VariantType == v.(string) {
 						break
 					}
+
+					// either the discriminator value hit the variant model name or variant type, we match the variant
 					if variant, ok := (*m.Variants)[v.(string)]; ok {
 						isMatchProperty = false
 						variant.MarkCovered(value)

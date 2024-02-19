@@ -27,7 +27,8 @@ func TestCoverage_ResourceGroup(t *testing.T) {
 		resourceType: "Microsoft.Resources/resourceGroups@2022-09-01",
 		apiVersion:   "2022-09-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rgName",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "location": "westeurope"
 }`,
 		},
@@ -65,7 +66,8 @@ func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
 		resourceType: "Microsoft.MachineLearningServices/workspaces/jobs",
 		apiVersion:   "2023-06-01-preview",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/jobs/job1",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "description": "string",
         "tags": {
@@ -126,7 +128,8 @@ func TestCoverage_MachineLearningServicesWorkspacesDataVersions(t *testing.T) {
 		resourceType: "Microsoft.MachineLearningServices/workspaces/data/versions",
 		apiVersion:   "2023-06-01-preview",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/data/data1/versions/version1",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "description": "string",
         "tags": {
@@ -164,7 +167,8 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 		resourceType: "Microsoft.Security/deviceSecurityGroups@2019-08-01",
 		apiVersion:   "2019-08-01",
 		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "timeWindowRules": [
             {
@@ -199,7 +203,8 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 		resourceType: "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
 		apiVersion:   "2021-06-30",
 		apiPath:      "/subscriptions/fc04246f-04c5-437e-ac5e-206a19e7193f/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "taskType": "Service.Check.OCI",
         "input": {
@@ -222,7 +227,8 @@ func TestCoverage_DataMigrationTasks(t *testing.T) {
 		resourceType: "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
 		apiVersion:   "2021-06-30",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "taskType": "ConnectToTarget.SqlDb",
         "input": {
@@ -258,7 +264,8 @@ func TestCoverage_KeyVault(t *testing.T) {
 		resourceType: "Microsoft.KeyVault/vaults@2023-02-01",
 		apiVersion:   "2023-02-01",
 		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "location": "westus",
     "properties": {
         "tenantId": "00000000-0000-0000-0000-000000000000",
@@ -336,7 +343,6 @@ func TestCoverage_KeyVault(t *testing.T) {
 	if model.CoveredCount != expected {
 		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
-
 }
 
 func TestCoverage_StorageAccount(t *testing.T) {
@@ -345,7 +351,8 @@ func TestCoverage_StorageAccount(t *testing.T) {
 		resourceType: "Microsoft.Storage/storageAccounts@2022-09-01",
 		apiVersion:   "2022-09-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "sku": {
         "name": "Standard_GRS"
     },
@@ -413,7 +420,8 @@ func TestCoverage_VM(t *testing.T) {
 		resourceType: "Microsoft.Compute/virtualMachines@2023-03-01",
 		apiVersion:   "2023-03-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "location": "westus",
     "properties": {
         "hardwareProfile": {
@@ -475,7 +483,6 @@ func TestCoverage_VM(t *testing.T) {
 	if model.CoveredCount != expected {
 		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
-
 }
 
 func TestCoverage_VNet(t *testing.T) {
@@ -484,7 +491,8 @@ func TestCoverage_VNet(t *testing.T) {
 		resourceType: "Microsoft.Network/virtualNetworks@2023-02-01",
 		apiVersion:   "2023-02-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "addressSpace": {
             "addressPrefixes": [
@@ -522,7 +530,8 @@ func TestCoverage_DataCollectionRule(t *testing.T) {
 		resourceType: "Microsoft.Insights/dataCollectionRules@2022-06-01",
 		apiVersion:   "2022-06-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "location": "westeurope",
     "identity": {
         "type": "UserAssigned",
@@ -840,7 +849,6 @@ func TestCoverage_DataCollectionRule(t *testing.T) {
 	if model.CoveredCount != expected {
 		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
-
 }
 
 func TestCoverage_WebSite(t *testing.T) {
@@ -849,7 +857,8 @@ func TestCoverage_WebSite(t *testing.T) {
 		resourceType: "Microsoft.Web/sites@2022-09-01",
 		apiVersion:   "2022-09-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/testrg123/providers/Microsoft.Web/sites/sitef6141",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "kind": "app",
     "location": "East US",
     "properties": {
@@ -868,7 +877,6 @@ func TestCoverage_WebSite(t *testing.T) {
 	if model.CoveredCount != expected {
 		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
-
 }
 
 func TestCoverage_AKS(t *testing.T) {
@@ -959,7 +967,6 @@ func TestCoverage_AKS(t *testing.T) {
 	if model.CoveredCount != expected {
 		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
-
 }
 
 func TestCoverage_CosmosDB(t *testing.T) {
@@ -968,7 +975,8 @@ func TestCoverage_CosmosDB(t *testing.T) {
 		resourceType: "Microsoft.DocumentDB/databaseAccounts@2023-04-15",
 		apiVersion:   "2023-04-15",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "location": "westus",
     "tags": {},
     "kind": "MongoDB",
@@ -1187,7 +1195,6 @@ func TestCoverage_CosmosDB(t *testing.T) {
 	if v, ok := (*(*(*model.Properties)["properties"].Properties)["ipRules"].Item.Properties)["ipAddressOrRange"]; !ok || v == nil {
 		t.Fatalf("expected ipRules Item ipAddressOrRange, got none")
 	}
-
 }
 
 func TestCoverage_DataFactoryPipelines(t *testing.T) {
@@ -1196,7 +1203,8 @@ func TestCoverage_DataFactoryPipelines(t *testing.T) {
 		apiVersion:   "2018-06-01",
 		resourceType: "Microsoft.DataFactory/factories/pipelines@2018-06-01",
 		apiPath:      "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "activities": [
             {
@@ -1296,7 +1304,8 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		resourceType: "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
 		apiVersion:   "2018-06-01",
 		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
-		rawRequest: []string{`{
+		rawRequest: []string{
+			`{
     "properties": {
         "type": "AzureStorage",
         "typeProperties": {
@@ -1432,7 +1441,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 
 	coverageReport := coverage.CoverageReport{
 		Coverages: map[coverage.ArmResource]*coverage.Model{
-			coverage.ArmResource{
+			{
 				ApiPath: swaggerModel.ApiPath,
 				Type:    tc.resourceType,
 			}: model,
@@ -1461,5 +1470,118 @@ func storeCoverageReport(passReport types.PassReport, coverageReport coverage.Co
 		} else {
 			log.Printf("[INFO] markdown report saved to %s", reportName)
 		}
+	}
+}
+
+func testCredScan(t *testing.T, tc testCase) (*map[string]string, error) {
+	swaggerModel, err := coverage.GetModelInfoFromIndex(
+		tc.apiPath,
+		tc.apiVersion,
+	)
+
+	t.Logf("swaggerModel: %+v", swaggerModel)
+
+	if err != nil {
+		return nil, fmt.Errorf("get model info from index: %+v", err)
+	}
+
+	model, err := coverage.Expand(swaggerModel.ModelName, swaggerModel.SwaggerPath)
+	if err != nil {
+		return nil, fmt.Errorf("expand model: %+v", err)
+	}
+
+	out, err := json.MarshalIndent(model, "", "\t")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("expand model %s", string(out))
+
+	secrets := map[string]string{}
+
+	if len(tc.rawRequest) != 1 {
+		return nil, fmt.Errorf("TestCredScan rawRequest should be of length 1")
+	}
+
+	rq := tc.rawRequest[0]
+	request := map[string]interface{}{}
+	err = json.Unmarshal([]byte(rq), &request)
+	if err != nil {
+		t.Error(err)
+	}
+
+	model.CredScan(request, secrets)
+
+	return &secrets, nil
+}
+
+func TestCredScan(t *testing.T) {
+	tc := testCase{
+		name:         "VM",
+		resourceType: "Microsoft.Compute/virtualMachines@2023-03-01",
+		apiVersion:   "2023-03-01",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
+		rawRequest: []string{
+			`{
+    "location": "westus",
+    "properties": {
+        "hardwareProfile": {
+            "vmSize": "Standard_D4_v3",
+            "vmSizeProperties": {
+                "vCPUsAvailable": 1,
+                "vCPUsPerCore": 1
+            }
+        },
+        "storageProfile": {
+            "imageReference": {
+                "sku": "2016-Datacenter",
+                "publisher": "MicrosoftWindowsServer",
+                "version": "latest",
+                "offer": "WindowsServer"
+            },
+            "osDisk": {
+                "caching": "ReadWrite",
+                "managedDisk": {
+                    "storageAccountType": "Standard_LRS"
+                },
+                "name": "myVMosdisk",
+                "createOption": "FromImage"
+            }
+        },
+        "networkProfile": {
+            "networkInterfaces": [
+                {
+                    "id": "/subscriptions/{subscription-id}/resourceGroups/myResourceGroup/providers/Microsoft.Network/networkInterfaces/{existing-nic-name}",
+                    "properties": {
+                        "primary": true
+                    }
+                }
+            ]
+        },
+        "osProfile": {
+            "adminUsername": "{your-username}",
+            "computerName": "myVM",
+            "adminPassword": "{your-password}"
+        },
+        "diagnosticsProfile": {
+            "bootDiagnostics": {
+                "storageUri": "http://{existing-storage-account-name}.blob.core.windows.net",
+                "enabled": true
+            }
+        },
+        "userData": "U29tZSBDdXN0b20gRGF0YQ=="
+    }
+}`,
+		},
+	}
+
+	secrets, err := testCredScan(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	t.Logf("secrets: %+v", secrets)
+
+	if _, ok := (*secrets)["#.properties.osProfile.adminPassword"]; !ok {
+		t.Fatalf("expected adminPassword to be secrets")
 	}
 }
