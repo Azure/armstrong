@@ -55,3 +55,28 @@ func TestParseVariable(t *testing.T) {
 		}
 	}
 }
+
+func TestParseAzureProvider(t *testing.T) {
+	testFileDir := "testdata/"
+
+	tfFiles, err := hcl.FindTfFiles(testFileDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tfFile := range *tfFiles {
+		f, errs := hcl.ParseHclFile(tfFile)
+		if errs != nil {
+			t.Fatal(errs)
+		}
+
+		azureProviders, errs := hcl.ParseAzureProvider(*f)
+		if errs != nil {
+			t.Fatal(errs)
+		}
+
+		for _, ap := range *azureProviders {
+			t.Logf("%+v", ap)
+		}
+	}
+}

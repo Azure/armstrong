@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	openapispec "github.com/go-openapi/spec"
@@ -22,17 +24,18 @@ const (
 
 var indexCache *azidx.Index
 
-func GetIndexFromLocalDir(swaggerPath string) (*azidx.Index, error) {
+func GetIndexFromLocalDir(swaggerRepo string) (*azidx.Index, error) {
 	if indexCache != nil {
 		return indexCache, nil
 	}
 
-	index, err := azidx.BuildIndex(swaggerPath, "")
+	logrus.Infof("building index from from local swagger %s", swaggerRepo)
+	index, err := azidx.BuildIndex(swaggerRepo, "")
 	if err != nil {
 		logrus.Error(fmt.Sprintf("failed to build index: %+v", err))
 		return nil, err
 	}
-	logrus.Infof("index built on commit %+v", index.Commit)
+	logrus.Infof("index successfully built on commit %+v", index.Commit)
 
 	indexCache = index
 
@@ -105,12 +108,12 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	}
 	ref, err := index.Lookup("PUT", *uRL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
 	}
 
 	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get model %s: %+v", ref, err)
 	}
 	if model.ModelName == "" {
 		return nil, fmt.Errorf("PUT model not found for %s", ref.String())
@@ -119,13 +122,49 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 	return model, nil
 }
 
-// GetModelInfoFromLocalIndex tries to build index from local swagger file and get model info from it
-func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerPath string) (*SwaggerModel, error) {
-	_, err := GetIndexFromLocalDir(swaggerPath)
+// GetModelInfoFromLocalIndex tries to build index from local swagger repo and get model info from it
+func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo string) (*SwaggerModel, error) {
+	swaggerRepo, err := filepath.Abs(swaggerRepo)
 	if err != nil {
-		return nil, fmt.Errorf("build index from local dir %s: %+v", swaggerPath, err)
+		return nil, fmt.Errorf("swagger repo path %q is invalid: %+v", swaggerRepo, err)
 	}
-	return GetModelInfoFromIndex(resourceId, apiVersion)
+
+	if _, err := os.Stat(swaggerRepo); os.IsNotExist(err) {
+		return nil, fmt.Errorf("swagger repo path %q is invalid: path does not exist", swaggerRepo)
+	}
+
+	swaggerRepo = strings.TrimSuffix(swaggerRepo, "/")
+
+	if !strings.HasSuffix(swaggerRepo, "specification") {
+		return nil, fmt.Errorf("swagger repo path %q is invalid: must point to \"specification\", e.g., /home/projects/azure-rest-api-specs/specification", swaggerRepo)
+	}
+
+	swaggerRepo += "/"
+
+	index, err := GetIndexFromLocalDir(swaggerRepo)
+	if err != nil {
+		return nil, fmt.Errorf("build index from local dir %s: %+v", swaggerRepo, err)
+	}
+
+	resourceURL := fmt.Sprintf("https://management.azure.com%s?api-version=%s", resourceId, apiVersion)
+	uRL, err := url.Parse(resourceURL)
+	if err != nil {
+		return nil, fmt.Errorf("parsing URL %s: %+v", resourceURL, err)
+	}
+	ref, err := index.Lookup("PUT", *uRL)
+	if err != nil {
+		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
+	}
+
+	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, swaggerRepo)
+	if err != nil {
+		return nil, fmt.Errorf("get model %s: %+v", ref, err)
+	}
+	if model.ModelName == "" {
+		return nil, fmt.Errorf("PUT model not found for %s", ref.String())
+	}
+
+	return model, nil
 }
 
 func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*SwaggerModel, error) {

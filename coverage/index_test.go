@@ -1,6 +1,8 @@
 package coverage_test
 
 import (
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/ms-henglu/armstrong/coverage"
@@ -81,5 +83,37 @@ func TestGetModelInfoFromIndexWithType_DeviceSecurityGroups(t *testing.T) {
 	expectedApiPath := "/{resourceId}/providers/Microsoft.Security/deviceSecurityGroups/{deviceSecurityGroupName}"
 	if swaggerModel.ApiPath != expectedApiPath {
 		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
+	}
+}
+
+func TestGetModelInfoFromLocalIndex_DataCollectionRule(t *testing.T) {
+	azureRepoDir := os.Getenv("AZURE_REST_REPO_DIR")
+	if azureRepoDir == "" {
+		t.Skip("AZURE_REST_REPO_DIR is not set")
+	}
+
+	apiVersion := "2022-06-01"
+	swaggerModel, err := coverage.GetModelInfoFromLocalIndex(
+		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
+		apiVersion,
+		azureRepoDir,
+	)
+	if err != nil {
+		t.Fatalf("get model info from index error: %+v", err)
+	}
+
+	expectedApiPath := "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/dataCollectionRules/{dataCollectionRuleName}"
+	if swaggerModel.ApiPath != expectedApiPath {
+		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
+	}
+
+	expectedModelName := "DataCollectionRuleResource"
+	if swaggerModel.ModelName != expectedModelName {
+		t.Fatalf("expected modelName %s, got %s", expectedModelName, swaggerModel.ModelName)
+	}
+
+	expectedModelSwaggerPathSuffix := "/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/dataCollectionRules_API.json"
+	if !strings.HasSuffix(swaggerModel.SwaggerPath, expectedModelSwaggerPathSuffix) {
+		t.Fatalf("expected modelSwaggerPath has suffix %s, got %s", expectedModelSwaggerPathSuffix, swaggerModel.SwaggerPath)
 	}
 }
