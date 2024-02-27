@@ -698,6 +698,23 @@ resource "azapi_resource" "kafkaConfiguration" {
      **/terraform/**/traces
      **/terraform/**/log.txt
      ```
+  
+  8. Q: How to run Armstrong test in internal environments?
+
+      A: You could use provider's `endpoint` argument to specify the endpoint of the internal environment. For example:
+
+      ```hcl
+      provider "azapi" {
+        endpoint {
+          resource_manager_endpoint = "https://management.azure.com/"
+          resource_manager_audience = "https://management.core.windows.net/"
+          active_directory_authority_host = "https://login.microsoftonline.com"
+        }
+      }
+      ```
+      More details about this argument could be found [here](https://registry.terraform.io/providers/Azure/azapi/latest/docs#endpoint).
+
+      Note: if you use the azure cli to authenticate with azure, you need to configure the same endpoint in the azure cli. More details could be found [here](https://learn.microsoft.com/en-us/cli/azure/cloud?view=azure-cli-latest).
 
 ## Samples
 
