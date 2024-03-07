@@ -6,8 +6,36 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  features {}
+  client_id            = "00000000-0000-0000-0000-000000000000"
+  client_secret        = var.client_secret
+  auxiliary_tenant_ids = ["00000000-0000-0000-0000-000000000000", var.another_tenant_id]
+}
+
 provider "azapi" {
   skip_provider_registration = false
+  auxiliary_tenant_ids       = var.auxiliary_tenant_ids
+  oidc_token                 = var.oidc_token
+}
+
+variable "oidc_token" {
+  sensitive = true
+}
+
+variable "another_tenant_id" {
+  type      = string
+  default   = "00000000-0000-0000-0000-000000000000"
+  sensitive = true
+}
+
+variable "auxiliary_tenant_ids" {
+  default = ["00000000-0000-0000-0000-000000000000"]
+}
+
+variable "client_secret" {
+  type    = string
+  default = "0000000"
 }
 
 variable "resource_name" {
