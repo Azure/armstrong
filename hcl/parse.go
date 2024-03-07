@@ -420,7 +420,7 @@ func skipJustAttributesDiags(diags hcl.Diagnostics) hcl.Diagnostics {
 	result := hcl.Diagnostics{}
 	for _, diag := range diags {
 		if !regexp.MustCompile(BlockNotAllowed).MatchString(diag.Error()) {
-			result.Append(diag)
+			result = result.Append(diag)
 		}
 	}
 
