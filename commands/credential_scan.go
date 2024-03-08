@@ -270,10 +270,10 @@ func (c CredentialScanCommand) Execute() int {
 		logrus.Infof("find secrets for azapi_resource.%s(%s): %+v", azapiResource.Name, azapiResource.Type, secrets)
 
 		for k, v := range secrets {
-			if !strings.HasPrefix(v, "$var.") {
+			if !strings.HasPrefix(v, "$") || strings.HasPrefix(v, "$local.") {
 				credScanErr := makeCredScanError(
 					azapiResource,
-					"must use variable for secret field",
+					"cannot use plain text or 'local' for secret, use 'variable' instead",
 					k,
 				)
 				credScanErrors = append(credScanErrors, credScanErr)
@@ -282,39 +282,41 @@ func (c CredentialScanCommand) Execute() int {
 				continue
 			}
 
-			varName := strings.TrimPrefix(v, "$var.")
-			varName = strings.Split(varName, ".")[0]
-			theVar, ok := vars[varName]
-			if !ok {
-				credScanErr := makeCredScanError(
-					azapiResource,
-					fmt.Sprintf("variable %q was not found", varName),
-					k,
-				)
-				credScanErrors = append(credScanErrors, credScanErr)
-				logrus.Error(credScanErr)
+			if strings.HasPrefix(v, "$var.") {
+				varName := strings.TrimPrefix(v, "$var.")
+				varName = strings.Split(varName, ".")[0]
+				theVar, ok := vars[varName]
+				if !ok {
+					credScanErr := makeCredScanError(
+						azapiResource,
+						fmt.Sprintf("variable %q was not found", varName),
+						k,
+					)
+					credScanErrors = append(credScanErrors, credScanErr)
+					logrus.Error(credScanErr)
 
-				continue
-			}
+					continue
+				}
 
-			if theVar.HasDefault {
-				credScanErr := makeCredScanError(
-					azapiResource,
-					fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
-					k,
-				)
-				credScanErrors = append(credScanErrors, credScanErr)
-				logrus.Error(credScanErr)
-			}
+				if theVar.HasDefault {
+					credScanErr := makeCredScanError(
+						azapiResource,
+						fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
+						k,
+					)
+					credScanErrors = append(credScanErrors, credScanErr)
+					logrus.Error(credScanErr)
+				}
 
-			if !theVar.IsSensitive {
-				credScanErr := makeCredScanError(
-					azapiResource,
-					fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
-					k,
-				)
-				credScanErrors = append(credScanErrors, credScanErr)
-				logrus.Error(credScanErr)
+				if !theVar.IsSensitive {
+					credScanErr := makeCredScanError(
+						azapiResource,
+						fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
+						k,
+					)
+					credScanErrors = append(credScanErrors, credScanErr)
+					logrus.Error(credScanErr)
+				}
 			}
 		}
 	}
@@ -413,10 +415,10 @@ func storeCredScanErrors(wd string, credScanErrors []CredScanError) {
 func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, propertyValue string, vars map[string]hcl.Variable) []CredScanError {
 	credScanErrors := make([]CredScanError, 0)
 
-	if !strings.HasPrefix(propertyValue, "$var.") {
+	if !strings.HasPrefix(propertyValue, "$") || strings.HasPrefix(propertyValue, "$local.") {
 		credScanErr := makeCredScanErrorForProvider(
 			azureProvider,
-			"must use variable for secret field",
+			"cannot use plain text or 'local' for secret, use 'variable' instead",
 			propertyName,
 		)
 		credScanErrors = append(credScanErrors, credScanErr)
@@ -425,39 +427,41 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 		return credScanErrors
 	}
 
-	varName := strings.TrimPrefix(propertyValue, "$var.")
-	varName = strings.Split(varName, ".")[0]
-	theVar, ok := vars[varName]
-	if !ok {
-		credScanErr := makeCredScanErrorForProvider(
-			azureProvider,
-			fmt.Sprintf("variable %q was not found", varName),
-			propertyName,
-		)
-		credScanErrors = append(credScanErrors, credScanErr)
-		logrus.Error(credScanErr)
+	if strings.HasPrefix(propertyValue, "$var.") {
+		varName := strings.TrimPrefix(propertyValue, "$var.")
+		varName = strings.Split(varName, ".")[0]
+		theVar, ok := vars[varName]
+		if !ok {
+			credScanErr := makeCredScanErrorForProvider(
+				azureProvider,
+				fmt.Sprintf("variable %q was not found", varName),
+				propertyName,
+			)
+			credScanErrors = append(credScanErrors, credScanErr)
+			logrus.Error(credScanErr)
 
-		return credScanErrors
-	}
+			return credScanErrors
+		}
 
-	if theVar.HasDefault {
-		credScanErr := makeCredScanErrorForProvider(
-			azureProvider,
-			fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
-			propertyName,
-		)
-		credScanErrors = append(credScanErrors, credScanErr)
-		logrus.Error(credScanErr)
-	}
+		if theVar.HasDefault {
+			credScanErr := makeCredScanErrorForProvider(
+				azureProvider,
+				fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
+				propertyName,
+			)
+			credScanErrors = append(credScanErrors, credScanErr)
+			logrus.Error(credScanErr)
+		}
 
-	if !theVar.IsSensitive {
-		credScanErr := makeCredScanErrorForProvider(
-			azureProvider,
-			fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
-			propertyName,
-		)
-		credScanErrors = append(credScanErrors, credScanErr)
-		logrus.Error(credScanErr)
+		if !theVar.IsSensitive {
+			credScanErr := makeCredScanErrorForProvider(
+				azureProvider,
+				fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
+				propertyName,
+			)
+			credScanErrors = append(credScanErrors, credScanErr)
+			logrus.Error(credScanErr)
+		}
 	}
 
 	return credScanErrors

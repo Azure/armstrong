@@ -107,14 +107,28 @@ type Variable struct {
 func mockVariables(traversals []hcl.Traversal) map[string]cty.Value {
 	const variablePrefix = "$"
 
-	ret := make(map[string]cty.Value)
+	result := make(map[string]cty.Value)
 	for _, traversal := range traversals {
-		for k, v := range mockVariable(traversal, 0, variablePrefix) {
-			ret[k] = v
-		}
+		mockedVariable := mockVariable(traversal, 0, variablePrefix)
+		result = mergeKeys(result, mockedVariable)
 	}
 
-	return ret
+	return result
+}
+
+func mergeKeys(left, right map[string]cty.Value) map[string]cty.Value {
+	for key, rightVal := range right {
+		if leftVal, present := left[key]; present {
+			if leftVal.Type().IsObjectType() && rightVal.Type().IsObjectType() {
+				left[key] = cty.ObjectVal(mergeKeys(leftVal.AsValueMap(), rightVal.AsValueMap()))
+			} else {
+				left[key] = rightVal
+			}
+		} else {
+			left[key] = rightVal
+		}
+	}
+	return left
 }
 
 // one hcl.Traversal corresponds to one reference
