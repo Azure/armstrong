@@ -1,3 +1,10 @@
+## v0.13.0
+FEATURES:
+- Support `credscan` command to scan the credentials in the testing configuration files.
+
+ENHANCEMENTS:
+- Update mapping of azurerm v3.95.0
+
 ## v0.12.1
 BUG FIXES:
 - Fix the bug that resource types with same name but different casing are not handled correctly.
