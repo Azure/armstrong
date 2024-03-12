@@ -31,6 +31,7 @@ Usage: armstrong [--version] [--help] <command> [<args>]
 
 Available commands are:
 cleanup     Clean up dependencies and testing resource
+credscan    Scan the credential in given Terraform configuration
 generate    Generate testing files including terraform configuration for dependencies and testing resource.
 test        Update dependencies for tests and run tests
 validate    Generates a speculative execution plan, showing what actions Terraform would take to apply the current configuration
@@ -135,6 +136,21 @@ armstrong report -swagger {path/dir to swagger spec}
 Supported options:
 1. `-working-dir`: Specify the working directory which stores the output config, default is current directory.
 2. `-swagger`: Specify the swagger file path or directory path.
+
+### credscan - Scan the credentials in the testing configuration files
+
+```shell
+armstrong credscan
+```
+
+Supported options:
+1. `-working-dir`: Specify the working directory containing Terraform config files, default is current directory.
+2. `-swagger-repo`: Specify the swagger repo path used to match credentials, omit this will use the online swagger repo.
+2. `-v`: Enable verbose mode, default is false.
+
+Armstrong also output different kinds of reports:
+1. `errors.json`: A json report which contains scan errors.
+2. `errors.md`: A markdown report which contains scan errors.
 
 ## How to use?
 1. Install this tool: `go install github.com/ms-henglu/armstrong`, or download it from [releases](https://github.com/ms-henglu/armstrong/releases).
