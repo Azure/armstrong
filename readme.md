@@ -33,6 +33,7 @@ Available commands are:
 cleanup     Clean up dependencies and testing resource
 credscan    Scan the credential in given Terraform configuration
 generate    Generate testing files including terraform configuration for dependencies and testing resource.
+report      Generate test report for a set of test results
 test        Update dependencies for tests and run tests
 validate    Generates a speculative execution plan, showing what actions Terraform would take to apply the current configuration
 ```
@@ -175,6 +176,7 @@ Armstrong also output different kinds of reports:
     A: If using `test` command, resources won't be removed after testing, user must use `cleanup` command to remove these resources.
 
 3. Q: If some properties are on purpose missing from API response, how to skip this in test validation?
+
    A: You can modify the `testing.tf` to add `ignore_missing_property = true` in target `azapi_resource`, you may also add justification in comment, e.g.: 
 
   ```hcl
