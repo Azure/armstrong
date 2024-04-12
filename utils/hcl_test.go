@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/azure/armstrong/utils"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
