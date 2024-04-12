@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/resource"
+	"github.com/azure/armstrong/resource"
 )
 
 func Test_NewContextInit(t *testing.T) {

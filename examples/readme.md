@@ -6,7 +6,7 @@ This is an example of testing the API which manages `Microsoft.DBforPostgreSQL/s
 
 This example demonstrates how to test the API which has a dependency on itself.
 
-More details can be found [here](https://github.com/ms-henglu/armstrong/tree/main/examples/Microsoft.DBforPostgreSQL_serverGroupsv2%402022-11-08).
+More details can be found [here](https://github.com/azure/armstrong/tree/main/examples/Microsoft.DBforPostgreSQL_serverGroupsv2%402022-11-08).
 
 ## Example 2
 
@@ -14,7 +14,7 @@ This is an example of testing the API which manages `Microsoft.Network/virtualHu
 
 This example demonstrates how to fix the configuration and continue the test when encounter errors.
 
-More details can be found [here](https://github.com/ms-henglu/armstrong/tree/main/examples/Microsoft.Network_virtualHubs_routeMaps%402022-07-01).
+More details can be found [here](https://github.com/azure/armstrong/tree/main/examples/Microsoft.Network_virtualHubs_routeMaps%402022-07-01).
 
 ## Example 3
 
@@ -22,8 +22,8 @@ This is an example of testing the API which manages `Microsoft.Insights/dataColl
 
 This example demonstrates how to test the API which has a implicit dependency.
 
-More details can be found [here](https://github.com/ms-henglu/armstrong/tree/main/examples/Microsoft.Insights_dataCollectionRules%402022-06-01).
+More details can be found [here](https://github.com/azure/armstrong/tree/main/examples/Microsoft.Insights_dataCollectionRules%402022-06-01).
 
 ## Other examples
 
-There're some examples in the [demo folder](https://github.com/ms-henglu/armstrong/tree/main/examples/demo). These examples are used to demonstrate how to use `armstrong` to test ARM API. 
+There're some examples in the [demo folder](https://github.com/azure/armstrong/tree/main/examples/demo). These examples are used to demonstrate how to use `armstrong` to test ARM API. 

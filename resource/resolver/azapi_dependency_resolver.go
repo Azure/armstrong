@@ -3,7 +3,7 @@ package resolver
 import (
 	"strings"
 
-	"github.com/ms-henglu/armstrong/dependency"
+	"github.com/azure/armstrong/dependency"
 	"github.com/sirupsen/logrus"
 )
 

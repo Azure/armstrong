@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/report"
+	"github.com/azure/armstrong/report"
 	"github.com/sirupsen/logrus"
 )
 

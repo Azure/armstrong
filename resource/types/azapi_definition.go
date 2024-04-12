@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ms-henglu/armstrong/hcl"
+	"github.com/azure/armstrong/hcl"
 )
 
 type AzapiDefinition struct {

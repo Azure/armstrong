@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/armstrong/utils"
+	"github.com/azure/armstrong/utils"
 )
 
 func Test_IsResourceId(t *testing.T) {

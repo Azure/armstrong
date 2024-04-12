@@ -2,7 +2,7 @@ package utils_test
 
 import (
 	"encoding/json"
-	"github.com/ms-henglu/armstrong/utils"
+	"github.com/azure/armstrong/utils"
 	"testing"
 )
 

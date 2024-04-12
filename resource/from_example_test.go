@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/resource"
-	"github.com/ms-henglu/armstrong/resource/types"
+	"github.com/azure/armstrong/resource"
+	"github.com/azure/armstrong/resource/types"
 )
 
 func Test_NewAzapiDefinitionFromExample(t *testing.T) {

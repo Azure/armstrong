@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/armstrong/resource/types"
+	"github.com/azure/armstrong/resource/types"
 )
 
 func Test_AzapiDefinitionString(t *testing.T) {

@@ -3,7 +3,7 @@ package hcl_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/armstrong/hcl"
+	"github.com/azure/armstrong/hcl"
 )
 
 func TestParseAzapiResource(t *testing.T) {

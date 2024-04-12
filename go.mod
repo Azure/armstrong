@@ -1,4 +1,4 @@
-module github.com/ms-henglu/armstrong
+module github.com/azure/armstrong
 
 go 1.20
 

@@ -5,8 +5,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/commands"
-	"github.com/ms-henglu/armstrong/tf"
+	"github.com/azure/armstrong/commands"
+	"github.com/azure/armstrong/tf"
 )
 
 func TestGenerateCommand_multiple(t *testing.T) {

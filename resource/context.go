@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/azure/armstrong/dependency"
+	"github.com/azure/armstrong/resource/resolver"
+	"github.com/azure/armstrong/resource/types"
+	"github.com/azure/armstrong/utils"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/ms-henglu/armstrong/dependency"
-	"github.com/ms-henglu/armstrong/resource/resolver"
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/zclconf/go-cty/cty"
 )

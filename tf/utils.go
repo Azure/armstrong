@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/azure/armstrong/coverage"
+	"github.com/azure/armstrong/types"
+	"github.com/azure/armstrong/utils"
 	tfjson "github.com/hashicorp/terraform-json"
-	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/types"
-	"github.com/ms-henglu/armstrong/utils"
 	paltypes "github.com/ms-henglu/pal/types"
 	"github.com/sirupsen/logrus"
 )

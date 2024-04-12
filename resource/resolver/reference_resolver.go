@@ -1,9 +1,9 @@
 package resolver
 
 import (
+	"github.com/azure/armstrong/dependency"
+	"github.com/azure/armstrong/resource/types"
 	"github.com/gertd/go-pluralize"
-	"github.com/ms-henglu/armstrong/dependency"
-	"github.com/ms-henglu/armstrong/resource/types"
 )
 
 var pluralizeClient = pluralize.NewClient()

@@ -5,7 +5,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/swagger"
+	"github.com/azure/armstrong/swagger"
 )
 
 func Test_LoadSwagger(t *testing.T) {

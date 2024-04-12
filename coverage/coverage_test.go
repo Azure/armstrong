@@ -8,9 +8,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/report"
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/coverage"
+	"github.com/azure/armstrong/report"
+	"github.com/azure/armstrong/types"
 )
 
 type testCase struct {

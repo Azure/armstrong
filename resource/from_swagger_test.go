@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/resource"
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/swagger"
+	"github.com/azure/armstrong/resource"
+	"github.com/azure/armstrong/resource/types"
+	"github.com/azure/armstrong/swagger"
 )
 
 func Test_Format(t *testing.T) {

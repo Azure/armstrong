@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/dependency"
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/utils"
+	"github.com/azure/armstrong/dependency"
+	"github.com/azure/armstrong/resource/types"
+	"github.com/azure/armstrong/utils"
 )
 
 var _ ReferenceResolver = &ProviderIDResolver{}

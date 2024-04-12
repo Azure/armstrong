@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/tf"
+	"github.com/azure/armstrong/tf"
 	"github.com/sirupsen/logrus"
 )
 

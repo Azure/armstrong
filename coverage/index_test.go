@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/coverage"
+	"github.com/azure/armstrong/coverage"
 )
 
 func TestGetModelInfoFromIndex_DataCollectionRule(t *testing.T) {

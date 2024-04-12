@@ -5,7 +5,7 @@ import (
 	paltypes "github.com/ms-henglu/pal/types"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/types"
 )
 
 //go:embed error_report.md
