@@ -2,9 +2,9 @@ package resolver
 
 import (
 	"strings"
-	
-	"github.com/ms-henglu/armstrong/dependency"
-	"github.com/ms-henglu/armstrong/resource/types"
+
+	"github.com/azure/armstrong/dependency"
+	"github.com/azure/armstrong/resource/types"
 )
 
 var _ ReferenceResolver = &AzapiDefinitionResolver{}

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/azure/armstrong/utils"
 	openapispec "github.com/go-openapi/spec"
-	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 )
 

@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/types"
 	paltypes "github.com/ms-henglu/pal/types"
 )
 

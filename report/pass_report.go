@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/coverage"
+	"github.com/azure/armstrong/types"
 )
 
 //go:embed pass_report.md

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/ms-henglu/armstrong/utils"
+	"github.com/azure/armstrong/utils"
 )
 
 type Pattern struct {

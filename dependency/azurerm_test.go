@@ -3,7 +3,7 @@ package dependency_test
 import (
 	"testing"
 
-	"github.com/ms-henglu/armstrong/dependency"
+	"github.com/azure/armstrong/dependency"
 )
 
 func Test_LoadAzurermDependencies(t *testing.T) {

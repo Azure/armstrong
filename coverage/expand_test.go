@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/azure/armstrong/coverage"
 	"github.com/go-openapi/jsonreference"
 	openapispec "github.com/go-openapi/spec"
-	"github.com/ms-henglu/armstrong/coverage"
 )
 
 func TestExpand_MediaTransform(t *testing.T) {

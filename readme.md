@@ -13,7 +13,7 @@ For ARM review, please refer to [guidance for API test](./docs/guidance-for-api-
 
 #### Install from the binary:
 
-1. Download the binary from [releases](https://github.com/ms-henglu/armstrong/releases).
+1. Download the binary from [releases](https://github.com/azure/armstrong/releases).
 
 2. It's recommended to add the directory containing the binary to your `PATH`, so that you can run `armstrong` directly.
 
@@ -21,7 +21,7 @@ For ARM review, please refer to [guidance for API test](./docs/guidance-for-api-
 
 1. Install [Go](https://golang.org/doc/install).
 
-2. Run `go install github.com/ms-henglu/armstrong@latest` to install the latest version.
+2. Run `go install github.com/azure/armstrong@latest` to install the latest version.
 
 3. It's recommended to add `$GOPATH/bin` to your `PATH`, so that you can run `armstrong` directly.
 
@@ -154,7 +154,7 @@ Armstrong also output different kinds of reports:
 2. `errors.md`: A markdown report which contains scan errors.
 
 ## How to use?
-1. Install this tool: `go install github.com/ms-henglu/armstrong`, or download it from [releases](https://github.com/ms-henglu/armstrong/releases).
+1. Install this tool: `go install github.com/azure/armstrong`, or download it from [releases](https://github.com/azure/armstrong/releases).
 2. Generate terraform files and Test
     1. Generate testing files by running `armstrong generate -path {path to a swagger 'Create' example}`.
         Here's an example:

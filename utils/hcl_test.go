@@ -3,9 +3,9 @@ package utils_test
 import (
 	"testing"
 
+	"github.com/azure/armstrong/utils"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/ms-henglu/armstrong/utils"
 )
 
 func Test_TypeValue(t *testing.T) {

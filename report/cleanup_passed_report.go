@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/types"
 )
 
 //go:embed cleanup_passed_report.md

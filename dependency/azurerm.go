@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ms-henglu/armstrong/dependency/azurerm"
+	"github.com/azure/armstrong/dependency/azurerm"
 )
 
 var azurermMutex = sync.Mutex{}

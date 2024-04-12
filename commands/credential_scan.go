@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ms-henglu/armstrong/coverage"
-	"github.com/ms-henglu/armstrong/hcl"
+	"github.com/azure/armstrong/coverage"
+	"github.com/azure/armstrong/hcl"
 	"github.com/sirupsen/logrus"
 )
 

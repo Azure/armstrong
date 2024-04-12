@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/utils"
+	"github.com/azure/armstrong/resource/types"
+	"github.com/azure/armstrong/utils"
 	"github.com/sirupsen/logrus"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ms-henglu/armstrong/tf"
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/tf"
+	"github.com/azure/armstrong/types"
 )
 
 func Test_NewErrorReport(t *testing.T) {

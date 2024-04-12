@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ms-henglu/armstrong/report"
-	"github.com/ms-henglu/armstrong/tf"
-	"github.com/ms-henglu/armstrong/types"
+	"github.com/azure/armstrong/report"
+	"github.com/azure/armstrong/tf"
+	"github.com/azure/armstrong/types"
 	"github.com/ms-henglu/pal/trace"
 	"github.com/sirupsen/logrus"
 )

@@ -7,7 +7,7 @@ This [video](https://microsoftapc-my.sharepoint.com/:v:/g/personal/henglu_micros
 ## Prerequisites
 
 1. [Install](https://github.com/Azure/oav#how-to-install-the-tool) the latest oav
-2. [Install](https://github.com/ms-henglu/armstrong#install) the latest armstrong
+2. [Install](https://github.com/azure/armstrong#install) the latest armstrong
 3. Prepare the swagger definitions and examples that you need to test
 
 ## Step-By-Step
@@ -68,7 +68,7 @@ It also supports to specify the directory where the swagger json file resides in
 armstrong generate -swagger ..
 ```
 
-More details about the usage of `armstrong generate` can be found [here](https://github.com/ms-henglu/armstrong#generate---generate-testing-files).
+More details about the usage of `armstrong generate` can be found [here](https://github.com/azure/armstrong#generate---generate-testing-files).
 
 Then the test cases will be generated in the folder. The test case folder name is in the format of `{provider}_{resourceType}`. For example, the test case folder name for `Microsoft.Purview/accounts` is `Microsoft.Purview_accounts`.
 The folder structure will look like below:
@@ -228,7 +228,7 @@ The following command generates a speculative execution plan, showing what actio
 armstrong validate
 ```
 
-More details about the usage of `armstrong validate` can be found [here](https://github.com/ms-henglu/armstrong#validate---validate-the-changes).
+More details about the usage of `armstrong validate` can be found [here](https://github.com/azure/armstrong#validate---validate-the-changes).
 
 4. Test the test case.
 
@@ -242,7 +242,7 @@ armstrong test -swagger ../.. --destroy-after-test
 
 Above command uses a relative path to the directory where the swagger json file resides in.
 
-More details about the usage of `armstrong test` can be found [here](https://github.com/ms-henglu/armstrong#test---run-tests).
+More details about the usage of `armstrong test` can be found [here](https://github.com/azure/armstrong#test---run-tests).
 
 5. Check the output.
 
@@ -302,7 +302,7 @@ armstrong report -swagger ..
 
 Above command uses a relative path to the directory where the swagger json file resides in.
 
-More details about the usage of `armstrong report` can be found [here](https://github.com/ms-henglu/armstrong#report---generate-a-summary-report).
+More details about the usage of `armstrong report` can be found [here](https://github.com/azure/armstrong#report---generate-a-summary-report).
 
 If it runs successfully, the summary reports will be generated in `ArmstrongReport` folder. The folder structure will look like below:
 
@@ -718,4 +718,4 @@ resource "azapi_resource" "kafkaConfiguration" {
 
 ## Samples
 
-Please refer to the [sample repo](https://github.com/ms-henglu/armstrong-demo) for more details.
+Please refer to the [sample repo](https://github.com/azure/armstrong-demo) for more details.

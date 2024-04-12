@@ -9,7 +9,7 @@ Command
 
 Logs
 
-1. Genreate testing files, [dependency.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/demos/case2%20-%20found%20API%20bug/dependency.tf) and [testing.tf](https://github.com/ms-henglu/armstrong/blob/master/examples/demos/case2%20-%20found%20API%20bug/testing.tf).
+1. Genreate testing files, [dependency.tf](https://github.com/azure/armstrong/blob/master/examples/demos/case2%20-%20found%20API%20bug/dependency.tf) and [testing.tf](https://github.com/azure/armstrong/blob/master/examples/demos/case2%20-%20found%20API%20bug/testing.tf).
 ```
 2021/11/24 13:42:17 [INFO] command: auto, args: [C:\Users\henglu\go\src\github.com\Azure\azure-rest-api-specs\specification\appplatform\resource-manager\Microsoft.AppPlatform\stable\2020-07-01\examples\Apps_CreateOrUpdate.json]       
 2021/11/24 13:42:17 [INFO] ----------- generate dependency and test resource ---------

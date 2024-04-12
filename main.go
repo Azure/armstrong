@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/azure/armstrong/commands"
 	"github.com/mitchellh/cli"
-	"github.com/ms-henglu/armstrong/commands"
 	"github.com/sirupsen/logrus"
 )
 

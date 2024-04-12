@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/azure/armstrong/utils"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
-	"github.com/ms-henglu/armstrong/utils"
 	"golang.org/x/exp/slices"
 )
 

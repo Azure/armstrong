@@ -9,10 +9,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/azure/armstrong/resource/types"
+	"github.com/azure/armstrong/swagger"
+	"github.com/azure/armstrong/utils"
 	pluralize "github.com/gertd/go-pluralize"
-	"github.com/ms-henglu/armstrong/resource/types"
-	"github.com/ms-henglu/armstrong/swagger"
-	"github.com/ms-henglu/armstrong/utils"
 	"github.com/sirupsen/logrus"
 	_ "golang.org/x/text/cases"
 )
