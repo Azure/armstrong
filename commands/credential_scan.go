@@ -17,23 +17,25 @@ import (
 )
 
 type CredentialScanCommand struct {
-	workingDir      string
-	swaggerRepoPath string
-	verbose         bool
+	workingDir       string
+	swaggerRepoPath  string
+	swaggerIndexFile string
+	verbose          bool
 }
 
 func (c *CredentialScanCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
-	fs.StringVar(&c.workingDir, "working-dir", "", "path to Terraform configuration files")
+	fs.StringVar(&c.workingDir, "working-dir", "", "path to directory containing Terraform configuration files")
 	fs.StringVar(&c.swaggerRepoPath, "swagger-repo", "", "path to the swagger repo specification directory")
+	fs.StringVar(&c.swaggerIndexFile, "swagger-index-file", "", "path to the swagger index file, omit this will use the online swagger index file or locally build index")
 	fs.Usage = func() { logrus.Error(c.Help()) }
 	return fs
 }
 
 func (c CredentialScanCommand) Help() string {
 	helpText := `
-Usage: armstrong credscan [-v] [-working-dir <path to directory containing Terraform configuration files>] [-swagger-repo <path to the swagger repo specification directory>]
+Usage: armstrong credscan [-v] [-working-dir <path to directory containing Terraform configuration files>] [-swagger-repo <path to the swagger repo specification directory>] [-swagger-index-file <path to the swagger index file>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -90,6 +92,17 @@ func (c CredentialScanCommand) Execute() int {
 		}
 
 		c.swaggerRepoPath += "/"
+	}
+	if c.swaggerIndexFile != "" {
+		c.swaggerIndexFile, err = filepath.Abs(c.swaggerIndexFile)
+		if err != nil {
+			logrus.Errorf("swagger index file path %q is invalid: %+v", c.swaggerIndexFile, err)
+			return 1
+		}
+
+		if _, err := os.Stat(c.swaggerIndexFile); os.IsNotExist(err) {
+			logrus.Infof("swagger index file %q does not exist, will try to build or download index", c.swaggerIndexFile)
+		}
 	}
 
 	tfFiles, err := hcl.FindTfFiles(wd)
@@ -210,7 +223,7 @@ func (c CredentialScanCommand) Execute() int {
 		var swaggerModel *coverage.SwaggerModel
 		if c.swaggerRepoPath != "" {
 			logrus.Infof("scan based on local swagger repo: %s", c.swaggerRepoPath)
-			swaggerModel, err = coverage.GetModelInfoFromLocalIndex(mockedResourceId, apiVersion, c.swaggerRepoPath)
+			swaggerModel, err = coverage.GetModelInfoFromLocalIndex(mockedResourceId, apiVersion, c.swaggerRepoPath, c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
 					azapiResource,
@@ -223,7 +236,7 @@ func (c CredentialScanCommand) Execute() int {
 				continue
 			}
 		} else {
-			swaggerModel, err = coverage.GetModelInfoFromIndex(mockedResourceId, apiVersion)
+			swaggerModel, err = coverage.GetModelInfoFromIndex(mockedResourceId, apiVersion, c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
 					azapiResource,

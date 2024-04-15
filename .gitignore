@@ -17,4 +17,4 @@ armstrong.exe
 
 # test output
 coverage/test_coverage_report*.md
-
+coverage/testdata/index.json

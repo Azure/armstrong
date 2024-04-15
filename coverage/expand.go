@@ -2,7 +2,6 @@ package coverage
 
 import (
 	"fmt"
-	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -327,7 +326,7 @@ func SchemaNamePathFromRef(swaggerPath string, ref openapiSpec.Ref) (schemaName 
 		schemaPath = swaggerPath
 	} else {
 		swaggerPath, _ := filepath.Split(swaggerPath)
-		schemaPath, _ = url.JoinPath(swaggerPath, schemaPath)
+		schemaPath = swaggerPath + schemaPath
 	}
 
 	fragments := strings.Split(refUrl.Fragment, "/")

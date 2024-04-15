@@ -119,7 +119,7 @@ func TestExpandAll(t *testing.T) {
 	if strings.HasSuffix(azureRepoDir, "specification") {
 		azureRepoDir += "/"
 	}
-	if !strings.HasSuffix(azureRepoDir, "specification/") {
+	if !strings.HasSuffix(normarlizePath(azureRepoDir), "specification/") {
 		t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/\"")
 	}
 
@@ -207,7 +207,7 @@ func testExpandAll(t *testing.T, azureRepoDir, testResultPath string) result {
 }
 
 func getRefList(t *testing.T) []jsonreference.Ref {
-	index, err := coverage.GetIndex()
+	index, err := coverage.GetIndex("")
 	if err != nil {
 		t.Fatal(err)
 	}
