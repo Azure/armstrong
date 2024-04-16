@@ -3,62 +3,15 @@ package trace
 import (
 	"fmt"
 	"log"
-	"os"
-	"regexp"
 	"strconv"
 
-	"github.com/ms-henglu/pal/provider"
 	"github.com/ms-henglu/pal/rawlog"
 	"github.com/ms-henglu/pal/types"
-	"github.com/ms-henglu/pal/utils"
 )
 
-var providers = []provider.Provider{
-	provider.AzureADProvider{},
-	provider.AzureRMProvider{},
-	provider.AzAPIProvider{},
-}
-
-var providerUrlRegex = regexp.MustCompile(`/subscriptions/[a-zA-Z\d\-]+/providers\?`)
-
-func RequestTracesFromFile(input string) ([]types.RequestTrace, error) {
-	data, err := os.ReadFile(input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read input file: %v", err)
-	}
-	logRegex := regexp.MustCompile(`([\d+.:T\-/ ]{19,28})\s\[([A-Z]+)]`)
-	lines := utils.SplitBefore(string(data), logRegex)
-	log.Printf("[INFO] total lines: %d", len(lines))
-
-	traces := make([]types.RequestTrace, 0)
-	for _, line := range lines {
-		l, err := rawlog.NewRawLog(line)
-		if err != nil {
-			log.Printf("[WARN] failed to parse log: %v", err)
-		}
-		if l == nil {
-			continue
-		}
-		t, err := NewRequestTrace(*l)
-		if err == nil {
-			traces = append(traces, *t)
-		}
-	}
-	requestCount, responseCount := 0, 0
-	for _, t := range traces {
-		if t.Request != nil {
-			requestCount++
-		}
-		if t.Response != nil {
-			responseCount++
-		}
-	}
-	log.Printf("[INFO] total traces: %d", len(traces))
-	log.Printf("[INFO] request count: %d", requestCount)
-	log.Printf("[INFO] response count: %d", responseCount)
-
+func mergeTraces(traces []types.RequestTrace) []types.RequestTrace {
 	mergedTraces := make([]types.RequestTrace, 0)
-	for i := 0; i < len(traces); i++ {
+	for i := range traces {
 		// skip GET /subscriptions/******/providers
 		if traces[i].Method == "GET" && providerUrlRegex.MatchString(traces[i].Url) && traces[i].Provider == "azurerm" {
 			continue
@@ -87,14 +40,31 @@ func RequestTracesFromFile(input string) ([]types.RequestTrace, error) {
 				})
 				break
 			}
+
 			if !found {
 				log.Printf("[WARN] failed to find response for request: url %s, method %s", traces[i].Url, traces[i].Method)
 				mergedTraces = append(mergedTraces, traces[i])
 			}
 		}
 	}
+
 	log.Printf("[INFO] merged traces: %d", len(mergedTraces))
-	return mergedTraces, nil
+	return mergedTraces
+}
+
+func newRequestTrace(l rawlog.RawLog) (*types.RequestTrace, error) {
+	for _, p := range providers {
+		if p.IsTrafficTrace(l) {
+			return p.ParseTraffic(l)
+		}
+		if p.IsRequestTrace(l) {
+			return p.ParseRequest(l)
+		}
+		if p.IsResponseTrace(l) {
+			return p.ParseResponse(l)
+		}
+	}
+	return nil, fmt.Errorf("TODO: implement other providers")
 }
 
 func VerifyRequestTrace(t types.RequestTrace) []string {
@@ -147,19 +117,4 @@ func VerifyRequestTrace(t types.RequestTrace) []string {
 		}
 	}
 	return out
-}
-
-func NewRequestTrace(l rawlog.RawLog) (*types.RequestTrace, error) {
-	for _, p := range providers {
-		if p.IsTrafficTrace(l) {
-			return p.ParseTraffic(l)
-		}
-		if p.IsRequestTrace(l) {
-			return p.ParseRequest(l)
-		}
-		if p.IsResponseTrace(l) {
-			return p.ParseResponse(l)
-		}
-	}
-	return nil, fmt.Errorf("TODO: implement other providers")
 }

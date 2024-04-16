@@ -106,7 +106,7 @@ func (c CleanupCommand) Execute() int {
 	if destroyErr != nil {
 		logrus.Errorf("failed to destroy resources: %+v", destroyErr)
 
-		logs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
+		logs, err := trace.NewRequestTraceParser(trace.TextParser).ParseFromFile(path.Join(wd, "log.txt"))
 		if err != nil {
 			logrus.Errorf("failed to parse log.txt: %+v", err)
 		}

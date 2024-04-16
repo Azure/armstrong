@@ -143,7 +143,7 @@ func (c TestCommand) Execute() int {
 	}
 
 	logrus.Infof("parsing log.txt...")
-	logs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
+	logs, err := trace.NewRequestTraceParser(trace.TextParser).ParseFromFile(path.Join(wd, "log.txt"))
 	if err != nil {
 		logrus.Errorf("parsing log.txt: %+v", err)
 	}
@@ -187,7 +187,7 @@ func (c TestCommand) Execute() int {
 			logrus.Infof("test resource has been deleted")
 		}
 		logrus.Infof("parsing log.txt...")
-		newLogs, err := trace.RequestTracesFromFile(path.Join(wd, "log.txt"))
+		newLogs, err := trace.NewRequestTraceParser(trace.TextParser).ParseFromFile(path.Join(wd, "log.txt"))
 		if err != nil {
 			logrus.Errorf("parsing log.txt: %+v", err)
 		}

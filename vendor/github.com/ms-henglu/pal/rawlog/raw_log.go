@@ -39,3 +39,21 @@ func NewRawLog(message string) (*RawLog, error) {
 	}
 	return nil, fmt.Errorf("failed to parse log message: %s", message)
 }
+
+func NewRawLogJson(message map[string]interface{}) (*RawLog, error) {
+	timeStamp := message["@timestamp"]
+	if timeStamp == nil {
+		return nil, fmt.Errorf("failed to parse timestamp from log message : %v", message)
+	}
+
+	t, err := time.Parse(time.RFC3339, timeStamp.(string))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse timestamp to %s : %v", time.RFC3339, message)
+	}
+
+	return &RawLog{
+		TimeStamp: t,
+		Level:     strings.ToUpper(message["@level"].(string)),
+		Message:   message["@message"].(string),
+	}, nil
+}
