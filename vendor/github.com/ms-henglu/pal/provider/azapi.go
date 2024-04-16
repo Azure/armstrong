@@ -13,7 +13,8 @@ import (
 
 var _ Provider = AzAPIProvider{}
 
-var r = regexp.MustCompile(`Live traffic: (.+): timestamp`)
+var r1 = regexp.MustCompile(`Live traffic: (.+): timestamp`)
+var r2 = regexp.MustCompile(`Live traffic: (.+)`)
 
 type AzAPIProvider struct {
 }
@@ -23,9 +24,12 @@ func (a AzAPIProvider) IsTrafficTrace(l rawlog.RawLog) bool {
 }
 
 func (a AzAPIProvider) ParseTraffic(l rawlog.RawLog) (*types.RequestTrace, error) {
-	matches := r.FindAllStringSubmatch(l.Message, -1)
+	matches := r1.FindAllStringSubmatch(l.Message, -1)
 	if len(matches) == 0 || len(matches[0]) != 2 {
-		return nil, fmt.Errorf("failed to parse request trace, no matches found")
+		matches = r2.FindAllStringSubmatch(l.Message, -1)
+		if len(matches) == 0 || len(matches[0]) != 2 {
+			return nil, fmt.Errorf("failed to parse request trace, no matches found")
+		}
 	}
 	trafficJson := matches[0][1]
 	var liveTraffic traffic
