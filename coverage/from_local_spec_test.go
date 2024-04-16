@@ -1,9 +1,11 @@
-package coverage
+package coverage_test
 
 import (
 	"os"
 	"path"
 	"testing"
+
+	"github.com/azure/armstrong/coverage"
 )
 
 func Test_isPathKeyMatchWithResourceId(t *testing.T) {
@@ -35,7 +37,7 @@ func Test_isPathKeyMatchWithResourceId(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		t.Logf("testcase: %+v", testcase)
-		actual := isPathKeyMatchWithResourceId(testcase.PathKey, testcase.ResourceId)
+		actual := coverage.IsPathKeyMatchWithResourceId(testcase.PathKey, testcase.ResourceId)
 		if actual != testcase.Expected {
 			t.Fatalf("expected %v, got %v", testcase.Expected, actual)
 		}
@@ -51,12 +53,12 @@ func Test_GetModelInfoFromLocalDir(t *testing.T) {
 	testcases := []struct {
 		ResourceId string
 		ApiVersion string
-		Expected   *SwaggerModel
+		Expected   *coverage.SwaggerModel
 	}{
 		{
 			ResourceId: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Automation/automationAccounts/test-automation-account",
 			ApiVersion: "2022-08-08",
-			Expected: &SwaggerModel{
+			Expected: &coverage.SwaggerModel{
 				ApiPath:     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}",
 				ModelName:   "AutomationAccountCreateOrUpdateParameters",
 				SwaggerPath: path.Join(swaggerPath, "account.json"),
@@ -65,7 +67,7 @@ func Test_GetModelInfoFromLocalDir(t *testing.T) {
 		{
 			ResourceId: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Automation/automationAccounts/test-automation-account/certificates/test-certificate",
 			ApiVersion: "2022-08-08",
-			Expected: &SwaggerModel{
+			Expected: &coverage.SwaggerModel{
 				ApiPath:     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/certificates/{certificateName}",
 				ModelName:   "CertificateCreateOrUpdateParameters",
 				SwaggerPath: path.Join(swaggerPath, "certificate.json"),
@@ -75,7 +77,7 @@ func Test_GetModelInfoFromLocalDir(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Logf("testcase: %+v", testcase.ResourceId)
-		actual, err := GetModelInfoFromLocalDir(testcase.ResourceId, testcase.ApiVersion, swaggerPath)
+		actual, err := coverage.GetModelInfoFromLocalDir(testcase.ResourceId, testcase.ApiVersion, swaggerPath)
 		if err != nil {
 			t.Fatalf("get model info from local dir error: %+v", err)
 		}
@@ -88,7 +90,7 @@ func Test_GetModelInfoFromLocalDir(t *testing.T) {
 		if actual.ModelName != testcase.Expected.ModelName {
 			t.Fatalf("expected modelName %s, got %s", testcase.Expected.ModelName, actual.ModelName)
 		}
-		if actual.SwaggerPath != testcase.Expected.SwaggerPath {
+		if normarlizePath(actual.SwaggerPath) != normarlizePath(testcase.Expected.SwaggerPath) {
 			t.Fatalf("expected swaggerPath %s, got %s", testcase.Expected.SwaggerPath, actual.SwaggerPath)
 		}
 	}

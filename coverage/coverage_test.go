@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/azure/armstrong/coverage"
@@ -19,6 +20,10 @@ type testCase struct {
 	apiPath      string
 	rawRequest   []string
 	resourceType string
+}
+
+func normarlizePath(path string) string {
+	return strings.ReplaceAll(path, string(os.PathSeparator), "/")
 }
 
 func TestCoverage_ResourceGroup(t *testing.T) {
@@ -1402,6 +1407,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		tc.apiPath,
 		tc.apiVersion,
+		"",
 	)
 
 	t.Logf("swaggerModel: %+v", swaggerModel)
@@ -1477,6 +1483,7 @@ func testCredScan(t *testing.T, tc testCase) (*map[string]string, error) {
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		tc.apiPath,
 		tc.apiVersion,
+		"",
 	)
 
 	t.Logf("swaggerModel: %+v", swaggerModel)

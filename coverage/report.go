@@ -28,7 +28,7 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 		swaggerModel = swaggerModelFromLocal
 	}
 	if swaggerModel == nil {
-		swaggerModelFromIndex, err := GetModelInfoFromIndex(resourceId, apiVersion)
+		swaggerModelFromIndex, err := GetModelInfoFromIndex(resourceId, apiVersion, "")
 		if err != nil {
 			return fmt.Errorf("error find the path for %s from index: %+v", resourceId, err)
 		}

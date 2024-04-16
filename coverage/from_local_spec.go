@@ -51,7 +51,7 @@ func GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath string) (
 	}
 
 	for pathKey, pathItem := range paths.Paths {
-		if !isPathKeyMatchWithResourceId(pathKey, resourceId) {
+		if !IsPathKeyMatchWithResourceId(pathKey, resourceId) {
 			continue
 		}
 
@@ -95,7 +95,7 @@ func GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath string) (
 	return nil, nil
 }
 
-func isPathKeyMatchWithResourceId(pathKey, resourceId string) bool {
+func IsPathKeyMatchWithResourceId(pathKey, resourceId string) bool {
 	pathParts := strings.Split(strings.Trim(pathKey, "/"), "/")
 	resourceIdParts := strings.Split(strings.Trim(resourceId, "/"), "/")
 	i := len(pathParts) - 1

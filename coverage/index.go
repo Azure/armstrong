@@ -24,12 +24,28 @@ const (
 
 var indexCache *azidx.Index
 
-func GetIndexFromLocalDir(swaggerRepo string) (*azidx.Index, error) {
+func GetIndexFromLocalDir(swaggerRepo, indexFilePath string) (*azidx.Index, error) {
 	if indexCache != nil {
 		return indexCache, nil
 	}
 
-	logrus.Infof("building index from from local swagger %s", swaggerRepo)
+	if indexFilePath != "" {
+		if _, err := os.Stat(indexFilePath); err == nil {
+			byteValue, _ := os.ReadFile(indexFilePath)
+
+			var index azidx.Index
+			if err := json.Unmarshal(byteValue, &index); err != nil {
+				return nil, fmt.Errorf("unmarshal index file: %+v", err)
+			}
+			indexCache = &index
+
+			logrus.Infof("load index from cache file %s", indexFilePath)
+
+			return indexCache, nil
+		}
+	}
+
+	logrus.Infof("building index from from local swagger %s, it might take several minutes", swaggerRepo)
 	index, err := azidx.BuildIndex(swaggerRepo, "")
 	if err != nil {
 		logrus.Error(fmt.Sprintf("failed to build index: %+v", err))
@@ -39,18 +55,52 @@ func GetIndexFromLocalDir(swaggerRepo string) (*azidx.Index, error) {
 
 	indexCache = index
 
+	if indexFilePath != "" {
+		jsonBytes, err := json.Marshal(&index)
+		if err != nil {
+			logrus.Warningf("failed to marshal index: %+v", err)
+			return index, nil
+		}
+
+		err = os.WriteFile(indexFilePath, jsonBytes, 0644)
+		if err != nil {
+			logrus.Warningf("failed to write index cache file %s: %+v", indexFilePath, err)
+			return index, nil
+		}
+
+		logrus.Infof("index successfully saved to cache file %s", indexFilePath)
+	}
+
 	return index, nil
 }
 
-func GetIndex() (*azidx.Index, error) {
+func GetIndex(indexFilePath string) (*azidx.Index, error) {
 	if indexCache != nil {
 		return indexCache, nil
+	}
+
+	if indexFilePath != "" {
+		if _, err := os.Stat(indexFilePath); err == nil {
+			byteValue, _ := os.ReadFile(indexFilePath)
+
+			var index azidx.Index
+			if err := json.Unmarshal(byteValue, &index); err != nil {
+				return nil, fmt.Errorf("unmarshal index file: %+v", err)
+			}
+			indexCache = &index
+
+			logrus.Infof("load index from cache file %s", indexFilePath)
+
+			return indexCache, nil
+		}
 	}
 
 	resp, err := http.Get(indexFileURL)
 	if err != nil {
 		return nil, fmt.Errorf("get index file from %v: %+v", indexFileURL, err)
 	}
+
+	logrus.Infof("downloading index file from %s", indexFileURL)
 
 	defer resp.Body.Close()
 
@@ -86,6 +136,23 @@ func GetIndex() (*azidx.Index, error) {
 	indexCache = &index
 
 	logrus.Infof("load index based commit: https://github.com/Azure/azure-rest-api-specs/tree/%s", index.Commit)
+
+	if indexFilePath != "" {
+		jsonBytes, err := json.Marshal(&index)
+		if err != nil {
+			logrus.Warningf("failed to marshal index: %+v", err)
+			return indexCache, nil
+		}
+
+		err = os.WriteFile(indexFilePath, jsonBytes, 0644)
+		if err != nil {
+			logrus.Warningf("failed to write index cache file %s: %+v", indexFilePath, err)
+			return indexCache, nil
+		}
+
+		logrus.Infof("index successfully saved to cache file %s", indexFilePath)
+	}
+
 	return indexCache, nil
 }
 
@@ -95,8 +162,10 @@ type SwaggerModel struct {
 	SwaggerPath string
 }
 
-func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error) {
-	index, err := GetIndex()
+// GetModelInfoFromIndex will try to download online index from https://github.com/teowa/azure-rest-api-index-file, and get model info from it
+// if the index is already downloaded as in {indexFilePath}, it will use the cached index
+func GetModelInfoFromIndex(resourceId, apiVersion, indexFilePath string) (*SwaggerModel, error) {
+	index, err := GetIndex(indexFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +192,7 @@ func GetModelInfoFromIndex(resourceId, apiVersion string) (*SwaggerModel, error)
 }
 
 // GetModelInfoFromLocalIndex tries to build index from local swagger repo and get model info from it
-func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo string) (*SwaggerModel, error) {
+func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo, indexCacheFile string) (*SwaggerModel, error) {
 	swaggerRepo, err := filepath.Abs(swaggerRepo)
 	if err != nil {
 		return nil, fmt.Errorf("swagger repo path %q is invalid: %+v", swaggerRepo, err)
@@ -141,7 +210,7 @@ func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo string) (*Sw
 
 	swaggerRepo += "/"
 
-	index, err := GetIndexFromLocalDir(swaggerRepo)
+	index, err := GetIndexFromLocalDir(swaggerRepo, indexCacheFile)
 	if err != nil {
 		return nil, fmt.Errorf("build index from local dir %s: %+v", swaggerRepo, err)
 	}
@@ -170,7 +239,13 @@ func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo string) (*Sw
 func GetModelInfoFromIndexRef(ref openapispec.Ref, swaggerRepo string) (*SwaggerModel, error) {
 	_, swaggerPath := SchemaNamePathFromRef(swaggerRepo, ref)
 
-	relativeBase := swaggerRepo + strings.Split(ref.GetURL().Path, "/")[0]
+	seperator := "/"
+	// in windows the ref might use backslashes
+	if strings.Contains(ref.GetURL().Path, string(os.PathSeparator)) {
+		seperator = string(os.PathSeparator)
+	}
+
+	relativeBase := swaggerRepo + strings.Split(ref.GetURL().Path, seperator)[0]
 	operation, err := openapispec.ResolvePathItemWithBase(nil, ref, &openapispec.ExpandOptions{RelativeBase: relativeBase})
 	if err != nil {
 		return nil, err
@@ -233,7 +308,7 @@ func MockResourceIDFromType(azapiResourceType string) (string, string) {
 	return fmt.Sprintf("%s/%s/providers/%s/%s", subscritionSeg, resourceGroupSeg, resourceProvider, typeIds), apiVersion
 }
 
-func GetModelInfoFromIndexWithType(azapiResourceType string) (*SwaggerModel, error) {
+func GetModelInfoFromIndexWithType(azapiResourceType, indexCacheFile string) (*SwaggerModel, error) {
 	resourceId, apiVersion := MockResourceIDFromType(azapiResourceType)
-	return GetModelInfoFromIndex(resourceId, apiVersion)
+	return GetModelInfoFromIndex(resourceId, apiVersion, indexCacheFile)
 }
