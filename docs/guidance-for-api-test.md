@@ -561,11 +561,12 @@ This kind of error is caused by lack of permission. Please refer to the followin
 
 ## Frequently Asked Questions
 
-1. Q: In each test case, how to find the untested operations?
+#### 1. Q: In each test case, how to find the untested operations?
 
    A: We're working on improving it. Currently, you could compare the OperationIds in the test case with the swagger accuracy report, and see if there're any untested operations.
    
    Below example, the block tests `KafkaConfigurations_CreateOrUpdate`, `KafkaConfigurations_Get`, `KafkaConfigurations_Delete` operations.
+
 ```hcl
 // OperationId: KafkaConfigurations_CreateOrUpdate, KafkaConfigurations_Get, KafkaConfigurations_Delete
 // PUT GET DELETE /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Purview/accounts/{accountName}/kafkaConfigurations/{kafkaConfigurationName}
@@ -573,7 +574,7 @@ resource "azapi_resource" "kafkaConfiguration" {
   ...
 ```
 
-2. Q: After I generated the summary report, there're some untested operations, how to find which test case that these operations belong to?
+#### 2. Q: After I generated the summary report, there're some untested operations, how to find which test case that these operations belong to?
 
    A: In each testcase, the operationId is added in the comment, like the following example:
    the block tests `KafkaConfigurations_CreateOrUpdate`, `KafkaConfigurations_Get`, `KafkaConfigurations_Delete` operations.
@@ -585,49 +586,49 @@ resource "azapi_resource" "kafkaConfiguration" {
   ...
 ```
 
-3. Q: I've fixed the API issue, how to reset the test case and test it again?
+#### 3. Q: I've fixed the API issue, how to reset the test case and test it again?
 
    A: You could delete the `traces` folder under the test case folder.
 
-4. Q: I have some sensitive information in the test case, how to hide it?
+#### 4. Q: I have some sensitive information in the test case, how to hide it?
 
    A: You could use terraform variables to hide the sensitive information. Please refer to the following example for how to use terraform variables.
    
-   1. Define a variable in the test case. 
-   
-   ```hcl
-    variable "github_pat" {
-      type        = string
-      description = "The github personal access token"
-    }
-    ```
+  1. Define a variable in the test case. 
 
-    2. Use the variable in the test case, to replace the sensitive information.
-    
-    ```hcl
-    resource "azapi_resource" "example" {
-      ...
-      body = jsonencode({
-        properties = {
-          github_pat = var.github_pat // use the variable here
+      ```hcl
+        variable "github_pat" {
+          type        = string
+          description = "The github personal access token"
         }
-      })
-    }
-    ```
+      ```
 
-    3. Create a `terraform.tfvars` file in the test case folder, and define the variable value in it.
+  2. Use the variable in the test case, to replace the sensitive information.
     
-    ```hcl
-    github_pat = "your github personal access token"
-    ```
+      ```hcl
+      resource "azapi_resource" "example" {
+        ...
+        body = jsonencode({
+          properties = {
+            github_pat = var.github_pat // use the variable here
+          }
+        })
+      }
+      ```
 
-    4. Add `terraform.tfvars` to `.gitignore` file to avoid checking in the sensitive information.
-
-  5. Q: How to get the current login identity's tenantId/subscriptionId?
+  3. Create a `terraform.tfvars` file in the test case folder, and define the variable value in it.
     
-     A: You could use the following terraform code to get the current login identity's tenantId/subscriptionId and other information.
+      ```hcl
+      github_pat = "your github personal access token"
+      ```
+
+  4. Add `terraform.tfvars` to `.gitignore` file to avoid checking in the sensitive information.
+
+#### 5. Q: How to get the current login identity's tenantId/subscriptionId?
+    
+  A: You could use the following terraform code to get the current login identity's tenantId/subscriptionId and other information.
      
-     1. Add the following code in the test case to enable the use of the azurerm provider.
+  1. Add the following code in the test case to enable the use of the azurerm provider.
      
      ```hcl
      provider "azurerm" {
@@ -635,13 +636,13 @@ resource "azapi_resource" "kafkaConfiguration" {
      }
      ```
 
-     2. Add the following code in the test case to get the current login identity's tenantId/subscriptionId.
+  2. Add the following code in the test case to get the current login identity's tenantId/subscriptionId.
      
      ```hcl
      data "azurerm_client_config" "current" {}
      ```
 
-     3. Replace the tenantId/subscriptionId in the test case with the following code.
+  3. Replace the tenantId/subscriptionId in the test case with the following code.
      
      ```hcl
       // replace the tenantId with the following code
@@ -659,11 +660,11 @@ resource "azapi_resource" "kafkaConfiguration" {
 
       More details about this data source could be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config).
 
-  6. Q: How to assign a give principal to a given rule?
+#### 6. Q: How to assign a give principal to a given rule?
 
-     A: You could use the following terraform code to assign a given principal to a given role.
+  A: You could use the following terraform code to assign a given principal to a given role.
      
-     1. Add the following code in the test case to enable the use of the azurerm provider.
+  1. Add the following code in the test case to enable the use of the azurerm provider.
      
      ```hcl
       provider "azurerm" {
@@ -671,7 +672,7 @@ resource "azapi_resource" "kafkaConfiguration" {
       }
      ```
     
-      2. Add the following code in the test case to assign a given principal to a given role.
+  2. Add the following code in the test case to assign a given principal to a given role.
         
      ```hcl
      resource "azurerm_role_assignment" "example" {
@@ -682,39 +683,39 @@ resource "azapi_resource" "kafkaConfiguration" {
      ```
      More details about this resource could be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment).
 
-  7. Q: How to ignore the files that are not need to be checked in?
+#### 7. Q: How to ignore the files that are not need to be checked in?
 
-     A: You could add the files that are not need to be checked in to `.gitignore` file. For example, the following files are not need to be checked in.
+  A: You could add the files that are not need to be checked in to `.gitignore` file. For example, the following files are not need to be checked in.
      
-     ```shell
-     # Ignore the files that are not need to be checked in
-     # Armstrong
-     .terraform
-     tfplan
-     terraform.tfstate
-     terraform.tfstate.backup
-     .terraform.lock.hcl
-     *[Aa]rmstrong*
-     **/terraform/**/traces
-     **/terraform/**/log.txt
-     ```
+  ```shell
+  # Ignore the files that are not need to be checked in
+  # Armstrong
+  .terraform
+  tfplan
+  terraform.tfstate
+  terraform.tfstate.backup
+  .terraform.lock.hcl
+  *[Aa]rmstrong*
+  **/terraform/**/traces
+  **/terraform/**/log.txt
+  ```
   
-  8. Q: How to run Armstrong test in internal environments?
+#### 8. Q: How to run Armstrong test in internal environments?
 
-      A: You could use provider's `endpoint` argument to specify the endpoint of the internal environment. For example:
+  A: You could use provider's `endpoint` argument to specify the endpoint of the internal environment. For example:
 
-      ```hcl
-      provider "azapi" {
-        endpoint {
-          resource_manager_endpoint = "https://management.azure.com/"
-          resource_manager_audience = "https://management.core.windows.net/"
-          active_directory_authority_host = "https://login.microsoftonline.com"
-        }
-      }
-      ```
-      More details about this argument could be found [here](https://registry.terraform.io/providers/Azure/azapi/latest/docs#endpoint).
+  ```hcl
+  provider "azapi" {
+    endpoint {
+      resource_manager_endpoint = "https://management.azure.com/"
+      resource_manager_audience = "https://management.core.windows.net/"
+      active_directory_authority_host = "https://login.microsoftonline.com"
+    }
+  }
+  ```
+  More details about this argument could be found [here](https://registry.terraform.io/providers/Azure/azapi/latest/docs#endpoint).
 
-      Note: if you use the azure cli to authenticate with azure, you need to configure the same endpoint in the azure cli. More details could be found [here](https://learn.microsoft.com/en-us/cli/azure/cloud?view=azure-cli-latest).
+  Note: if you use the azure cli to authenticate with azure, you need to configure the same endpoint in the azure cli. More details could be found [here](https://learn.microsoft.com/en-us/cli/azure/cloud?view=azure-cli-latest).
 
 ## Samples
 
