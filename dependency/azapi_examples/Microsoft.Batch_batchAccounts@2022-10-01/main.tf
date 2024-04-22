@@ -31,11 +31,7 @@ resource "azapi_resource" "batchAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       encryption = {
         keySource = "Microsoft.Batch"
@@ -43,7 +39,7 @@ resource "azapi_resource" "batchAccount" {
       poolAllocationMode  = "BatchService"
       publicNetworkAccess = "Enabled"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

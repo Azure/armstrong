@@ -31,17 +31,13 @@ resource "azapi_resource" "account" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       publicNetworkAccess = "Enabled"
       sku                 = "Standard"
     }
 
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -51,10 +47,7 @@ resource "azapi_resource" "IotHub" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       cloudToDevice = {
       }
@@ -78,7 +71,7 @@ resource "azapi_resource" "IotHub" {
       capacity = 1
       name     = "S1"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -88,7 +81,7 @@ resource "azapi_resource" "instance" {
   parent_id = azapi_resource.account.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     properties = {
       accountName       = azapi_resource.account.name
       enableDiagnostics = false
@@ -99,7 +92,7 @@ resource "azapi_resource" "instance" {
       ]
     }
 
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

@@ -31,10 +31,7 @@ resource "azapi_resource" "databaseAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "GlobalDocumentDB"
     properties = {
       capabilities = [
@@ -69,7 +66,7 @@ resource "azapi_resource" "databaseAccount" {
       virtualNetworkRules = [
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -78,7 +75,7 @@ resource "azapi_resource" "sqlDatabase" {
   type      = "Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-10-15"
   parent_id = azapi_resource.databaseAccount.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       options = {
         throughput = 400
@@ -87,7 +84,7 @@ resource "azapi_resource" "sqlDatabase" {
         id = var.resource_name
       }
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -96,7 +93,7 @@ resource "azapi_resource" "container" {
   type      = "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15"
   parent_id = azapi_resource.sqlDatabase.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       options = {
       }
@@ -110,7 +107,7 @@ resource "azapi_resource" "container" {
         }
       }
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

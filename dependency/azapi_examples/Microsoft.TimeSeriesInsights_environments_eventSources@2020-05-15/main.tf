@@ -31,10 +31,7 @@ resource "azapi_resource" "storageAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "StorageV2"
     properties = {
       accessTier                   = "Hot"
@@ -66,7 +63,7 @@ resource "azapi_resource" "storageAccount" {
     sku = {
       name = "Standard_LRS"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -76,10 +73,7 @@ resource "azapi_resource" "IotHub" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       cloudToDevice = {
       }
@@ -106,7 +100,7 @@ resource "azapi_resource" "IotHub" {
     tags = {
       purpose = "testing"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -123,12 +117,12 @@ resource "azapi_resource" "environment" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     kind = "Gen2"
     properties = {
       storageConfiguration = {
         accountName   = azapi_resource.storageAccount.name
-        managementKey = jsondecode(data.azapi_resource_action.listKeys.output).keys[0].value
+        managementKey = data.azapi_resource_action.listKeys.output.keys[0].value
       }
       timeSeriesIdProperties = [
         {
@@ -141,7 +135,7 @@ resource "azapi_resource" "environment" {
       capacity = 1
       name     = "L1"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -158,17 +152,17 @@ resource "azapi_resource" "eventSource" {
   parent_id = azapi_resource.environment.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     kind = "Microsoft.IoTHub"
     properties = {
       consumerGroupName     = "test"
       eventSourceResourceId = azapi_resource.IotHub.id
       iotHubName            = azapi_resource.IotHub.name
       keyName               = "iothubowner"
-      sharedAccessKey       = jsondecode(data.azapi_resource_action.listkeys.output).value[0].primaryKey
+      sharedAccessKey       = data.azapi_resource_action.listkeys.output.value[0].primaryKey
       timestampPropertyName = ""
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

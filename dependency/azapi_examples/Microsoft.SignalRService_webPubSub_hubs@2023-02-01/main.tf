@@ -31,11 +31,11 @@ resource "azapi_resource" "webPubSub" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "SystemAssigned"
-      userAssignedIdentities = null
-    }
+  identity {
+    type = "SystemAssigned"
+    identity_ids = []
+  }
+  body = {
     properties = {
       disableAadAuth      = false
       disableLocalAuth    = false
@@ -48,7 +48,7 @@ resource "azapi_resource" "webPubSub" {
       capacity = 1
       name     = "Standard_S1"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -57,13 +57,13 @@ resource "azapi_resource" "hub" {
   type      = "Microsoft.SignalRService/webPubSub/hubs@2023-02-01"
   parent_id = azapi_resource.webPubSub.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       anonymousConnectPolicy = "Deny"
       eventListeners = [
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

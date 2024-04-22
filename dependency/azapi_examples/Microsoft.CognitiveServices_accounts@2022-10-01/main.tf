@@ -40,14 +40,12 @@ resource "azapi_resource" "account" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "SystemAssigned, UserAssigned"
-      userAssignedIdentities = {
-        (azapi_resource.userAssignedIdentity.id) = {
-        }
-      }
-    }
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [azapi_resource.userAssignedIdentity.id]
+  }
+  
+  body = {
     kind = "SpeechServices"
     properties = {
       allowedFqdnList = [
@@ -64,7 +62,7 @@ resource "azapi_resource" "account" {
       name = "S0"
       tier = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

@@ -31,10 +31,7 @@ resource "azapi_resource" "iotApp" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       displayName         = var.resource_name
       publicNetworkAccess = "Enabled"
@@ -44,7 +41,7 @@ resource "azapi_resource" "iotApp" {
     sku = {
       name = "ST1"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

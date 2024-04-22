@@ -31,10 +31,7 @@ resource "azapi_resource" "service" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       certificates = [
       ]
@@ -67,7 +64,7 @@ resource "azapi_resource" "service" {
       capacity = 1
       name     = "Developer"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
   timeouts {
@@ -81,7 +78,7 @@ resource "azapi_update_resource" "portalsetting" {
   type      = "Microsoft.ApiManagement/service/portalsettings@2021-08-01"
   parent_id = azapi_resource.service.id
   name      = "signup"
-  body = jsonencode({
+  body = {
     properties = {
       enabled = false
       termsOfService = {
@@ -90,7 +87,7 @@ resource "azapi_update_resource" "portalsetting" {
         text            = ""
       }
     }
-  })
+  }
   response_export_values = ["*"]
 }
 

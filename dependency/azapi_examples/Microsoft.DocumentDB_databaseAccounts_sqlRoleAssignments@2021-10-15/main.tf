@@ -31,11 +31,11 @@ resource "azapi_resource" "cluster" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "SystemAssigned"
-      userAssignedIdentities = null
-    }
+  identity {
+    type = "SystemAssigned"
+    identity_ids = []
+  }
+  body = {
     properties = {
       enableAutoStop                = true
       enableDiskEncryption          = false
@@ -54,7 +54,7 @@ resource "azapi_resource" "cluster" {
       name     = "Dev(No SLA)_Standard_D11_v2"
       tier     = "Basic"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -64,10 +64,7 @@ resource "azapi_resource" "databaseAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "GlobalDocumentDB"
     properties = {
       capabilities = [
@@ -102,7 +99,7 @@ resource "azapi_resource" "databaseAccount" {
       virtualNetworkRules = [
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -119,11 +116,11 @@ resource "azapi_resource" "database" {
   parent_id = azapi_resource.cluster.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     kind = "ReadWrite"
     properties = {
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -132,13 +129,13 @@ resource "azapi_resource" "sqlRoleAssignment" {
   type      = "Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-10-15"
   parent_id = azapi_resource.databaseAccount.id
   name      = "ff419bf7-f8ca-ef51-00d2-3576700c341b"
-  body = jsonencode({
+  body = {
     properties = {
-      principalId      = jsondecode(azapi_resource.cluster.output).identity.principalId
+      principalId      = azapi_resource.cluster.output.identity.principalId
       roleDefinitionId = data.azapi_resource.sqlRoleDefinition.id
       scope            = azapi_resource.databaseAccount.id
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

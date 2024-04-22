@@ -31,11 +31,7 @@ resource "azapi_resource" "namespace" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       disableLocalAuth     = false
       isAutoInflateEnabled = false
@@ -47,7 +43,7 @@ resource "azapi_resource" "namespace" {
       name     = "Standard"
       tier     = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -56,13 +52,13 @@ resource "azapi_resource" "eventhub" {
   type      = "Microsoft.EventHub/namespaces/eventhubs@2021-11-01"
   parent_id = azapi_resource.namespace.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       messageRetentionInDays = 1
       partitionCount         = 2
       status                 = "Active"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -71,11 +67,11 @@ resource "azapi_resource" "consumerGroup" {
   type      = "Microsoft.EventHub/namespaces/eventhubs/consumerGroups@2021-11-01"
   parent_id = azapi_resource.eventhub.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       userMetadata = ""
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

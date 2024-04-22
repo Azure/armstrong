@@ -31,10 +31,7 @@ resource "azapi_resource" "backupVault" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       storageSettings = [
         {
@@ -43,7 +40,7 @@ resource "azapi_resource" "backupVault" {
         },
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -52,7 +49,7 @@ resource "azapi_resource" "backupPolicy" {
   type      = "Microsoft.DataProtection/backupVaults/backupPolicies@2022-04-01"
   parent_id = azapi_resource.backupVault.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       datasourceTypes = [
         "Microsoft.DBforPostgreSQL/servers/databases",
@@ -110,7 +107,7 @@ resource "azapi_resource" "backupPolicy" {
         },
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

@@ -31,10 +31,7 @@ resource "azapi_resource" "flexibleServer" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     properties = {
       administratorLogin         = "adminTerraform"
       administratorLoginPassword = "QAZwsx123"
@@ -57,7 +54,7 @@ resource "azapi_resource" "flexibleServer" {
       name = "Standard_B1s"
       tier = "Burstable"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -66,12 +63,12 @@ resource "azapi_resource" "database" {
   type      = "Microsoft.DBforMySQL/flexibleServers/databases@2021-05-01"
   parent_id = azapi_resource.flexibleServer.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       charset   = "utf8"
       collation = "utf8_unicode_ci"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

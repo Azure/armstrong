@@ -31,11 +31,7 @@ resource "azapi_resource" "batchAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       encryption = {
         keySource = "Microsoft.Batch"
@@ -43,7 +39,7 @@ resource "azapi_resource" "batchAccount" {
       poolAllocationMode  = "BatchService"
       publicNetworkAccess = "Enabled"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -52,11 +48,7 @@ resource "azapi_resource" "pool" {
   type      = "Microsoft.Batch/batchAccounts/pools@2022-10-01"
   parent_id = azapi_resource.batchAccount.id
   name      = var.resource_name
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       certificates = null
       deploymentConfiguration = {
@@ -90,7 +82,7 @@ resource "azapi_resource" "pool" {
       taskSlotsPerNode = 1
       vmSize           = "STANDARD_A1"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
