@@ -599,6 +599,7 @@ resource "azapi_resource" "kafkaConfiguration" {
       ```hcl
         variable "github_pat" {
           type        = string
+          sensitive   = true
           description = "The github personal access token"
         }
       ```
