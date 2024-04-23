@@ -431,7 +431,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 	if !strings.HasPrefix(propertyValue, "$") || strings.HasPrefix(propertyValue, "$local.") {
 		credScanErr := makeCredScanErrorForProvider(
 			azureProvider,
-			"cannot use plain text or 'local' for secret, use 'variable' instead",
+			"cannot use plain text or 'local' for secret, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to hide the secret values",
 			propertyName,
 		)
 		credScanErrors = append(credScanErrors, credScanErr)
