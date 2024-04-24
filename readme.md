@@ -148,7 +148,8 @@ Supported options:
 1. `-working-dir`: Specify the working directory containing Terraform config files, default is current directory.
 2. `-swagger-repo`: Specify the swagger repo path used to match credentials, omit this will use the online swagger repo.
 3. `-swagger-index-file`: Specify the path to the swagger index file, omit this will use the online swagger index file or locally build index. If the specified file is not found, the downloaded or built index will be saved in the provided file.
-4. `-v`: Enable verbose mode, default is false.
+4. `-output-dir`: Specify the working directory to save output files, default is working directory.
+5. `-v`: Enable verbose mode, default is false.
 
 Armstrong also output different kinds of reports:
 1. `errors.json`: A json report which contains scan errors.
