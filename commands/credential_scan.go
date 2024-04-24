@@ -314,7 +314,7 @@ func (c CredentialScanCommand) Execute() int {
 				if !ok {
 					credScanErr := makeCredScanError(
 						azapiResource,
-						fmt.Sprintf("variable %q was not found", varName),
+						fmt.Sprintf("variable %q was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName),
 						k,
 					)
 					credScanErrors = append(credScanErrors, credScanErr)
@@ -326,7 +326,7 @@ func (c CredentialScanCommand) Execute() int {
 				if theVar.HasDefault {
 					credScanErr := makeCredScanError(
 						azapiResource,
-						fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
+						fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 						k,
 					)
 					credScanErrors = append(credScanErrors, credScanErr)
@@ -336,7 +336,7 @@ func (c CredentialScanCommand) Execute() int {
 				if !theVar.IsSensitive {
 					credScanErr := makeCredScanError(
 						azapiResource,
-						fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
+						fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 						k,
 					)
 					credScanErrors = append(credScanErrors, credScanErr)
@@ -461,7 +461,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 		if !ok {
 			credScanErr := makeCredScanErrorForProvider(
 				azureProvider,
-				fmt.Sprintf("variable %q was not found", varName),
+				fmt.Sprintf("variable %q was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName),
 				propertyName,
 			)
 			credScanErrors = append(credScanErrors, credScanErr)
@@ -473,7 +473,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 		if theVar.HasDefault {
 			credScanErr := makeCredScanErrorForProvider(
 				azureProvider,
-				fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please remove the default value", varName, theVar.FileName, theVar.LineNumber),
+				fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 				propertyName,
 			)
 			credScanErrors = append(credScanErrors, credScanErr)
@@ -483,7 +483,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 		if !theVar.IsSensitive {
 			credScanErr := makeCredScanErrorForProvider(
 				azureProvider,
-				fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please add \"sensitive=true\" for the variable", varName, theVar.FileName, theVar.LineNumber),
+				fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 				propertyName,
 			)
 			credScanErrors = append(credScanErrors, credScanErr)
