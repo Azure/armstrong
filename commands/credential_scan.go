@@ -18,6 +18,7 @@ import (
 
 type CredentialScanCommand struct {
 	workingDir       string
+	outputDir        string
 	swaggerRepoPath  string
 	swaggerIndexFile string
 	verbose          bool
@@ -27,6 +28,7 @@ func (c *CredentialScanCommand) flags() *flag.FlagSet {
 	fs := defaultFlagSet("test")
 	fs.BoolVar(&c.verbose, "v", false, "whether show terraform logs")
 	fs.StringVar(&c.workingDir, "working-dir", "", "path to directory containing Terraform configuration files")
+	fs.StringVar(&c.outputDir, "output-dir", "", "path to directory to save output files, default to working-dir")
 	fs.StringVar(&c.swaggerRepoPath, "swagger-repo", "", "path to the swagger repo specification directory")
 	fs.StringVar(&c.swaggerIndexFile, "swagger-index-file", "", "path to the swagger index file, omit this will use the online swagger index file or locally build index")
 	fs.Usage = func() { logrus.Error(c.Help()) }
@@ -35,7 +37,7 @@ func (c *CredentialScanCommand) flags() *flag.FlagSet {
 
 func (c CredentialScanCommand) Help() string {
 	helpText := `
-Usage: armstrong credscan [-v] [-working-dir <path to directory containing Terraform configuration files>] [-swagger-repo <path to the swagger repo specification directory>] [-swagger-index-file <path to the swagger index file>]
+Usage: armstrong credscan [-v] [-working-dir <path to directory containing Terraform configuration files>] [-swagger-repo <path to the swagger repo specification directory>] [-swagger-index-file <path to the swagger index file>] [-output-dir <path to directory to save output files>]
 ` + c.Synopsis() + "\n\n" + helpForFlags(c.flags())
 
 	return strings.TrimSpace(helpText)
@@ -103,6 +105,16 @@ func (c CredentialScanCommand) Execute() int {
 		if _, err := os.Stat(c.swaggerIndexFile); os.IsNotExist(err) {
 			logrus.Infof("swagger index file %q does not exist, will try to build or download index", c.swaggerIndexFile)
 		}
+	}
+
+	outputDir := wd
+	if c.outputDir != "" {
+		outputDir, err = filepath.Abs(c.outputDir)
+		if err != nil {
+			logrus.Errorf("output directory is invalid: %+v", err)
+			return 1
+		}
+
 	}
 
 	tfFiles, err := hcl.FindTfFiles(wd)
@@ -334,7 +346,7 @@ func (c CredentialScanCommand) Execute() int {
 		}
 	}
 
-	storeCredScanErrors(wd, credScanErrors)
+	storeCredScanErrors(outputDir, credScanErrors)
 
 	return 0
 }
@@ -404,7 +416,8 @@ func storeCredScanErrors(wd string, credScanErrors []CredScanError) {
 		credScanErrorsMarkdown += fmt.Sprintf("| %s | %d | %s | %s | %s | %s |\n", r.FileName, r.LineNumber, r.Name, r.Type, r.PropertyName, r.ErrorMessage)
 	}
 
-	err = os.WriteFile(path.Join(reportDir, markdownFileName), []byte(credScanErrorsMarkdown), 0644)
+	markdownFileName = path.Join(reportDir, markdownFileName)
+	err = os.WriteFile(markdownFileName, []byte(credScanErrorsMarkdown), 0644)
 	if err != nil {
 		logrus.Errorf("failed to save markdown report to %s: %+v", markdownFileName, err)
 	} else {
@@ -417,7 +430,8 @@ func storeCredScanErrors(wd string, credScanErrors []CredScanError) {
 		logrus.Errorf("failed to marshal json content %+v: %+v", credScanErrors, err)
 	}
 
-	err = os.WriteFile(path.Join(reportDir, jsonFileName), jsonContent, 0644)
+	jsonFileName = path.Join(reportDir, jsonFileName)
+	err = os.WriteFile(jsonFileName, jsonContent, 0644)
 	if err != nil {
 		logrus.Errorf("failed to save json report to %s: %+v", jsonFileName, err)
 	} else {
