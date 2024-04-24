@@ -298,7 +298,7 @@ func (c CredentialScanCommand) Execute() int {
 			if !strings.HasPrefix(v, "$") || strings.HasPrefix(v, "$local.") {
 				credScanErr := makeCredScanError(
 					azapiResource,
-					"cannot use plain text or 'local' for secret, use 'variable' instead",
+					"cannot use plain text or 'local' for secret, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to hide the secret values",
 					k,
 				)
 				credScanErrors = append(credScanErrors, credScanErr)
