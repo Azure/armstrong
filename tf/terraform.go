@@ -20,6 +20,8 @@ type Terraform struct {
 const planfile = "tfplan"
 
 func NewTerraform(workingDirectory string, logEnabled bool) (*Terraform, error) {
+	os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
+	os.Setenv("ARM_SKIP_PROVIDER_REGISTRATION", "true")
 	execPath, err := FindTerraform(context.TODO())
 	if err != nil {
 		return nil, err

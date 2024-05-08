@@ -82,7 +82,7 @@ func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
 	return &c
 }
 
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+var R = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func (c *Context) InitFile(content string) error {
 	file, diags := hclwrite.ParseConfig([]byte(content), "", hcl.InitialPos)
@@ -98,7 +98,7 @@ func (c *Context) InitFile(content string) error {
 			case "location":
 				locationVarBlock = block
 			case "resource_name":
-				block.Body().SetAttributeValue("default", cty.StringVal(fmt.Sprintf("acctest%04d", r.Intn(10000))))
+				block.Body().SetAttributeValue("default", cty.StringVal(fmt.Sprintf("acctest%04d", R.Intn(10000))))
 			}
 		case "terraform":
 			terraformBlock = block
