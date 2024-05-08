@@ -30,3 +30,17 @@ resource "azapi_resource" "test" {
     }
   })
 }
+
+resource "azapi_resource" "test_dynamic" {
+  type      = "Microsoft.AppPlatform/spring/storages@2024-01-01-preview"
+  name      = "acctest-ss-39"
+  parent_id = azurerm_spring_cloud_service.test.id
+
+  body = {
+    properties = {
+      accountKey  = azurerm_storage_account.test.primary_access_key
+      accountName = azurerm_storage_account.test.name
+      storageType = "StorageAccount"
+    }
+  }
+}

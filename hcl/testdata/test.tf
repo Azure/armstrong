@@ -228,3 +228,51 @@ resource "azapi_resource" "virtualMachine2" {
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
+
+resource "azapi_resource" "virtualMachine2_dynamic" {
+  type      = "Microsoft.Compute/virtualMachines@2023-03-01"
+  parent_id = azapi_resource.resourceGroup.id
+  name      = "${var.resource_name}-2-d"
+  location  = var.location
+  body = {
+    properties = {
+      hardwareProfile = {
+        vmSize = "Standard_F2"
+      }
+      networkProfile = {
+        networkInterfaces = [
+          {
+            id = azapi_resource.networkInterface.id
+            properties = {
+              primary = false
+            }
+          },
+        ]
+      }
+      osProfile = {
+        adminPassword = var.password
+        adminUsername = "testadmin"
+        computerName  = "hostname230630032848831820"
+        linuxConfiguration = {
+          disablePasswordAuthentication = false
+        }
+      }
+      storageProfile = {
+        imageReference = {
+          offer     = "UbuntuServer"
+          publisher = "Canonical"
+          sku       = "16.04-LTS"
+          version   = "latest"
+        }
+        osDisk = {
+          caching                 = "ReadWrite"
+          createOption            = "FromImage"
+          name                    = "myosdisk1"
+          writeAcceleratorEnabled = false
+        }
+      }
+    }
+  }
+  schema_validation_enabled = false
+  response_export_values    = ["*"]
+}
