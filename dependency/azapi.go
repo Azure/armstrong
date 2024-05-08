@@ -3,6 +3,7 @@ package dependency
 import (
 	"embed"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -42,6 +43,9 @@ func LoadAzapiDependencies() ([]Dependency, error) {
 	}
 	for _, entry := range entries {
 		filename := path.Join(dir, entry.Name(), "main.tf")
+		if _, err := StaticFiles.Open(filename); os.IsNotExist(err) {
+			filename = path.Join(dir, entry.Name(), "basic", "main.tf")
+		}
 		data, err := StaticFiles.ReadFile(filename)
 		if err != nil {
 			return nil, err

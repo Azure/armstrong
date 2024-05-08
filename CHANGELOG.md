@@ -1,3 +1,10 @@
+## v0.14.0
+FEATURES:
+- Support generating and testing with `azapi` dynamic property feature.
+
+BUG FIXES:
+- Fix the bug that the default resource name is not randomly generated.
+
 ## v0.13.0
 FEATURES:
 - Support `credscan` command to scan the credentials in the testing configuration files.

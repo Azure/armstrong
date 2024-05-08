@@ -37,7 +37,7 @@ func Test_AzapiDefinitionString(t *testing.T) {
   type = "Microsoft.Network/virtualNetworks@2020-06-01"
   parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
   name = "test"
-  body = jsonencode({
+  body = {
     properties = {
       addressSpace = {
         addressPrefixes = [
@@ -45,7 +45,7 @@ func Test_AzapiDefinitionString(t *testing.T) {
         ]
       }
     }
-  })
+  }
 }
 `,
 		},

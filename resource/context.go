@@ -26,12 +26,28 @@ type Context struct {
 	azapiAddingMap     map[string]bool
 }
 
-const DefaultProviderConfig = `terraform {
+var DefaultProviderConfig string
+
+func init() {
+	DefaultProviderConfig = fmt.Sprintf(`terraform {
   required_providers {
     azapi = {
       source = "Azure/azapi"
     }
   }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+  skip_provider_registration = true
 }
 
 provider "azapi" {
@@ -40,7 +56,7 @@ provider "azapi" {
 
 variable "resource_name" {
   type    = string
-  default = "acctest0001"
+  default = "acctest%04d"
 }
 
 variable "location" {
@@ -48,7 +64,8 @@ variable "location" {
   default = "westeurope"
 }
 
-`
+`, rand.New(rand.NewSource(time.Now().UnixNano())).Intn(10000))
+}
 
 func NewContext(referenceResolvers []resolver.ReferenceResolver) *Context {
 	knownPatternMap := make(map[string]types.Reference)

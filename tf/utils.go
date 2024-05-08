@@ -65,10 +65,10 @@ func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffRe
 	}
 
 	for _, resourceChange := range plan.ResourceChanges {
-		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+		if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
 			continue
 		}
-		if resourceChange == nil || resourceChange.Change == nil || resourceChange.Change.Before == nil || resourceChange.Change.After == nil {
+		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
 			continue
 		}
 		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
@@ -83,14 +83,28 @@ func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffRe
 			logrus.Errorf("resource %s has no id", resourceChange.Address)
 			continue
 		}
+
+		change := types.Change{}
+
+		if _, ok := beforeMap["body"].(string); ok {
+			change = types.Change{
+				Before: beforeMap["body"].(string),
+				After:  afterMap["body"].(string),
+			}
+		} else {
+			payloadBefore, _ := json.Marshal(beforeMap["body"])
+			payloadAfter, _ := json.Marshal(afterMap["body"])
+			change = types.Change{
+				Before: string(payloadBefore),
+				After:  string(payloadAfter),
+			}
+		}
+
 		out.Diffs = append(out.Diffs, types.Diff{
 			Id:      afterMap["id"].(string),
 			Type:    afterMap["type"].(string),
 			Address: resourceChange.Address,
-			Change: types.Change{
-				Before: beforeMap["body"].(string),
-				After:  afterMap["body"].(string),
-			},
+			Change:  change,
 		})
 	}
 
@@ -130,10 +144,10 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	}
 
 	for _, resourceChange := range plan.ResourceChanges {
-		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
+		if resourceChange == nil || resourceChange.Change == nil {
 			continue
 		}
-		if resourceChange == nil || resourceChange.Change == nil {
+		if !strings.HasPrefix(resourceChange.Address, "azapi_") {
 			continue
 		}
 		if len(resourceChange.Change.Actions) == 1 && resourceChange.Change.Actions[0] == tfjson.ActionNoop {
@@ -214,10 +228,12 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 			continue
 		}
 		if actions := resourceChange.Change.Actions; len(actions) == 1 && (actions[0] == tfjson.ActionNoop || actions[0] == tfjson.ActionUpdate) {
-			beforeMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
+			outMap, beforeMapOk := resourceChange.Change.Before.(map[string]interface{})
 			if !beforeMapOk {
 				continue
 			}
+
+			beforeMap := DeepCopy(outMap).(map[string]interface{})
 
 			id := ""
 			if v, ok := beforeMap["id"]; ok {
@@ -247,7 +263,11 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 
 func getBody(input map[string]interface{}) (map[string]interface{}, error) {
 	output := map[string]interface{}{}
-	if bodyRaw, ok := input["body"]; ok && bodyRaw != nil && bodyRaw.(string) != "" {
+	bodyRaw, ok := input["body"]
+	if !ok || bodyRaw == nil {
+		return output, nil
+	}
+	if bodyStr, ok := bodyRaw.(string); ok && bodyStr != "" {
 		if value, ok := input["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
 			output["tags"] = value.(map[string]interface{})
 		}
@@ -260,10 +280,22 @@ func getBody(input map[string]interface{}) (map[string]interface{}, error) {
 			output["identity"] = expandIdentity(value.([]interface{}))
 		}
 
-		err := json.Unmarshal([]byte(bodyRaw.(string)), &output)
-		if err != nil {
-			return output, err
+		err := json.Unmarshal([]byte(bodyStr), &output)
+		return output, err
+	}
+	if bodyMap, ok := bodyRaw.(map[string]interface{}); ok {
+		if value, ok := input["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
+			bodyMap["tags"] = value.(map[string]interface{})
 		}
+
+		if value, ok := input["location"]; ok && value != nil && value.(string) != "" {
+			bodyMap["location"] = value.(string)
+		}
+
+		if value, ok := input["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
+			bodyMap["identity"] = expandIdentity(value.([]interface{}))
+		}
+		return bodyMap, nil
 	}
 
 	return output, nil
@@ -300,14 +332,19 @@ func NewErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorRep
 	if applyErr == nil {
 		return out
 	}
-	res := strings.Split(applyErr.Error(), "Error: creating/updating")
+	res := make([]string, 0)
+	if strings.Contains(applyErr.Error(), "Error: Failed to create/update resource") {
+		res = strings.Split(applyErr.Error(), "Error: Failed to create/update resource")
+	} else {
+		res = strings.Split(applyErr.Error(), "Error: creating/updating")
+	}
 	for _, e := range res {
 		var id, apiVersion, label string
 		errorMessage := e
 		if lastIndex := strings.LastIndex(e, "------"); lastIndex != -1 {
 			errorMessage = errorMessage[0:lastIndex]
 		}
-		if matches := regexp.MustCompile(`ResourceId \\"(.+)\\" / Api Version \\"(.+)\\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
+		if matches := regexp.MustCompile(`ResourceId\s+\\?"([^\\]+)\\?"\s+/\s+Api Version \\?"([^\\]+)\\?"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
 			id = matches[0][1]
 			apiVersion = matches[0][2]
 		}
@@ -332,14 +369,22 @@ func NewCleanupErrorReport(applyErr error, logs []paltypes.RequestTrace) types.E
 		Errors: make([]types.Error, 0),
 		Logs:   logs,
 	}
-	res := strings.Split(applyErr.Error(), "Error: deleting")
+	if applyErr == nil {
+		return out
+	}
+	res := make([]string, 0)
+	if strings.Contains(applyErr.Error(), "Error: Failed to delete resource") {
+		res = strings.Split(applyErr.Error(), "Error: Failed to delete resource")
+	} else {
+		res = strings.Split(applyErr.Error(), "Error: deleting")
+	}
 	for _, e := range res {
 		var id, apiVersion string
 		errorMessage := e
 		if lastIndex := strings.LastIndex(e, "------"); lastIndex != -1 {
 			errorMessage = errorMessage[0:lastIndex]
 		}
-		if matches := regexp.MustCompile(`ResourceId \\"(.+)\\" / Api Version \\"(.+)\\"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
+		if matches := regexp.MustCompile(`ResourceId\s+\\?"([^\\]+)\\?"\s+/\s+Api Version \\?"([^\\]+)\\?"\)`).FindAllStringSubmatch(e, -1); len(matches) == 1 {
 			id = matches[0][1]
 			apiVersion = matches[0][2]
 		} else {
@@ -369,4 +414,26 @@ func NewIdAddressFromState(state *tfjson.State) map[string]string {
 		out[id] = res.Address
 	}
 	return out
+}
+
+func DeepCopy(input interface{}) interface{} {
+	if input == nil {
+		return nil
+	}
+	switch v := input.(type) {
+	case map[string]interface{}:
+		out := map[string]interface{}{}
+		for key, value := range v {
+			out[key] = DeepCopy(value)
+		}
+		return out
+	case []interface{}:
+		out := make([]interface{}, len(v))
+		for i, value := range v {
+			out[i] = DeepCopy(value)
+		}
+		return out
+	default:
+		return input
+	}
 }
