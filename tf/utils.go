@@ -84,7 +84,7 @@ func NewDiffReport(plan *tfjson.Plan, logs []paltypes.RequestTrace) types.DiffRe
 			continue
 		}
 
-		change := types.Change{}
+		var change types.Change
 
 		if _, ok := beforeMap["body"].(string); ok {
 			change = types.Change{
@@ -332,7 +332,7 @@ func NewErrorReport(applyErr error, logs []paltypes.RequestTrace) types.ErrorRep
 	if applyErr == nil {
 		return out
 	}
-	res := make([]string, 0)
+	var res []string
 	if strings.Contains(applyErr.Error(), "Error: Failed to create/update resource") {
 		res = strings.Split(applyErr.Error(), "Error: Failed to create/update resource")
 	} else {
@@ -372,7 +372,7 @@ func NewCleanupErrorReport(applyErr error, logs []paltypes.RequestTrace) types.E
 	if applyErr == nil {
 		return out
 	}
-	res := make([]string, 0)
+	var res []string
 	if strings.Contains(applyErr.Error(), "Error: Failed to delete resource") {
 		res = strings.Split(applyErr.Error(), "Error: Failed to delete resource")
 	} else {
