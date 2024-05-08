@@ -241,7 +241,19 @@ func ParseAzapiResource(f hcl.File) (*[]AzapiResource, []error) {
 					return nil, errs
 				}
 
-				r.Body = body.AsString()
+				if body.Type() == cty.String {
+					r.Body = body.AsString()
+				} else {
+					logrus.Debugf("jsonencode for azapi_resource %s with dynamic schema body: %+v", r.Name, body)
+					// azapi dynamic schema is used
+					v, err := stdlib.JSONEncode(*body)
+					if err != nil {
+						errs = append(errs, fmt.Errorf("jsonencode for azapi dynamic schema: %+v", err))
+						return nil, errs
+					}
+
+					r.Body = v.AsString()
+				}
 			}
 
 			results = append(results, r)
