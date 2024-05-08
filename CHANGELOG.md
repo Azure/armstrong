@@ -2,6 +2,9 @@
 FEATURES:
 - Support generating and testing with `azapi` dynamic property feature.
 
+ENHANCEMENTS:
+- Update mapping of azurerm v3.100.0
+
 BUG FIXES:
 - Fix the bug that the default resource name is not randomly generated.
 
