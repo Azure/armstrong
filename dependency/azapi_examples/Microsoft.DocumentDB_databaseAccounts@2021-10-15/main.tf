@@ -31,10 +31,7 @@ resource "azapi_resource" "databaseAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "GlobalDocumentDB"
     properties = {
       capabilities = [
@@ -69,7 +66,7 @@ resource "azapi_resource" "databaseAccount" {
       virtualNetworkRules = [
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

@@ -31,18 +31,14 @@ resource "azapi_resource" "factory" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       globalParameters = {
       }
       publicNetworkAccess = "Enabled"
       repoConfiguration   = null
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -51,10 +47,10 @@ resource "azapi_resource" "managedVirtualNetwork" {
   type      = "Microsoft.DataFactory/factories/managedVirtualNetworks@2018-06-01"
   parent_id = azapi_resource.factory.id
   name      = "default"
-  body = jsonencode({
+  body = {
     properties = {
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

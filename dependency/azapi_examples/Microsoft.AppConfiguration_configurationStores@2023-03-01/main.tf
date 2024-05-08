@@ -31,11 +31,7 @@ resource "azapi_resource" "configurationStore" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       disableLocalAuth      = false
       enablePurgeProtection = false
@@ -43,7 +39,7 @@ resource "azapi_resource" "configurationStore" {
     sku = {
       name = "standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

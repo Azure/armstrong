@@ -31,18 +31,14 @@ resource "azapi_resource" "factory" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       globalParameters = {
       }
       publicNetworkAccess = "Enabled"
       repoConfiguration   = null
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -52,10 +48,7 @@ resource "azapi_resource" "storageAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "BlobStorage"
     properties = {
       accessTier                   = "Hot"
@@ -87,7 +80,7 @@ resource "azapi_resource" "storageAccount" {
     sku = {
       name = "Standard_LRS"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -96,10 +89,10 @@ resource "azapi_resource" "managedVirtualNetwork" {
   type      = "Microsoft.DataFactory/factories/managedVirtualNetworks@2018-06-01"
   parent_id = azapi_resource.factory.id
   name      = "default"
-  body = jsonencode({
+  body = {
     properties = {
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -114,11 +107,11 @@ resource "azapi_resource_action" "managedPrivateEndpoint" {
   type        = "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints@2018-06-01"
   resource_id = data.azapi_resource_id.managedPrivateEndpoint.id
   method      = "PUT"
-  body = jsonencode({
+  body = {
     properties = {
       groupId               = "blob"
       privateLinkResourceId = azapi_resource.storageAccount.id
     }
-  })
+  }
 }
 

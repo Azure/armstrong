@@ -31,15 +31,16 @@ resource "azapi_resource" "cluster" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "SystemAssigned"
-    }
+  identity {
+    type = "SystemAssigned"
+    identity_ids = []
+  }
+  body = {
     sku = {
       capacity = 1000
       name     = "CapacityReservation"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

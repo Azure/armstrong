@@ -31,11 +31,7 @@ resource "azapi_resource" "namespace" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       disableLocalAuth    = false
       publicNetworkAccess = "Enabled"
@@ -46,7 +42,7 @@ resource "azapi_resource" "namespace" {
       name     = "Standard"
       tier     = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -56,11 +52,8 @@ resource "azapi_resource" "digitalTwinsInstance" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
-  })
+  body = {
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -69,7 +62,7 @@ resource "azapi_resource" "topic" {
   type      = "Microsoft.ServiceBus/namespaces/topics@2021-06-01-preview"
   parent_id = azapi_resource.namespace.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       enableBatchedOperations    = false
       enableExpress              = false
@@ -79,7 +72,7 @@ resource "azapi_resource" "topic" {
       status                     = "Active"
       supportOrdering            = false
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -88,13 +81,13 @@ resource "azapi_resource" "authorizationRule" {
   type      = "Microsoft.ServiceBus/namespaces/topics/authorizationRules@2021-06-01-preview"
   parent_id = azapi_resource.topic.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       rights = [
         "Send",
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -110,17 +103,19 @@ resource "azapi_resource" "endpoint" {
   type      = "Microsoft.DigitalTwins/digitalTwinsInstances/endpoints@2020-12-01"
   parent_id = azapi_resource.digitalTwinsInstance.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       authenticationType        = "KeyBased"
       deadLetterSecret          = ""
       endpointType              = "ServiceBus"
-      primaryConnectionString   = jsondecode(data.azapi_resource_action.listKeys.output).primaryConnectionString
-      secondaryConnectionString = jsondecode(data.azapi_resource_action.listKeys.output).secondaryConnectionString
+      primaryConnectionString   = data.azapi_resource_action.listKeys.output.primaryConnectionString
+      secondaryConnectionString = data.azapi_resource_action.listKeys.output.secondaryConnectionString
     }
-  })
+  }
   schema_validation_enabled = false
-  ignore_body_changes            = ["properties.primaryConnectionString", "properties.secondaryConnectionString"]
   response_export_values    = ["*"]
+  lifecycle {
+    ignore_changes = [body.properties.primaryConnectionString, body.properties.secondaryConnectionString]
+  }
 }
 

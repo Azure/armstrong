@@ -64,7 +64,7 @@ func (t *Terraform) Show() (*tfjson.State, error) {
 }
 
 func (t *Terraform) Plan() (*tfjson.Plan, error) {
-	ok, err := t.exec.Plan(context.TODO(), tfexec.Out(planfile))
+	ok, err := t.exec.Plan(context.TODO(), tfexec.Out(planfile), tfexec.Refresh(true))
 	if err != nil {
 		return nil, err
 	}

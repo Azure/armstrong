@@ -31,10 +31,7 @@ resource "azapi_resource" "databaseAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "MongoDB"
     properties = {
       capabilities = [
@@ -72,7 +69,7 @@ resource "azapi_resource" "databaseAccount" {
       virtualNetworkRules = [
       ]
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -81,7 +78,7 @@ resource "azapi_resource" "mongodbDatabase" {
   type      = "Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2021-10-15"
   parent_id = azapi_resource.databaseAccount.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       options = {
       }
@@ -89,7 +86,7 @@ resource "azapi_resource" "mongodbDatabase" {
         id = var.resource_name
       }
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

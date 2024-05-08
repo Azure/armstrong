@@ -31,11 +31,7 @@ resource "azapi_resource" "registry" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       adminUserEnabled     = false
       anonymousPullEnabled = false
@@ -65,7 +61,7 @@ resource "azapi_resource" "registry" {
       name = "Standard"
       tier = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -75,7 +71,7 @@ resource "azapi_resource" "webHook" {
   parent_id = azapi_resource.registry.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     properties = {
       actions = [
         "push",
@@ -86,7 +82,7 @@ resource "azapi_resource" "webHook" {
       serviceUri = "https://mywebhookreceiver.example/mytag"
       status     = "enabled"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

@@ -60,7 +60,7 @@ func (def AzapiDefinition) String() string {
 BODY`, jsonBody)
 			} else {
 				expressions += fmt.Sprintf(`
-  body = jsonencode(%[1]s)`, hcl.MarshalIndent(bodyMap, "  ", "  "))
+  body = %[1]s`, hcl.MarshalIndent(bodyMap, "  ", "  "))
 			}
 		}
 	}

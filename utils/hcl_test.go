@@ -112,6 +112,9 @@ data "azapi_resource_list" "listDomainsByApp" {
   depends_on = [azapi_resource.domain]
 }
 
+data "azapi_resource_list" "test" {
+}
+
 `,
 			Expected: []string{
 				"Microsoft.Resources/resourceGroups@2020-06-01",
@@ -120,6 +123,7 @@ data "azapi_resource_list" "listDomainsByApp" {
 				"Microsoft.AppPlatform/Spring/apps/domains@2022-04-01",
 				"Microsoft.AppPlatform/Spring/apps/domains@2022-04-01",
 				"Microsoft.AppPlatform/Spring/apps/domains@2022-04-01",
+				"",
 			},
 		},
 	}

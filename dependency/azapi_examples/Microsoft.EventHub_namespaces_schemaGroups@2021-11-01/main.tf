@@ -31,11 +31,7 @@ resource "azapi_resource" "namespace" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       disableLocalAuth     = false
       isAutoInflateEnabled = false
@@ -47,7 +43,7 @@ resource "azapi_resource" "namespace" {
       name     = "Standard"
       tier     = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -56,12 +52,12 @@ resource "azapi_resource" "schemaGroup" {
   type      = "Microsoft.EventHub/namespaces/schemaGroups@2021-11-01"
   parent_id = azapi_resource.namespace.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       schemaCompatibility = "Forward"
       schemaType          = "Avro"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

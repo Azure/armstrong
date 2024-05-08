@@ -31,11 +31,7 @@ resource "azapi_resource" "namespace" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       disableLocalAuth    = false
       publicNetworkAccess = "Enabled"
@@ -46,7 +42,7 @@ resource "azapi_resource" "namespace" {
       name     = "Standard"
       tier     = "Standard"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -55,7 +51,7 @@ resource "azapi_resource" "topic" {
   type      = "Microsoft.ServiceBus/namespaces/topics@2021-06-01-preview"
   parent_id = azapi_resource.namespace.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       enableBatchedOperations    = false
       enableExpress              = false
@@ -65,7 +61,7 @@ resource "azapi_resource" "topic" {
       status                     = "Active"
       supportOrdering            = false
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -74,7 +70,7 @@ resource "azapi_resource" "subscription" {
   type      = "Microsoft.ServiceBus/namespaces/topics/subscriptions@2021-06-01-preview"
   parent_id = azapi_resource.topic.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       clientAffineProperties = {
       }
@@ -86,7 +82,7 @@ resource "azapi_resource" "subscription" {
       requiresSession                           = false
       status                                    = "Active"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -95,7 +91,7 @@ resource "azapi_resource" "rule" {
   type      = "Microsoft.ServiceBus/namespaces/topics/subscriptions/rules@2021-06-01-preview"
   parent_id = azapi_resource.subscription.id
   name      = var.resource_name
-  body = jsonencode({
+  body = {
     properties = {
       correlationFilter = {
         contentType      = "test_content_type"
@@ -109,7 +105,7 @@ resource "azapi_resource" "rule" {
       }
       filterType = "CorrelationFilter"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

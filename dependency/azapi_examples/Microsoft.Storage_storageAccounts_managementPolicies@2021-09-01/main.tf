@@ -31,10 +31,7 @@ resource "azapi_resource" "storageAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "BlobStorage"
     properties = {
       accessTier                   = "Hot"
@@ -66,7 +63,7 @@ resource "azapi_resource" "storageAccount" {
     sku = {
       name = "Standard_LRS"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -75,7 +72,7 @@ resource "azapi_resource" "managementPolicy" {
   type      = "Microsoft.Storage/storageAccounts/managementPolicies@2021-09-01"
   parent_id = azapi_resource.storageAccount.id
   name      = "default"
-  body = jsonencode({
+  body = {
     properties = {
       policy = {
         rules = [
@@ -115,7 +112,7 @@ resource "azapi_resource" "managementPolicy" {
         ]
       }
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

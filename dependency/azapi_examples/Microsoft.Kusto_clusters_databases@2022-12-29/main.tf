@@ -31,11 +31,7 @@ resource "azapi_resource" "cluster" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "None"
-      userAssignedIdentities = null
-    }
+  body = {
     properties = {
       enableAutoStop                = true
       enableDiskEncryption          = false
@@ -54,7 +50,7 @@ resource "azapi_resource" "cluster" {
       name     = "Dev(No SLA)_Standard_D11_v2"
       tier     = "Basic"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -64,11 +60,11 @@ resource "azapi_resource" "database" {
   parent_id = azapi_resource.cluster.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     kind = "ReadWrite"
     properties = {
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }

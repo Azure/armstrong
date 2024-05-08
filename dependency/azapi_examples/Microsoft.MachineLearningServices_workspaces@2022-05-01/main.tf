@@ -35,11 +35,11 @@ resource "azapi_resource" "resourceGroup" {
   type     = "Microsoft.Resources/resourceGroups@2020-06-01"
   name     = var.resource_name
   location = var.location
-  body = jsonencode({
+  body = {
     tags = {
       stage = "test"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -49,10 +49,7 @@ resource "azapi_resource" "storageAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "StorageV2"
     properties = {
       accessTier                   = "Hot"
@@ -84,7 +81,7 @@ resource "azapi_resource" "storageAccount" {
     sku = {
       name = "Standard_LRS"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -94,7 +91,7 @@ resource "azapi_resource" "component" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     kind = "web"
     properties = {
       Application_Type                = "web"
@@ -106,7 +103,7 @@ resource "azapi_resource" "component" {
       publicNetworkAccessForIngestion = "Enabled"
       publicNetworkAccessForQuery     = "Enabled"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -116,7 +113,7 @@ resource "azapi_resource" "vault" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
+  body = {
     properties = {
       accessPolicies = [
         {
@@ -150,7 +147,7 @@ resource "azapi_resource" "vault" {
       }
       tenantId = data.azurerm_client_config.current.tenant_id
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -160,11 +157,11 @@ resource "azapi_resource" "workspace" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type                   = "SystemAssigned"
-      userAssignedIdentities = null
-    }
+  identity {
+    type = "SystemAssigned"
+    identity_ids = []
+  }
+  body = {
     properties = {
       applicationInsights = azapi_resource.component.id
       keyVault            = azapi_resource.vault.id
@@ -176,7 +173,7 @@ resource "azapi_resource" "workspace" {
       name = "Basic"
       tier = "Basic"
     }
-  })
+  }
   ignore_casing             = true
   schema_validation_enabled = false
   response_export_values    = ["*"]

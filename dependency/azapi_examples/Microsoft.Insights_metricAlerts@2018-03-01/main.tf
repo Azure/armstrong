@@ -31,10 +31,7 @@ resource "azapi_resource" "storageAccount" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = var.location
-  body = jsonencode({
-    identity = {
-      type = "None"
-    }
+  body = {
     kind = "StorageV2"
     properties = {
       accessTier                   = "Hot"
@@ -66,7 +63,7 @@ resource "azapi_resource" "storageAccount" {
     sku = {
       name = "Standard_LRS"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
@@ -76,7 +73,7 @@ resource "azapi_resource" "metricAlert" {
   parent_id = azapi_resource.resourceGroup.id
   name      = var.resource_name
   location  = "global"
-  body = jsonencode({
+  body = {
     properties = {
       actions = [
       ]
@@ -115,7 +112,7 @@ resource "azapi_resource" "metricAlert" {
       terraform = "Coolllll"
       test      = "123"
     }
-  })
+  }
   schema_validation_enabled = false
   response_export_values    = ["*"]
 }
