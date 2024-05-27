@@ -249,6 +249,9 @@ func (m *Model) CountCoverage() (int, int) {
 			if v.IsReadOnly {
 				continue
 			}
+			if v.Item != nil && v.Item.IsReadOnly {
+				continue
+			}
 			covered, total := v.CountCoverage()
 			m.CoveredCount += covered
 			m.TotalCount += total

@@ -207,7 +207,7 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 		name:         "DataMigrationServiceTasks",
 		resourceType: "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
 		apiVersion:   "2021-06-30",
-		apiPath:      "/subscriptions/fc04246f-04c5-437e-ac5e-206a19e7193f/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -223,6 +223,40 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
+	}
+}
+
+func TestCoverage_SCVMM(t *testing.T) {
+	tc := testCase{
+		name:         "SCVMM",
+		resourceType: "Microsoft.ScVmm/virtualMachineInstances@2023-10-07",
+		apiVersion:   "2023-10-07",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.HybridCompute/machines/test-vm-tf/providers/Microsoft.ScVmm/virtualMachineInstances/default",
+		rawRequest: []string{
+			`{
+    "extendedLocation": {
+        "name": "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/syntheticsscvmmcan/providers/microsoft.extendedlocation/customlocations/terraform-test-cl",
+        "type": "customLocation"
+    },
+    "properties": {
+        "infrastructureProfile": {
+            "cloudId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/Clouds/azcli-test-cloud",
+            "templateId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/VirtualMachineTemplates/azcli-test-vm-template-win19",
+            "vmmServerId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/SyntheticsSCVMMCan/providers/microsoft.scvmm/vmmservers/tf-test-vmmserver"
+        }
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	expected := 5
+	if model.CoveredCount != expected {
+		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
