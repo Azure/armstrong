@@ -116,6 +116,10 @@ func getReport(model *coverage.Model) []string {
 				continue
 			}
 
+			if v.Item != nil && v.Item.IsReadOnly {
+				continue
+			}
+
 			if v.Variants != nil {
 				variantType := v.ModelName
 				if v.VariantType != nil {
