@@ -65,6 +65,69 @@ func TestCoverage_ResourceGroup(t *testing.T) {
 	}
 }
 
+func TestCoverage_HealthcareDicom(t *testing.T) {
+	tc := testCase{
+		name:         "HealthcareApisDicom",
+		resourceType: "Microsoft.HealthcareApis/workspaces/dicomservices@2024-03-31",
+		apiVersion:   "2024-03-31",
+		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rgName/providers/Microsoft.HealthcareApis/workspaces/workspaceName/dicomservices/dicomServiceName",
+		// bulkImportConfiguration property not in swagger
+		rawRequest: []string{
+			`{
+    "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+            "${azurerm_user_assigned_identity.userAssignedIdentity.id}": {}
+        }
+    },
+    "location": "westus",
+    "properties": {
+        "corsConfiguration": {
+            "allowCredentials": false,
+            "headers": [
+                "*"
+            ],
+            "maxAge": 1440,
+            "methods": [
+                "DELETE",
+                "GET",
+                "OPTIONS",
+                "PATCH",
+                "POST",
+                "PUT"
+            ],
+            "origins": [
+                "*"
+            ]
+        },
+        "bulkImportConfiguration": {
+            "enabled": false
+        },
+        "enableDataPartitions": false,
+        "encryption": {
+            "customerManagedKeyEncryption": {
+                "keyEncryptionKeyUrl": "https://${azapi_resource.vault.name}.vault.azure.net/keys/${azurerm_key_vault_key.key.name}/${azurerm_key_vault_key.key.version}"
+            }
+        },
+        "storageConfiguration": {
+            "fileSystemName": "fileSystemName",
+            "storageResourceId": "${azapi_resource.storageAccount.id}"
+        }
+    }
+}`,
+		},
+	}
+
+	model, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
+	}
+
+	if model.CoveredCount != 12 {
+		t.Fatalf("expected CoveredCount 12, got %d", model.CoveredCount)
+	}
+}
+
 func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
 	tc := testCase{
 		name:         "MachineLearningServicesWorkspacesJobs",
@@ -1455,11 +1518,11 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		return nil, fmt.Errorf("expand model: %+v", err)
 	}
 
-	out, err := json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	t.Logf("expand model %s", string(out))
+	//out, err := json.MarshalIndent(model, "", "\t")
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//t.Logf("expand model %s", string(out))
 
 	for _, rq := range tc.rawRequest {
 		request := map[string]interface{}{}
@@ -1473,11 +1536,11 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 
 	model.CountCoverage()
 
-	out, err = json.MarshalIndent(model, "", "\t")
-	if err != nil {
-		t.Error(err)
-	}
-	t.Logf("coverage model %s", string(out))
+	//out, err = json.MarshalIndent(model, "", "\t")
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//t.Logf("coverage model %s", string(out))
 
 	coverageReport := coverage.CoverageReport{
 		Coverages: map[coverage.ArmResource]*coverage.Model{

@@ -49,7 +49,7 @@ func (m *Model) CredScan(root interface{}, secrets map[string]string) {
 
 	case []interface{}:
 		if m.Item == nil {
-			logrus.Errorf("unexpected array in %s\n", m.Identifier)
+			logrus.Errorf("unexpected array in %s", m.Identifier)
 		}
 
 		for _, item := range value {
@@ -82,7 +82,7 @@ func (m *Model) CredScan(root interface{}, secrets map[string]string) {
 							break Loop
 						}
 					}
-					logrus.Errorf("unexpected variant %s in %s\n", v.(string), m.Identifier)
+					logrus.Errorf("unexpected variant %s in %s", v.(string), m.Identifier)
 				}
 			}
 		}
@@ -91,14 +91,14 @@ func (m *Model) CredScan(root interface{}, secrets map[string]string) {
 			for k, v := range value {
 				if m.Properties == nil {
 					if !m.HasAdditionalProperties {
-						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
+						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 					}
-					return
+					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
 					if !m.HasAdditionalProperties {
-						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
-						return
+						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
+						continue
 					}
 				}
 				if (*m.Properties)[k].IsSecret {
@@ -128,7 +128,7 @@ func (m *Model) MarkCovered(root interface{}) {
 		if m.Enum != nil {
 			strValue := fmt.Sprintf("%v", value)
 			if _, ok := (*m.Enum)[strValue]; !ok {
-				logrus.Warnf("unexpected enum %s in %s\n", value, m.Identifier)
+				logrus.Errorf("unexpected enum %s in %s", value, m.Identifier)
 			}
 
 			(*m.Enum)[strValue] = true
@@ -136,7 +136,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case bool:
 		if m.Bool == nil {
-			logrus.Errorf("unexpected bool %v in %v\n", value, m.Identifier)
+			logrus.Errorf("unexpected bool %v in %v", value, m.Identifier)
 		}
 		(*m.Bool)[strconv.FormatBool(value)] = true
 
@@ -144,7 +144,7 @@ func (m *Model) MarkCovered(root interface{}) {
 
 	case []interface{}:
 		if m.Item == nil {
-			logrus.Errorf("unexpected array in %s\n", m.Identifier)
+			logrus.Errorf("unexpected array in %s", m.Identifier)
 		}
 
 		for _, item := range value {
@@ -181,7 +181,7 @@ func (m *Model) MarkCovered(root interface{}) {
 							break Loop
 						}
 					}
-					logrus.Errorf("unexpected variant %s in %s\n", v.(string), m.Identifier)
+					logrus.Errorf("unexpected variant %s in %s", v.(string), m.Identifier)
 				}
 			}
 		}
@@ -190,14 +190,14 @@ func (m *Model) MarkCovered(root interface{}) {
 			for k, v := range value {
 				if m.Properties == nil {
 					if !m.HasAdditionalProperties {
-						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
+						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 					}
-					return
+					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
 					if !m.HasAdditionalProperties {
-						logrus.Warnf("unexpected key %s in %s\n", k, m.Identifier)
-						return
+						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
+						continue
 					}
 				}
 				(*m.Properties)[k].MarkCovered(v)
