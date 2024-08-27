@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 - Hide readonly array item in coverage report
+- Update mapping of azurerm v4.0.1
 
 BUG FIXES:
 - Fix a bug that undocumented swagger properties caused inaccurate coverage report
