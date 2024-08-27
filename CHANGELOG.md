@@ -1,3 +1,11 @@
+## v0.15.0
+
+ENHANCEMENTS:
+- Hide readonly array item in coverage report
+
+BUG FIXES:
+- Fix a bug that undocumented swagger properties caused inaccurate coverage report
+
 ## v0.14.0
 FEATURES:
 - Support generating and testing with `azapi` dynamic property feature.
