@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 - Fix a bug that undocumented swagger properties caused inaccurate coverage report
+- Remove duplicated items in the error report.
 
 ## v0.14.0
 FEATURES:
