@@ -3,7 +3,6 @@ package coverage_test
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/azure/armstrong/coverage"
 	"github.com/azure/armstrong/report"
 	"github.com/azure/armstrong/types"
+	"github.com/sirupsen/logrus"
 )
 
 type testCase struct {
@@ -1543,11 +1543,12 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	//t.Logf("coverage model %s", string(out))
 
 	coverageReport := coverage.CoverageReport{
-		Coverages: map[coverage.ArmResource]*coverage.Model{
-			{
-				ApiPath: swaggerModel.ApiPath,
-				Type:    tc.resourceType,
-			}: model,
+		Coverages: map[string]*coverage.CoverageItem{
+			swaggerModel.ApiPath: {
+				ApiPath:     swaggerModel.ApiPath,
+				DisplayName: tc.resourceType,
+				Model:       model,
+			},
 		},
 	}
 
@@ -1569,9 +1570,9 @@ func storeCoverageReport(passReport types.PassReport, coverageReport coverage.Co
 	if len(coverageReport.Coverages) != 0 {
 		err := os.WriteFile(path.Join(reportDir, reportName), []byte(report.PassedMarkdownReport(passReport, coverageReport)), 0644)
 		if err != nil {
-			log.Printf("[WARN] failed to save passed markdown report to %s: %+v", reportName, err)
+			logrus.Warnf("failed to save passed markdown report to %s: %+v", reportName, err)
 		} else {
-			log.Printf("[INFO] markdown report saved to %s", reportName)
+			logrus.Infof("markdown report saved to %s", reportName)
 		}
 	}
 }

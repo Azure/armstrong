@@ -77,7 +77,7 @@ func Test_GetModelInfoFromLocalDir(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Logf("testcase: %+v", testcase.ResourceId)
-		actual, err := coverage.GetModelInfoFromLocalDir(testcase.ResourceId, testcase.ApiVersion, swaggerPath)
+		actual, err := coverage.GetModelInfoFromLocalDir(testcase.ResourceId, swaggerPath, "PUT")
 		if err != nil {
 			t.Fatalf("get model info from local dir error: %+v", err)
 		}

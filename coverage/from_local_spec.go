@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetModelInfoFromLocalDir(resourceId, apiVersion, swaggerPath string) (*SwaggerModel, error) {
+func GetModelInfoFromLocalDir(resourceId, swaggerPath string, method string) (*SwaggerModel, error) {
 	swaggerPath, err := filepath.Abs(swaggerPath)
 	if err != nil {
 		return nil, err
@@ -21,14 +21,14 @@ func GetModelInfoFromLocalDir(resourceId, apiVersion, swaggerPath string) (*Swag
 		return nil, err
 	}
 	if !file.IsDir() {
-		return GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath)
+		return GetModelInfoFromLocalSpecFile(resourceId, swaggerPath, method)
 	}
 	files, err := utils.ListFiles(swaggerPath, ".json", 1)
 	if err != nil {
 		return nil, err
 	}
 	for _, filename := range files {
-		model, err := GetModelInfoFromLocalSpecFile(resourceId, apiVersion, filename)
+		model, err := GetModelInfoFromLocalSpecFile(resourceId, filename, method)
 		if err != nil {
 			logrus.Warnf("failed to get model info from local spec file %v: %+v", filename, err)
 		}
@@ -39,7 +39,7 @@ func GetModelInfoFromLocalDir(resourceId, apiVersion, swaggerPath string) (*Swag
 	return nil, nil
 }
 
-func GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath string) (*SwaggerModel, error) {
+func GetModelInfoFromLocalSpecFile(resourceId, swaggerPath string, method string) (*SwaggerModel, error) {
 	doc, err := loadSwagger(swaggerPath)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,25 @@ func GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath string) (
 			continue
 		}
 
-		operation := pathItem.Put
+		var operation *openapispec.Operation
+		switch strings.ToUpper(method) {
+		case "GET":
+			operation = pathItem.Get
+		case "PUT":
+			operation = pathItem.Put
+		case "POST":
+			operation = pathItem.Post
+		case "DELETE":
+			operation = pathItem.Delete
+		case "OPTIONS":
+			operation = pathItem.Options
+		case "HEAD":
+			operation = pathItem.Head
+		case "PATCH":
+			operation = pathItem.Patch
+		default:
+			logrus.Warnf("unsupported method %v", method)
+		}
 		if operation == nil {
 			// should not happen
 			logrus.Warnf("no PUT operation found for path %v", pathKey)
@@ -90,6 +108,7 @@ func GetModelInfoFromLocalSpecFile(resourceId, apiVersion, swaggerPath string) (
 			ApiPath:     pathKey,
 			ModelName:   modelName,
 			SwaggerPath: swaggerPath,
+			OperationID: operation.ID,
 		}, nil
 	}
 	return nil, nil

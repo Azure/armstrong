@@ -10,15 +10,17 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/azure/armstrong/coverage"
 	"github.com/azure/armstrong/utils"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	TestReportDirName     = "ArmstrongReport"
-	TraceLogDirName       = "traces"
-	ApiTestReportFileName = "SwaggerAccuracyReport"
-	ApiTestConfigFileName = "ApiTestConfig.json"
+	TestReportDirName      = "ArmstrongReport"
+	TraceLogDirName        = "traces"
+	ApiTestReportFileName  = "SwaggerAccuracyReport"
+	ApiTestConfigFileName  = "ApiTestConfig.json"
+	CoverageReportFileName = "CoverageReport"
 )
 
 type ApiTestReport struct {
@@ -109,8 +111,19 @@ func GenerateApiTestReports(wd string, swaggerPath string) error {
 		return fmt.Errorf("[ERROR] failed to retrieve oav report: %+v", err)
 	}
 
+	opCovReport, err := coverage.NewOperationPropertiesCoverageReport(traceLogPath, swaggerPath)
+	if err != nil {
+		logrus.Warnf("[ERROR] failed to generate operation properties coverage report: %+v", err)
+	}
+
 	logrus.Infof("generating markdown report...")
-	if err = generateApiTestMarkdownReport(*report, swaggerPath, testReportPath, path.Join(wd, ApiTestConfigFileName)); err != nil {
+
+	opConvMarkdownContent := opCovReport.MarkdownContent()
+	if err := os.WriteFile(path.Join(testReportPath, CoverageReportFileName+".md"), []byte(opConvMarkdownContent), 0644); err != nil {
+		logrus.Warnf("error when writing file(%s): %+v", path.Join(testReportPath, CoverageReportFileName+".md"), err)
+	}
+
+	if err = generateApiTestMarkdownReport(*report, *opCovReport, swaggerPath, testReportPath, path.Join(wd, ApiTestConfigFileName)); err != nil {
 		return fmt.Errorf("[ERROR] failed to generate markdown report: %+v", err)
 	}
 
@@ -159,7 +172,7 @@ func isSuppressedInApiTest(suppressionList []Suppression, rule string, filePath 
 	return false
 }
 
-func generateApiTestMarkdownReport(result ApiTestReport, swaggerPath string, testReportPath string, apiTestConfigFilePath string) error {
+func generateApiTestMarkdownReport(result ApiTestReport, opCovReport coverage.CoverageReport, swaggerPath string, testReportPath string, apiTestConfigFilePath string) error {
 	var config ApiTestConfig
 
 	if utils.Exists(apiTestConfigFilePath) {
@@ -221,8 +234,12 @@ func generateApiTestMarkdownReport(result ApiTestReport, swaggerPath string, tes
 
 	sort.Strings(mdTable)
 
+	mdContent := mdTitle + "\n" + strings.Join(mdTable, "\n")
+
+	mdContent += opCovReport.MarkdownContentCompact()
+
 	mdReportFilePath := path.Join(testReportPath, fmt.Sprintf("%s.md", ApiTestReportFileName))
-	if err := os.WriteFile(mdReportFilePath, []byte(mdTitle+"\n"+strings.Join(mdTable, "\n")), 0644); err != nil {
+	if err := os.WriteFile(mdReportFilePath, []byte(mdContent), 0644); err != nil {
 		return fmt.Errorf("error when writing file(%s): %+v", mdReportFilePath, err)
 	}
 	logrus.Infof("markdown report saved to %s", mdReportFilePath)
