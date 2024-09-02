@@ -77,6 +77,19 @@ func OavValidateTraffic(traceDir string, swaggerPath string, outputDir string) (
 		return nil, fmt.Errorf("oav report is empty")
 	}
 
+	// remove duplicated error items
+	errorMap := make(map[string]ErrorItem)
+	for _, errItem := range payload.Errors {
+		errorMap[fmt.Sprintf("%s-%s-%s-%s", errItem.ErrorCode, errItem.ErrorMessage, errItem.OperationId, errItem.SchemaPathWithPosition)] = errItem
+	}
+
+	errors := make([]ErrorItem, 0)
+	for _, v := range errorMap {
+		errors = append(errors, v)
+	}
+
+	payload.Errors = errors
+
 	return payload, nil
 }
 
