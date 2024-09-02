@@ -1,6 +1,7 @@
 ## v0.15.0
 
 ENHANCEMENTS:
+- Add operation properties coverage report for API test scenarios
 - Hide readonly array item in coverage report
 - Update mapping of azurerm v4.0.1
 

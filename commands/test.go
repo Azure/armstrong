@@ -216,6 +216,20 @@ func (c TestCommand) Execute() int {
 		if _, err = report.OavValidateTraffic(traceDir, c.swaggerPath, reportDir); err != nil {
 			logrus.Errorf("error storing swagger accuracy report: %+v", err)
 		}
+
+		logrus.Infof("generating operation properties coverage report...")
+		if covReport, err := coverage.NewOperationPropertiesCoverageReport(traceDir, c.swaggerPath); err == nil {
+			reportContent := covReport.MarkdownContent()
+			outputPath := path.Join(reportDir, report.CoverageReportFileName+".md")
+			err := os.WriteFile(outputPath, []byte(reportContent), 0644)
+			if err != nil {
+				logrus.Warnf("failed to save operation properties coverage report to %s: %+v", outputPath, err)
+			} else {
+				logrus.Infof("operation properties coverage report saved to %s", outputPath)
+			}
+		} else {
+			logrus.Warnf("failed to generate operation properties coverage report: %+v", err)
+		}
 	} else {
 		logrus.Warnf("no swagger file provided, swagger accuracy report will not be generated")
 	}

@@ -173,7 +173,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (covera
 	}()
 
 	out := coverage.CoverageReport{
-		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
+		Coverages: make(map[string]*coverage.CoverageItem, 0),
 	}
 	if state == nil || state.Values == nil || state.Values.RootModule == nil || state.Values.RootModule.Resources == nil {
 		logrus.Warnf("new coverage report from state: state is nil")
@@ -214,7 +214,7 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 	}()
 
 	out := coverage.CoverageReport{
-		Coverages: make(map[coverage.ArmResource]*coverage.Model, 0),
+		Coverages: make(map[string]*coverage.CoverageItem, 0),
 	}
 	if plan == nil {
 		return out, nil

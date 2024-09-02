@@ -160,6 +160,7 @@ type SwaggerModel struct {
 	ApiPath     string
 	ModelName   string
 	SwaggerPath string
+	OperationID string
 }
 
 // GetModelInfoFromIndex will try to download online index from https://github.com/teowa/azure-rest-api-index-file, and get model info from it
