@@ -18,9 +18,9 @@ import (
 const (
 	TestReportDirName      = "ArmstrongReport"
 	TraceLogDirName        = "traces"
-	ApiTestReportFileName  = "SwaggerAccuracyReport"
+	ApiTestReportFileName  = "API Test - SwaggerAccuracyReport"
 	ApiTestConfigFileName  = "ApiTestConfig.json"
-	CoverageReportFileName = "CoverageReport"
+	CoverageReportFileName = "API Test - CoverageReport.md"
 )
 
 type ApiTestReport struct {
@@ -119,8 +119,10 @@ func GenerateApiTestReports(wd string, swaggerPath string) error {
 	logrus.Infof("generating markdown report...")
 
 	opConvMarkdownContent := opCovReport.MarkdownContent()
-	if err := os.WriteFile(path.Join(testReportPath, CoverageReportFileName+".md"), []byte(opConvMarkdownContent), 0644); err != nil {
-		logrus.Warnf("error when writing file(%s): %+v", path.Join(testReportPath, CoverageReportFileName+".md"), err)
+	if err := os.WriteFile(path.Join(testReportPath, CoverageReportFileName), []byte(opConvMarkdownContent), 0644); err != nil {
+		logrus.Warnf("error when writing file(%s): %+v", path.Join(testReportPath, CoverageReportFileName), err)
+	} else {
+		logrus.Infof("markdown report saved to %s", path.Join(testReportPath, CoverageReportFileName))
 	}
 
 	if err = generateApiTestMarkdownReport(*report, *opCovReport, swaggerPath, testReportPath, path.Join(wd, ApiTestConfigFileName)); err != nil {
@@ -148,7 +150,7 @@ func mergeApiTestTraceFiles(wd string, traceLogPath string) error {
 			continue
 		}
 		traceDir := filepath.Join(wd, d.Name(), TraceLogDirName)
-		if utils.Exists(traceDir) {
+		if utils.Exists(traceDir) && traceDir != traceLogPath {
 			err := utils.CopyWithOptions(traceDir, traceLogPath, fmt.Sprintf("%s-", d.Name()))
 			if err != nil {
 				return fmt.Errorf("failed to copy trace files: %+v", err)

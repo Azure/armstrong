@@ -94,15 +94,16 @@ Supported options:
 4. `-swagger`: Specify the swagger file path or directory path.
 
 Armstrong also output different kinds of reports:
-1. `all_passed_report.md`: A markdown report which contains all passed testcases. It will be generated when all testcases passed.
+1. `Onboard Terraform - all_passed_report.md`: A markdown report which contains all passed testcases. It will be generated when all testcases passed.
 It also contains the `coverage report` which shows the tested properties and the total properties.
-2. `partial_passed_report.md`: A markdown report which contains all passed testcases. It will be generated when there are failed testcases.
+2. `Onboard Terraform - partial_passed_report.md`: A markdown report which contains all passed testcases. It will be generated when there are failed testcases.
 It also contains the `coverage report` which shows the tested properties and the total properties.
-3. `api error report`: A markdown report which contains one API error when creating the testing resource. It will be generated when there are API issues.
+3. `Error - api error report`: A markdown report which contains one API error when creating the testing resource. It will be generated when there are API issues.
 It also contains other details like http traces to help debugging.
-4. `api issue report`: A markdown report which contains one API issue when testing the resource. It will be generated when there are API issues.
+4. `Error - api issue report`: A markdown report which contains one API issue when testing the resource. It will be generated when there are API issues.
 It also contains other details like http traces to help debugging.
-5. `swagger accuracy report`: A html report which contains the swagger accuracy analysis result. It will be generated when `-swagger` option is specified and `oav` is installed.
+5. `API Test - swagger accuracy report`: A html report which contains the swagger accuracy analysis result. It will be generated when `-swagger` option is specified and `oav` is installed.
+6. `API Test - CoverageReport`: A markdown report which contains the operation request body coverage report. It will be generated when `-swagger` option is specified and `oav` is installed.
 
 **Notice:**
 1. How to install `oav`, please refer to [oav](https://github.com/Azure/oav).
@@ -119,9 +120,9 @@ Supported options:
 2. `-v`: Enable verbose mode, default is false.
 
 Armstrong also output different kinds of reports:
-1. `cleanup_all_passed_report`: A markdown report which contains all passed testcases. It will be generated when all testcases passed.
-2. `cleanup_partial_passed_report`: A markdown report which contains all passed testcases. It will be generated when there are failed testcases.
-3. `cleanup_api error report`: A markdown report which contains one API error when deleting the testing resource. It will be generated when there are API issues.
+1. `Onboard Terraform - cleanup_all_passed_report`: A markdown report which contains all passed testcases. It will be generated when all testcases passed.
+2. `Onboard Terraform - cleanup_partial_passed_report`: A markdown report which contains all passed testcases. It will be generated when there are failed testcases.
+3. `Error - cleanup_api error report`: A markdown report which contains one API error when deleting the testing resource. It will be generated when there are API issues.
 
 ### report - Generate a summary report
 
