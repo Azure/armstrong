@@ -252,9 +252,9 @@ If there's no error reported, the test case passes. The folder structure will lo
 
 ```shell
 ├── armstrong_reports_Nov__2_122604
-│   ├── SwaggerAccuracyReport.html          <- The swagger accuracy report 
-│   ├── SwaggerAccuracyReport.json          <- For Armstrong internal use only - The swagger accuracy report in JSON format
-│   ├── all_passed_report.md                <- Armstrong report, it contains the coverage report of the tested fields
+│   ├── API Test - SwaggerAccuracyReport.html          <- The swagger accuracy report 
+│   ├── API Test - SwaggerAccuracyReport.json          <- For Armstrong internal use only - The swagger accuracy report in JSON format
+│   ├── Onboard Terraform - all_passed_report.md                <- Armstrong report, it contains the coverage report of the tested fields
 │   └── traces                              <- For debugging purpose - The API traffic during the test
         ├── trace-1.json ... trace-10.json
 ├── log.txt                                 <- For debugging purpose - The log of the test

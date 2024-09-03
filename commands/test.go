@@ -66,8 +66,8 @@ func (c TestCommand) Run(args []string) int {
 
 func (c TestCommand) Execute() int {
 	const (
-		allPassedReportFileName     = "all_passed_report.md"
-		partialPassedReportFileName = "partial_passed_report.md"
+		allPassedReportFileName     = "Onboard Terraform - all_passed_report.md"
+		partialPassedReportFileName = "Onboard Terraform - partial_passed_report.md"
 	)
 
 	wd, err := os.Getwd()
@@ -132,8 +132,8 @@ func (c TestCommand) Execute() int {
 		logrus.Errorf("error running terraform plan: %+v\n", planErr)
 	}
 
-	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.Stamp))
-	reportDir = strings.ReplaceAll(reportDir, ":", "")
+	reportDir := fmt.Sprintf("armstrong_reports_%s", time.Now().Format(time.DateTime))
+	reportDir = strings.ReplaceAll(reportDir, ":", "-")
 	reportDir = strings.ReplaceAll(reportDir, " ", "_")
 	reportDir = path.Join(wd, reportDir)
 	logrus.Infof("creating report directory %s\n", reportDir)
@@ -220,12 +220,12 @@ func (c TestCommand) Execute() int {
 		logrus.Infof("generating operation properties coverage report...")
 		if covReport, err := coverage.NewOperationPropertiesCoverageReport(traceDir, c.swaggerPath); err == nil {
 			reportContent := covReport.MarkdownContent()
-			outputPath := path.Join(reportDir, report.CoverageReportFileName+".md")
+			outputPath := path.Join(reportDir, report.CoverageReportFileName)
 			err := os.WriteFile(outputPath, []byte(reportContent), 0644)
 			if err != nil {
-				logrus.Warnf("failed to save operation properties coverage report to %s: %+v", outputPath, err)
+				logrus.Warnf("failed to save operation properties coverage report to %s: %+v", report.CoverageReportFileName, err)
 			} else {
-				logrus.Infof("operation properties coverage report saved to %s", outputPath)
+				logrus.Infof("operation properties coverage report saved to %s", report.CoverageReportFileName)
 			}
 		} else {
 			logrus.Warnf("failed to generate operation properties coverage report: %+v", err)
@@ -260,7 +260,7 @@ func storePassReport(passReport types.PassReport, coverageReport coverage.Covera
 func storeErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
 		logrus.Warnf("found an error when creating %s, address: azapi_resource.%s\n", r.Type, r.Label)
-		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
+		markdownFilename := fmt.Sprintf("Error - %s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.ErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {
 			logrus.Warnf("failed to save markdown report to %s: %+v", markdownFilename, err)
@@ -274,7 +274,7 @@ func storeDiffReport(diffReport types.DiffReport, reportDir string) {
 	for _, r := range diffReport.Diffs {
 		logrus.Warnf("found differences between response and configuration:\n\naddress: %s\n\n%s\n", r.Address, report.DiffMessageTerraform(r.Change))
 		logrus.Infof("report:\n\naddresss: %s\t%s\n", r.Address, report.DiffMessageReadable(r.Change))
-		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), strings.TrimPrefix(r.Address, "azapi_resource."))
+		markdownFilename := fmt.Sprintf("Error - %s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), strings.TrimPrefix(r.Address, "azapi_resource."))
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.DiffMarkdownReport(r, diffReport.Logs)), 0644)
 		if err != nil {
 			logrus.Warnf("failed to save markdown report to %s: %+v", markdownFilename, err)

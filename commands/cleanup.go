@@ -58,8 +58,8 @@ func (c CleanupCommand) Run(args []string) int {
 
 func (c CleanupCommand) Execute() int {
 	const (
-		allPassedReportFileName     = "cleanup_all_passed_report.md"
-		partialPassedReportFileName = "cleanup_partial_passed_report.md"
+		allPassedReportFileName     = "Onboard Terraform - cleanup_all_passed_report.md"
+		partialPassedReportFileName = "Onboard Terraform - cleanup_partial_passed_report.md"
 	)
 
 	logrus.Infof("cleaning up resources...")
@@ -164,7 +164,7 @@ func storeCleanupReport(passReport types.PassReport, reportDir string, reportNam
 func storeCleanupErrorReport(errorReport types.ErrorReport, reportDir string) {
 	for _, r := range errorReport.Errors {
 		logrus.Warnf("found an error when deleting %s, address: %s\n", r.Type, r.Label)
-		markdownFilename := fmt.Sprintf("%s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
+		markdownFilename := fmt.Sprintf("Error - %s_%s.md", strings.ReplaceAll(r.Type, "/", "_"), r.Label)
 		err := os.WriteFile(path.Join(reportDir, markdownFilename), []byte(report.CleanupErrorMarkdownReport(r, errorReport.Logs)), 0644)
 		if err != nil {
 			logrus.Errorf("failed to save markdown report to %s: %+v", markdownFilename, err)
