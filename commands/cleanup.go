@@ -88,8 +88,8 @@ func (c CleanupCommand) Execute() int {
 	passReport := tf.NewPassReportFromState(state)
 	idAddressMap := tf.NewIdAddressFromState(state)
 
-	reportDir := fmt.Sprintf("armstrong_cleanup_reports_%s", time.Now().Format(time.Stamp))
-	reportDir = strings.ReplaceAll(reportDir, ":", "")
+	reportDir := fmt.Sprintf("armstrong_cleanup_reports_%s", time.Now().Format(time.DateTime))
+	reportDir = strings.ReplaceAll(reportDir, ":", "-")
 	reportDir = strings.ReplaceAll(reportDir, " ", "_")
 	reportDir = path.Join(wd, reportDir)
 	err = os.Mkdir(reportDir, 0755)
