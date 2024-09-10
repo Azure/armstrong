@@ -89,6 +89,8 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 
 	output := expandSchema(modelSchema, swaggerPath, modelName, "#", spec, map[string]interface{}{}, map[string]interface{}{})
 
+	output.IsRoot = true
+
 	return output, nil
 }
 
@@ -178,6 +180,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 				properties[k] = v
 			}
 		}
+		output.ModelName = referenceModel.ModelName
 		if referenceModel.Enum != nil {
 			output.Enum = referenceModel.Enum
 		}

@@ -33,7 +33,7 @@ func (c *CoverageReport) AddCoverageFromState(resourceId, resourceType string, j
 		swaggerModel = swaggerModelFromLocal
 	}
 	if swaggerModel == nil {
-		swaggerModelFromIndex, err := GetModelInfoFromIndex(resourceId, apiVersion, "")
+		swaggerModelFromIndex, err := GetModelInfoFromIndex(resourceId, apiVersion, "PUT", "")
 		if err != nil {
 			return fmt.Errorf("error find the path for %s from index: %+v", resourceId, err)
 		}
@@ -98,7 +98,7 @@ ${coverage_details}
 	for _, v := range c.Coverages {
 		count++
 
-		reportDetail := getReport(v.Model)
+		reportDetail := getReport(v.Model.ModelName, v.Model)
 		sort.Strings(reportDetail)
 
 		coverages = append(coverages, fmt.Sprintf(`##### <!-- %[1]v -->
@@ -107,20 +107,14 @@ ${coverage_details}
 
 [swagger](%[3]v)
 <blockquote>
-<details open>
-<summary><span%[4]v>%[5]v(%[6]v/%[7]v)</span></summary>
-<blockquote>
 
-%[8]v
-
-</blockquote>
-</details>
+%[4]v
 
 </blockquote>
 </details>
 
 ---
-`, v.DisplayName, v.ApiPath, v.Model.SourceFile, getStyle(v.Model.IsFullyCovered), v.Model.ModelName, v.Model.CoveredCount, v.Model.TotalCount, strings.Join(reportDetail, "\n\n")))
+`, v.DisplayName, v.ApiPath, v.Model.SourceFile, strings.Join(reportDetail, "\n\n")))
 	}
 
 	sort.Strings(coverages)
@@ -158,8 +152,21 @@ func (c *CoverageReport) MarkdownContentCompact() string {
 	return template + content
 }
 
-func getReport(model *Model) []string {
+func getReport(displayName string, model *Model) []string {
 	out := make([]string, 0)
+	style := getStyle(model.IsFullyCovered)
+
+	if hasNoDetail(model) {
+		// leaf property
+		out = append(out,
+			fmt.Sprintf(`<!-- %[1]v -->
+<details>
+<summary><span%[2]v>%[3]v</span></summary>
+
+</details>`, model.Identifier, style, displayName),
+		)
+		return out
+	}
 
 	if isBoolEnumDisplayed {
 		if model.Enum != nil {
@@ -178,7 +185,7 @@ func getReport(model *Model) []string {
 	}
 
 	if model.Item != nil {
-		return getReport(model.Item)
+		return getReport(displayName, model.Item)
 	}
 
 	if model.Properties != nil {
@@ -196,17 +203,16 @@ func getReport(model *Model) []string {
 				if v.VariantType != nil {
 					variantType = *v.VariantType
 				}
-				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-
-				out = append(out, getChildReport(variantKey, v))
+				variantKey := getDiscriminatorKey(k, variantType)
+				out = append(out, getReport(variantKey, v)...)
 
 				for variantType, variant := range *v.Variants {
 					variantType := variantType
 					if variant.VariantType != nil {
 						variantType = *variant.VariantType
 					}
-					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-					out = append(out, getChildReport(variantKey, variant))
+					variantKey := getDiscriminatorKey(k, variantType)
+					out = append(out, getReport(variantKey, variant)...)
 				}
 				continue
 			}
@@ -216,25 +222,68 @@ func getReport(model *Model) []string {
 				if v.Item.VariantType != nil {
 					variantType = *v.Item.VariantType
 				}
-				variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-				out = append(out, getChildReport(variantKey, v))
+				variantKey := getDiscriminatorKey(k, variantType)
+				out = append(out, getReport(variantKey, v)...)
 
 				for variantType, variant := range *v.Item.Variants {
 					variantType := variantType
 					if variant.VariantType != nil {
 						variantType = *variant.VariantType
 					}
-					variantKey := fmt.Sprintf("%s{%s}", k, variantType)
-					out = append(out, getChildReport(variantKey, variant))
+					variantKey := getDiscriminatorKey(k, variantType)
+					out = append(out, getReport(variantKey, variant)...)
 				}
 				continue
 			}
 
-			out = append(out, getChildReport(k, v))
+			out = append(out, getReport(k, v)...)
 		}
 	}
 
-	return out
+	sort.Strings(out)
+
+	outWithoutVariant := []string{
+		fmt.Sprintf(`<!-- %[1]v -->
+<details>
+<summary><span%[2]v>%[3]v %[4]v</span></summary>
+<blockquote>
+
+%[5]v
+
+</blockquote>
+</details>`, model.Identifier, style, displayName, getCoverageCount(model), strings.Join(out, "\n\n")),
+	}
+
+	if model.IsRoot {
+		var variants *map[string]*Model
+		if model.Variants != nil {
+			variants = model.Variants
+		}
+		if model.Item != nil && model.Item.Variants != nil {
+			variants = model.Item.Variants
+		}
+
+		if variants != nil {
+			outWithVariant := make([]string, 0)
+			outWithVariant = append(outWithVariant, outWithoutVariant...)
+
+			for variantType, variant := range *variants {
+				variantType := variantType
+				if variant.VariantType != nil {
+					variantType = *variant.VariantType
+				}
+				variantKey := getDiscriminatorKey(displayName, variantType)
+				outWithVariant = append(outWithVariant, getReport(variantKey, variant)...)
+			}
+
+			sort.Strings(outWithVariant)
+
+			return outWithVariant
+		}
+	}
+
+	return outWithoutVariant
+
 }
 
 func getEnumBoolReport(name string, isCovered bool) string {
@@ -251,34 +300,34 @@ func getCoverageCount(model *Model) string {
 	return fmt.Sprintf("(%v/%v)", model.CoveredCount, model.TotalCount)
 }
 
-func getChildReport(name string, model *Model) string {
-	var style, report string
+// func getChildReport(name string, model *Model) string {
+// 	var style, report string
 
-	style = getStyle(model.IsFullyCovered)
+// 	style = getStyle(model.IsFullyCovered)
 
-	if hasNoDetail(model) {
-		// leaf property
-		report = fmt.Sprintf(`<!-- %[1]v -->
-<details>
-<summary><span%[2]v>%[3]v</span></summary>
+// 	if hasNoDetail(model) {
+// 		// leaf property
+// 		report = fmt.Sprintf(`<!-- %[1]v -->
+// <details>
+// <summary><span%[2]v>%[3]v</span></summary>
 
-</details>`, model.Identifier, style, name)
-	} else {
-		childReport := getReport(model)
-		sort.Strings(childReport)
-		report = fmt.Sprintf(`<!-- %[1]v -->
-<details>
-<summary><span%[2]v>%[3]v %[4]v</span></summary>
-<blockquote>
+// </details>`, model.Identifier, style, name)
+// 	} else {
+// 		childReport := getReport(model, model.ModelName)
+// 		sort.Strings(childReport)
+// 		report = fmt.Sprintf(`<!-- %[1]v -->
+// <details>
+// <summary><span%[2]v>%[3]v %[4]v</span></summary>
+// <blockquote>
 
-%[5]v
+// %[5]v
 
-</blockquote>
-</details>`, model.Identifier, style, name, getCoverageCount(model), strings.Join(childReport, "\n\n"))
-	}
+// </blockquote>
+// </details>`, model.Identifier, style, name, getCoverageCount(model), strings.Join(childReport, "\n\n"))
+// 	}
 
-	return report
-}
+// 	return report
+// }
 
 func hasNoDetail(model *Model) bool {
 	if model.Properties == nil && model.Variants == nil && model.Item == nil && (!isBoolEnumDisplayed || (model.Bool == nil && model.Enum == nil)) {
@@ -298,4 +347,8 @@ func getStyle(isFullyCovered bool) string {
 		return ""
 	}
 	return " style=\"color:red\""
+}
+
+func getDiscriminatorKey(modelName, variantType string) string {
+	return fmt.Sprintf("%s{%s}", modelName, variantType)
 }

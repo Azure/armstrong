@@ -17,6 +17,7 @@ func TestGetModelInfoFromIndex_DataCollectionRule(t *testing.T) {
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
+		"PUT",
 		"",
 	)
 	if err != nil {
@@ -44,6 +45,7 @@ func TestGetModelInfoFromIndexWithCache_DataCollectionRule(t *testing.T) {
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
+		"PUT",
 		indexFilePath,
 	)
 	if err != nil {
@@ -71,6 +73,7 @@ func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
 		apiVersion,
+		"PUT",
 		"",
 	)
 	if err != nil {
@@ -95,7 +98,7 @@ func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
 
 func TestGetModelInfoFromIndexWithType_DataCollectionRule(t *testing.T) {
 	azapiResourceType := "Microsoft.Insights/dataCollectionRules@2022-06-01"
-	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "")
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", "")
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
@@ -108,7 +111,7 @@ func TestGetModelInfoFromIndexWithType_DataCollectionRule(t *testing.T) {
 
 func TestGetModelInfoFromIndexWithTypeWithCache_DataCollectionRule(t *testing.T) {
 	azapiResourceType := "Microsoft.Insights/dataCollectionRules@2022-06-01"
-	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, indexFilePath)
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", indexFilePath)
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
@@ -118,7 +121,7 @@ func TestGetModelInfoFromIndexWithTypeWithCache_DataCollectionRule(t *testing.T)
 		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
 	}
 
-	_, err = coverage.GetModelInfoFromIndexWithType(azapiResourceType, indexFilePath)
+	_, err = coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", indexFilePath)
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
@@ -126,7 +129,7 @@ func TestGetModelInfoFromIndexWithTypeWithCache_DataCollectionRule(t *testing.T)
 
 func TestGetModelInfoFromIndexWithType_DeviceSecurityGroups(t *testing.T) {
 	azapiResourceType := "Microsoft.Security/deviceSecurityGroups@2019-08-01"
-	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "")
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", "")
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
@@ -147,6 +150,7 @@ func TestGetModelInfoFromLocalIndex_DataCollectionRule(t *testing.T) {
 	swaggerModel, err := coverage.GetModelInfoFromLocalIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
+		"PUT",
 		azureRepoDir,
 		"",
 	)
@@ -180,6 +184,7 @@ func TestGetModelInfoFromLocalIndexWithCache_DataCollectionRule(t *testing.T) {
 	swaggerModel, err := coverage.GetModelInfoFromLocalIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
+		"PUT",
 		azureRepoDir,
 		indexFilePath,
 	)
@@ -205,6 +210,7 @@ func TestGetModelInfoFromLocalIndexWithCache_DataCollectionRule(t *testing.T) {
 	_, err = coverage.GetModelInfoFromLocalIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
+		"PUT",
 		azureRepoDir,
 		indexFilePath,
 	)

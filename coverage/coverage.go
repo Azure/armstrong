@@ -22,10 +22,13 @@ type Model struct {
 	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
+	IsRoot                  bool               `json:"IsRoot,omitempty"`
 	IsSecret                bool               `json:"IsSecret,omitempty"` // related to x-ms-secret
 	Item                    *Model             `json:"Item,omitempty"`
 	ModelName               string             `json:"ModelName,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
+	RootCoveredCount        int                `json:"RootCoveredCount,omitempty"` // only for root model, covered count plus all variant count if any
+	RootTotalCount          int                `json:"RootTotalCount,omitempty"`   // only for root model, total count plus all variant count if any
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
@@ -272,6 +275,20 @@ func (m *Model) CountCoverage() (int, int) {
 		}
 	}
 
+	if m.IsRoot {
+		if m.Variants != nil {
+			for _, v := range *m.Variants {
+				v.CountCoverage()
+			}
+		}
+
+		if m.Item != nil && m.Item.Variants != nil {
+			for _, v := range *m.Item.Variants {
+				v.CountCoverage()
+			}
+		}
+	}
+
 	if m.TotalCount == 0 {
 		m.TotalCount = 1
 	}
@@ -280,6 +297,23 @@ func (m *Model) CountCoverage() (int, int) {
 	}
 
 	m.IsFullyCovered = m.TotalCount > 0 && m.CoveredCount == m.TotalCount
+
+	if m.IsRoot {
+		m.RootCoveredCount = m.CoveredCount
+		m.RootTotalCount = m.TotalCount
+		if m.Variants != nil {
+			for _, v := range *m.Variants {
+				m.RootCoveredCount += v.CoveredCount
+				m.RootTotalCount += v.TotalCount
+			}
+		}
+		if m.Item != nil && m.Item.Variants != nil {
+			for _, v := range *m.Item.Variants {
+				m.RootCoveredCount += v.CoveredCount
+				m.RootTotalCount += v.TotalCount
+			}
+		}
+	}
 
 	return m.CoveredCount, m.TotalCount
 }

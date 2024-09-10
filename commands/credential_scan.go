@@ -235,7 +235,7 @@ func (c CredentialScanCommand) Execute() int {
 		var swaggerModel *coverage.SwaggerModel
 		if c.swaggerRepoPath != "" {
 			logrus.Infof("scan based on local swagger repo: %s", c.swaggerRepoPath)
-			swaggerModel, err = coverage.GetModelInfoFromLocalIndex(mockedResourceId, apiVersion, c.swaggerRepoPath, c.swaggerIndexFile)
+			swaggerModel, err = coverage.GetModelInfoFromLocalIndex(mockedResourceId, apiVersion, "PUT", c.swaggerRepoPath, c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
 					azapiResource,
@@ -248,7 +248,7 @@ func (c CredentialScanCommand) Execute() int {
 				continue
 			}
 		} else {
-			swaggerModel, err = coverage.GetModelInfoFromIndex(mockedResourceId, apiVersion, c.swaggerIndexFile)
+			swaggerModel, err = coverage.GetModelInfoFromIndex(mockedResourceId, apiVersion, "PUT", c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
 					azapiResource,
