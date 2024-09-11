@@ -93,13 +93,14 @@ func (m *Model) CredScan(root interface{}, secrets map[string]string) {
 		if isMatchProperty {
 			for k, v := range value {
 				if m.Properties == nil {
-					if !m.HasAdditionalProperties {
-						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
-					}
+					// some objects has no properties defined
+					// https://github.com/Azure/azure-rest-api-specs/blob/3519c80fe510a268f6e59a29ccac8a53fdec15b6/specification/monitor/resource-manager/Microsoft.Insights/stable/2023-03-11/dataCollectionRules_API.json#L724
+
+					logrus.Warnf("unexpected key %s in %s", k, m.Identifier)
 					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
-					if !m.HasAdditionalProperties {
+					if !m.HasAdditionalProperties && m.Discriminator == nil {
 						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 						continue
 					}
@@ -194,10 +195,12 @@ func (m *Model) MarkCovered(root interface{}) {
 				if m.Properties == nil {
 					// some objects has no properties defined
 					// https://github.com/Azure/azure-rest-api-specs/blob/3519c80fe510a268f6e59a29ccac8a53fdec15b6/specification/monitor/resource-manager/Microsoft.Insights/stable/2023-03-11/dataCollectionRules_API.json#L724
+					logrus.Warnf("unexpected key %s in %s", k, m.Identifier)
+
 					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
-					if !m.HasAdditionalProperties {
+					if !m.HasAdditionalProperties && m.Discriminator == nil {
 						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 						continue
 					}
