@@ -79,7 +79,7 @@ ${coverage_details}
 		if v.Model.IsFullyCovered {
 			fullyCoveredPath = append(fullyCoveredPath, v.DisplayName)
 		} else {
-			partiallyCoveredPath = append(partiallyCoveredPath, fmt.Sprintf("%v (%v/%v)", v.DisplayName, v.Model.CoveredCount, v.Model.TotalCount))
+			partiallyCoveredPath = append(partiallyCoveredPath, fmt.Sprintf("%v (%v/%v)", v.DisplayName, v.Model.RootCoveredCount, v.Model.RootTotalCount))
 		}
 	}
 
@@ -136,11 +136,11 @@ func (c *CoverageReport) MarkdownContentCompact() string {
 	for _, v := range c.Coverages {
 		coverage := 100.0
 		if v.Model.TotalCount > 0 {
-			coverage = float64(v.Model.CoveredCount * 100 / v.Model.TotalCount)
+			coverage = float64(v.Model.RootCoveredCount * 100 / v.Model.RootTotalCount)
 		}
-		content += fmt.Sprintf("|%s|%d|%d|%.1f%%|\n", v.DisplayName, v.Model.CoveredCount, v.Model.TotalCount, coverage)
-		total += v.Model.TotalCount
-		covered += v.Model.CoveredCount
+		content += fmt.Sprintf("|%s|%d|%d|%.1f%%|\n", v.DisplayName, v.Model.RootCoveredCount, v.Model.RootTotalCount, coverage)
+		total += v.Model.RootTotalCount
+		covered += v.Model.RootCoveredCount
 	}
 
 	coverage := 100.0
