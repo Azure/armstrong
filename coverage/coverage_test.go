@@ -291,7 +291,9 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
     "properties": {
         "taskType": "ConnectToSource.MySql",
         "input": {
-            "targetPlatform": "string"
+          "sourceConnectionInfo": {
+            "serverName": "mySqlService"
+          }
         }
     }
 }`,
@@ -873,8 +875,7 @@ func TestCoverage_DataCollectionRule(t *testing.T) {
             "extensions": [
                 {
                     "streams": [
-                        "Microsoft-WindowsEvent",
-                        "Microsoft-ServiceMap"
+                        "Microsoft-WindowsEvent"
                     ],
                     "inputDataSources": [
                         "test-datasource-wineventlog"
@@ -961,7 +962,7 @@ func TestCoverage_AKS(t *testing.T) {
         "archv2": ""
     },
     "sku": {
-        "name": "Basic",
+        "name": "Base",
         "tier": "Free"
     },
     "properties": {
@@ -1505,7 +1506,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		request := map[string]interface{}{}
 		err = json.Unmarshal([]byte(rq), &request)
 		if err != nil {
-			t.Error(err)
+			t.Errorf("error unmarshal request json: %v", err)
 		}
 
 		model.MarkCovered(request)

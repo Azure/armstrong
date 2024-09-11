@@ -131,7 +131,7 @@ func (m *Model) MarkCovered(root interface{}) {
 		if m.Enum != nil {
 			strValue := fmt.Sprintf("%v", value)
 			if _, ok := (*m.Enum)[strValue]; !ok {
-				logrus.Errorf("unexpected enum %s in %s", value, m.Identifier)
+				logrus.Warningf("unexpected enum %s in %s", value, m.Identifier)
 			}
 
 			(*m.Enum)[strValue] = true
@@ -192,9 +192,8 @@ func (m *Model) MarkCovered(root interface{}) {
 		if isMatchProperty {
 			for k, v := range value {
 				if m.Properties == nil {
-					if !m.HasAdditionalProperties {
-						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
-					}
+					// some objects has no properties defined
+					// https://github.com/Azure/azure-rest-api-specs/blob/3519c80fe510a268f6e59a29ccac8a53fdec15b6/specification/monitor/resource-manager/Microsoft.Insights/stable/2023-03-11/dataCollectionRules_API.json#L724
 					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
