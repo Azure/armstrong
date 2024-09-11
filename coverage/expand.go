@@ -70,10 +70,19 @@ func getAllOfTable(swaggerPath string) (map[string]map[string]interface{}, error
 	return allOfTable, nil
 }
 
+func trimPath(path string) string {
+	if strings.Contains(path, "\\") {
+		return strings.ReplaceAll(path, "\\.\\", "\\")
+	}
+	return strings.ReplaceAll(path, "/./", "/")
+}
+
 func Expand(modelName, swaggerPath string) (*Model, error) {
 	if modelName == "" {
 		return nil, fmt.Errorf("modelName is empty")
 	}
+
+	swaggerPath = trimPath(swaggerPath)
 
 	doc, err := loadSwagger(swaggerPath)
 	if err != nil {
@@ -88,6 +97,8 @@ func Expand(modelName, swaggerPath string) (*Model, error) {
 	}
 
 	output := expandSchema(modelSchema, swaggerPath, modelName, "#", spec, map[string]interface{}{}, map[string]interface{}{})
+
+	output.IsRoot = true
 
 	return output, nil
 }
@@ -178,6 +189,7 @@ func expandSchema(input openapiSpec.Schema, swaggerPath, modelName, identifier s
 				properties[k] = v
 			}
 		}
+		output.ModelName = referenceModel.ModelName
 		if referenceModel.Enum != nil {
 			output.Enum = referenceModel.Enum
 		}
@@ -327,6 +339,7 @@ func SchemaNamePathFromRef(swaggerPath string, ref openapiSpec.Ref) (schemaName 
 	} else {
 		swaggerPath, _ := filepath.Split(swaggerPath)
 		schemaPath = swaggerPath + schemaPath
+		schemaPath = trimPath(schemaPath)
 	}
 
 	fragments := strings.Split(refUrl.Fragment, "/")

@@ -123,7 +123,7 @@ func TestExpandAll(t *testing.T) {
 		t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/\"")
 	}
 
-	t.Logf("azure repo dir: %s", azureRepoDir)
+	t.Logf("AZURE_REST_REPO_DIR: %s", azureRepoDir)
 
 	testResultFilePath := os.Getenv("TEST_RESULT_PATH")
 

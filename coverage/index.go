@@ -165,7 +165,7 @@ type SwaggerModel struct {
 
 // GetModelInfoFromIndex will try to download online index from https://github.com/teowa/azure-rest-api-index-file, and get model info from it
 // if the index is already downloaded as in {indexFilePath}, it will use the cached index
-func GetModelInfoFromIndex(resourceId, apiVersion, indexFilePath string) (*SwaggerModel, error) {
+func GetModelInfoFromIndex(resourceId, apiVersion, method, indexFilePath string) (*SwaggerModel, error) {
 	index, err := GetIndex(indexFilePath)
 	if err != nil {
 		return nil, err
@@ -176,9 +176,9 @@ func GetModelInfoFromIndex(resourceId, apiVersion, indexFilePath string) (*Swagg
 	if err != nil {
 		return nil, fmt.Errorf("parsing URL %s: %+v", resourceURL, err)
 	}
-	ref, err := index.Lookup("PUT", *uRL)
+	ref, err := index.Lookup(method, *uRL)
 	if err != nil {
-		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
+		return nil, fmt.Errorf("lookup %s URL %s in index: %+v", method, resourceURL, err)
 	}
 
 	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoURL)
@@ -193,7 +193,7 @@ func GetModelInfoFromIndex(resourceId, apiVersion, indexFilePath string) (*Swagg
 }
 
 // GetModelInfoFromLocalIndex tries to build index from local swagger repo and get model info from it
-func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo, indexCacheFile string) (*SwaggerModel, error) {
+func GetModelInfoFromLocalIndex(resourceId, apiVersion, method, swaggerRepo, indexCacheFile string) (*SwaggerModel, error) {
 	swaggerRepo, err := filepath.Abs(swaggerRepo)
 	if err != nil {
 		return nil, fmt.Errorf("swagger repo path %q is invalid: %+v", swaggerRepo, err)
@@ -221,9 +221,9 @@ func GetModelInfoFromLocalIndex(resourceId, apiVersion, swaggerRepo, indexCacheF
 	if err != nil {
 		return nil, fmt.Errorf("parsing URL %s: %+v", resourceURL, err)
 	}
-	ref, err := index.Lookup("PUT", *uRL)
+	ref, err := index.Lookup(method, *uRL)
 	if err != nil {
-		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
+		return nil, fmt.Errorf("lookup %s URL %s in index: %+v", method, resourceURL, err)
 	}
 
 	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, swaggerRepo)
@@ -309,7 +309,7 @@ func MockResourceIDFromType(azapiResourceType string) (string, string) {
 	return fmt.Sprintf("%s/%s/providers/%s/%s", subscritionSeg, resourceGroupSeg, resourceProvider, typeIds), apiVersion
 }
 
-func GetModelInfoFromIndexWithType(azapiResourceType, indexCacheFile string) (*SwaggerModel, error) {
+func GetModelInfoFromIndexWithType(azapiResourceType, method, indexCacheFile string) (*SwaggerModel, error) {
 	resourceId, apiVersion := MockResourceIDFromType(azapiResourceType)
-	return GetModelInfoFromIndex(resourceId, apiVersion, indexCacheFile)
+	return GetModelInfoFromIndex(resourceId, apiVersion, method, indexCacheFile)
 }

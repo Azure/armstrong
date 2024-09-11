@@ -22,14 +22,17 @@ type Model struct {
 	IsFullyCovered          bool               `json:"IsFullyCovered,omitempty"`
 	IsReadOnly              bool               `json:"IsReadOnly,omitempty"`
 	IsRequired              bool               `json:"IsRequired,omitempty"`
+	IsRoot                  bool               `json:"IsRoot,omitempty"`
 	IsSecret                bool               `json:"IsSecret,omitempty"` // related to x-ms-secret
 	Item                    *Model             `json:"Item,omitempty"`
 	ModelName               string             `json:"ModelName,omitempty"`
 	Properties              *map[string]*Model `json:"Properties,omitempty"`
+	RootCoveredCount        int                `json:"RootCoveredCount,omitempty"` // only for root model, covered count plus all variant count if any
+	RootTotalCount          int                `json:"RootTotalCount,omitempty"`   // only for root model, total count plus all variant count if any
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
-	Variants                *map[string]*Model `json:"Variants,omitempty"`    // variant model name is used as key, this may only contains
+	Variants                *map[string]*Model `json:"Variants,omitempty"`    // variant model name is used as key, in case x-ms-discriminator-value is not available
 	VariantType             *string            `json:"VariantType,omitempty"` // the x-ms-discriminator-value of the variant model if exists, otherwise model name
 }
 
@@ -90,13 +93,14 @@ func (m *Model) CredScan(root interface{}, secrets map[string]string) {
 		if isMatchProperty {
 			for k, v := range value {
 				if m.Properties == nil {
-					if !m.HasAdditionalProperties {
-						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
-					}
+					// some objects has no properties defined
+					// https://github.com/Azure/azure-rest-api-specs/blob/3519c80fe510a268f6e59a29ccac8a53fdec15b6/specification/monitor/resource-manager/Microsoft.Insights/stable/2023-03-11/dataCollectionRules_API.json#L724
+
+					logrus.Warnf("unexpected key %s in %s", k, m.Identifier)
 					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
-					if !m.HasAdditionalProperties {
+					if !m.HasAdditionalProperties && m.Discriminator == nil {
 						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 						continue
 					}
@@ -128,7 +132,7 @@ func (m *Model) MarkCovered(root interface{}) {
 		if m.Enum != nil {
 			strValue := fmt.Sprintf("%v", value)
 			if _, ok := (*m.Enum)[strValue]; !ok {
-				logrus.Errorf("unexpected enum %s in %s", value, m.Identifier)
+				logrus.Warningf("unexpected enum %s in %s", value, m.Identifier)
 			}
 
 			(*m.Enum)[strValue] = true
@@ -168,14 +172,14 @@ func (m *Model) MarkCovered(root interface{}) {
 
 					// either the discriminator value hit the variant model name or variant type, we match the variant
 					if variant, ok := (*m.Variants)[v.(string)]; ok {
-						isMatchProperty = false
+						isMatchProperty = true
 						variant.MarkCovered(value)
 
 						break
 					}
 					for _, variant := range *m.Variants {
 						if variant.VariantType != nil && *variant.VariantType == v.(string) {
-							isMatchProperty = false
+							isMatchProperty = true
 							variant.MarkCovered(value)
 
 							break Loop
@@ -189,13 +193,14 @@ func (m *Model) MarkCovered(root interface{}) {
 		if isMatchProperty {
 			for k, v := range value {
 				if m.Properties == nil {
-					if !m.HasAdditionalProperties {
-						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
-					}
+					// some objects has no properties defined
+					// https://github.com/Azure/azure-rest-api-specs/blob/3519c80fe510a268f6e59a29ccac8a53fdec15b6/specification/monitor/resource-manager/Microsoft.Insights/stable/2023-03-11/dataCollectionRules_API.json#L724
+					logrus.Warnf("unexpected key %s in %s", k, m.Identifier)
+
 					continue
 				}
 				if _, ok := (*m.Properties)[k]; !ok {
-					if !m.HasAdditionalProperties {
+					if !m.HasAdditionalProperties && m.Discriminator == nil {
 						logrus.Errorf("unexpected key %s in %s", k, m.Identifier)
 						continue
 					}
@@ -272,6 +277,20 @@ func (m *Model) CountCoverage() (int, int) {
 		}
 	}
 
+	if m.IsRoot {
+		if m.Variants != nil {
+			for _, v := range *m.Variants {
+				v.CountCoverage()
+			}
+		}
+
+		if m.Item != nil && m.Item.Variants != nil {
+			for _, v := range *m.Item.Variants {
+				v.CountCoverage()
+			}
+		}
+	}
+
 	if m.TotalCount == 0 {
 		m.TotalCount = 1
 	}
@@ -280,6 +299,23 @@ func (m *Model) CountCoverage() (int, int) {
 	}
 
 	m.IsFullyCovered = m.TotalCount > 0 && m.CoveredCount == m.TotalCount
+
+	if m.IsRoot {
+		m.RootCoveredCount = m.CoveredCount
+		m.RootTotalCount = m.TotalCount
+		if m.Variants != nil {
+			for _, v := range *m.Variants {
+				m.RootCoveredCount += v.CoveredCount
+				m.RootTotalCount += v.TotalCount
+			}
+		}
+		if m.Item != nil && m.Item.Variants != nil {
+			for _, v := range *m.Item.Variants {
+				m.RootCoveredCount += v.CoveredCount
+				m.RootTotalCount += v.TotalCount
+			}
+		}
+	}
 
 	return m.CoveredCount, m.TotalCount
 }
