@@ -138,22 +138,20 @@ func TestCoverage_HealthcareDicom(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	if model.CoveredCount != 12 {
-		t.Fatalf("expected CoveredCount 12, got %d", model.CoveredCount)
 	}
 }
 
 func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
 	tc := testCase{
-		name:         "MachineLearningServicesWorkspacesJobs",
-		resourceType: "Microsoft.MachineLearningServices/workspaces/jobs@2023-06-01-preview",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/jobs/job1",
+		name:                 "MachineLearningServicesWorkspacesJobs",
+		resourceType:         "Microsoft.MachineLearningServices/workspaces/jobs@2024-04-01",
+		method:               "PUT",
+		expectedCoveredCount: 11,
+		expectedTotalCount:   895,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/jobs/job1",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -199,23 +197,20 @@ func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 11
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_MachineLearningServicesWorkspacesDataVersions(t *testing.T) {
 	tc := testCase{
-		name:         "MachineLearningServicesWorkspacesDataVersions",
-		resourceType: "Microsoft.MachineLearningServices/workspaces/data/versions@2023-06-01-preview",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/data/data1/versions/version1",
+		name:                 "MachineLearningServicesWorkspacesDataVersions",
+		resourceType:         "Microsoft.MachineLearningServices/workspaces/data/versions@2024-04-01",
+		method:               "PUT",
+		expectedCoveredCount: 8,
+		expectedTotalCount:   29,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/data/data1/versions/version1",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -238,23 +233,20 @@ func TestCoverage_MachineLearningServicesWorkspacesDataVersions(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 8
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 	tc := testCase{
-		name:         "DeviceSecurityGroup",
-		resourceType: "Microsoft.Security/deviceSecurityGroups@2019-08-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
+		name:                 "DeviceSecurityGroup",
+		resourceType:         "Microsoft.Security/deviceSecurityGroups@2019-08-01",
+		method:               "PUT",
+		expectedCoveredCount: 5,
+		expectedTotalCount:   192,
+		apiPath:              "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -273,24 +265,53 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
 	}
 
-	expected := 5
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
+}
+
+func TestCoverage_SCVMM(t *testing.T) {
+	tc := testCase{
+		name:                 "SCVMM",
+		resourceType:         "Microsoft.ScVmm/virtualMachineInstances@2023-10-07",
+		method:               "PUT",
+		expectedCoveredCount: 5,
+		expectedTotalCount:   39,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.HybridCompute/machines/test-vm-tf/providers/Microsoft.ScVmm/virtualMachineInstances/default",
+		rawRequest: []string{
+			`{
+    "extendedLocation": {
+        "name": "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/syntheticsscvmmcan/providers/microsoft.extendedlocation/customlocations/terraform-test-cl",
+        "type": "customLocation"
+    },
+    "properties": {
+        "infrastructureProfile": {
+            "cloudId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/Clouds/azcli-test-cloud",
+            "templateId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/VirtualMachineTemplates/azcli-test-vm-template-win19",
+            "vmmServerId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/SyntheticsSCVMMCan/providers/microsoft.scvmm/vmmservers/tf-test-vmmserver"
+        }
+    }
+}`,
+		},
+	}
+
+	_, err := testCoverage(t, tc)
+	if err != nil {
+		t.Fatalf("process coverage: %+v", err)
 	}
 }
 
 func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 	// Do we need to support cross file discriminator reference? Now seems only DataMigration has this. e.g., https://github.com/Azure/azure-rest-api-specs/blob/0ab5469dc0d75594f5747493dcfe8774e22d728f/specification/datamigration/resource-manager/Microsoft.DataMigration/stable/2021-06-30/definitions/ServiceTasks.json#L39
 	tc := testCase{
-		name:         "DataMigrationServiceTasks",
-		resourceType: "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
+		name:                 "DataMigrationServiceTasks",
+		resourceType:         "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
+		method:               "PUT",
+		expectedCoveredCount: 1,
+		expectedTotalCount:   615,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -309,46 +330,14 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 	}
 }
 
-func TestCoverage_SCVMM(t *testing.T) {
-	tc := testCase{
-		name:         "SCVMM",
-		resourceType: "Microsoft.ScVmm/virtualMachineInstances@2023-10-07",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.HybridCompute/machines/test-vm-tf/providers/Microsoft.ScVmm/virtualMachineInstances/default",
-		rawRequest: []string{
-			`{
-    "extendedLocation": {
-        "name": "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/syntheticsscvmmcan/providers/microsoft.extendedlocation/customlocations/terraform-test-cl",
-        "type": "customLocation"
-    },
-    "properties": {
-        "infrastructureProfile": {
-            "cloudId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/Clouds/azcli-test-cloud",
-            "templateId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/cli-test-rg-vmm/providers/Microsoft.SCVMM/VirtualMachineTemplates/azcli-test-vm-template-win19",
-            "vmmServerId": "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/SyntheticsSCVMMCan/providers/microsoft.scvmm/vmmservers/tf-test-vmmserver"
-        }
-    }
-}`,
-		},
-	}
-
-	model, err := testCoverage(t, tc)
-	if err != nil {
-		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 5
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
-	}
-}
-
 func TestCoverage_DataMigrationTasks(t *testing.T) {
 	tc := testCase{
-		name:         "DataMigrationTasks",
-		resourceType: "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
+		name:                 "DataMigrationTasks",
+		resourceType:         "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
+		method:               "PUT",
+		expectedCoveredCount: 8,
+		expectedTotalCount:   615,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -369,23 +358,20 @@ func TestCoverage_DataMigrationTasks(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 8
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_KeyVault(t *testing.T) {
 	tc := testCase{
-		name:         "KeyVault",
-		resourceType: "Microsoft.KeyVault/vaults@2023-02-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
+		name:                 "KeyVault",
+		resourceType:         "Microsoft.KeyVault/vaults@2023-02-01",
+		method:               "PUT",
+		expectedCoveredCount: 13,
+		expectedTotalCount:   28,
+		apiPath:              "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault",
 		rawRequest: []string{
 			`{
     "location": "westus",
@@ -456,23 +442,20 @@ func TestCoverage_KeyVault(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 13
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_StorageAccount(t *testing.T) {
 	tc := testCase{
-		name:         "StorageAccount",
-		resourceType: "Microsoft.Storage/storageAccounts@2022-09-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
+		name:                 "StorageAccount",
+		resourceType:         "Microsoft.Storage/storageAccounts@2023-01-01",
+		method:               "PUT",
+		expectedCoveredCount: 24,
+		expectedTotalCount:   69,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/res9101/providers/Microsoft.Storage/storageAccounts/sto4445",
 		rawRequest: []string{
 			`{
     "sku": {
@@ -525,23 +508,20 @@ func TestCoverage_StorageAccount(t *testing.T) {
 }`,
 		},
 	}
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 24
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_VM(t *testing.T) {
 	tc := testCase{
-		name:         "VM",
-		resourceType: "Microsoft.Compute/virtualMachines@2023-03-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
+		name:                 "VM",
+		resourceType:         "Microsoft.Compute/virtualMachines@2024-03-01",
+		method:               "PUT",
+		expectedCoveredCount: 20,
+		expectedTotalCount:   166,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm",
 		rawRequest: []string{
 			`{
     "location": "westus",
@@ -596,23 +576,20 @@ func TestCoverage_VM(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 20
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_VNet(t *testing.T) {
 	tc := testCase{
-		name:         "VNet",
-		resourceType: "Microsoft.Network/virtualNetworks@2023-02-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
+		name:                 "VNet",
+		resourceType:         "Microsoft.Network/virtualNetworks@2024-01-01",
+		method:               "PUT",
+		expectedCoveredCount: 4,
+		expectedTotalCount:   104,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -635,23 +612,20 @@ func TestCoverage_VNet(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 4
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_DataCollectionRule(t *testing.T) {
 	tc := testCase{
-		name:         "DataCollectionRule",
-		resourceType: "Microsoft.Insights/dataCollectionRules@2022-06-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
+		name:                 "DataCollectionRule",
+		resourceType:         "Microsoft.Insights/dataCollectionRules@2022-06-01",
+		method:               "PUT",
+		expectedCoveredCount: 65,
+		expectedTotalCount:   65,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		rawRequest: []string{
 			`{
     "location": "westeurope",
@@ -975,10 +949,12 @@ func TestCoverage_DataCollectionRule(t *testing.T) {
 
 func TestCoverage_WebSite(t *testing.T) {
 	tc := testCase{
-		name:         "WebSites",
-		resourceType: "Microsoft.Web/sites@2022-09-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/testrg123/providers/Microsoft.Web/sites/sitef6141",
+		name:                 "WebSites",
+		resourceType:         "Microsoft.Web/sites@2023-01-01",
+		method:               "PUT",
+		expectedCoveredCount: 3,
+		expectedTotalCount:   198,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/testrg123/providers/Microsoft.Web/sites/sitef6141",
 		rawRequest: []string{
 			`{
     "kind": "app",
@@ -990,14 +966,9 @@ func TestCoverage_WebSite(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 3
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
@@ -1082,23 +1053,20 @@ func TestCoverage_AKS(t *testing.T) {
 }`},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 33
-	if model.CoveredCount != expected {
-		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_CosmosDB(t *testing.T) {
 	tc := testCase{
-		name:         "CosmosDB",
-		resourceType: "Microsoft.DocumentDB/databaseAccounts@2024-05-15",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
+		name:                 "CosmosDB",
+		resourceType:         "Microsoft.DocumentDB/databaseAccounts@2024-05-15",
+		method:               "PUT",
+		expectedCoveredCount: 33,
+		expectedTotalCount:   67,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
 		rawRequest: []string{
 			`{
     "location": "westus",
@@ -1185,11 +1153,6 @@ func TestCoverage_CosmosDB(t *testing.T) {
 	model, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %v", err)
-	}
-
-	expected := 33
-	if model.CoveredCount != expected {
-		t.Fatalf("expected CoveredCount %d, got %d", expected, model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -1323,10 +1286,12 @@ func TestCoverage_CosmosDB(t *testing.T) {
 
 func TestCoverage_DataFactoryPipelines(t *testing.T) {
 	tc := testCase{
-		name:         "DataFactoryPipelines",
-		resourceType: "Microsoft.DataFactory/factories/pipelines@2018-06-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
+		name:                 "DataFactoryPipelines",
+		resourceType:         "Microsoft.DataFactory/factories/pipelines@2018-06-01",
+		method:               "PUT",
+		expectedCoveredCount: 11,
+		expectedTotalCount:   7239,
+		apiPath:              "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -1411,23 +1376,20 @@ func TestCoverage_DataFactoryPipelines(t *testing.T) {
 		},
 	}
 
-	model, err := testCoverage(t, tc)
+	_, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 11
-	if model.CoveredCount != expected {
-		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 }
 
 func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 	tc := testCase{
-		name:         "DataFactoryLinkedServices",
-		resourceType: "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
-		method:       "PUT",
-		apiPath:      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
+		name:                 "DataFactoryLinkedServices",
+		resourceType:         "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
+		method:               "PUT",
+		expectedCoveredCount: 2,
+		expectedTotalCount:   3450,
+		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
 		rawRequest: []string{
 			`{
     "properties": {
@@ -1446,11 +1408,6 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 	model, err := testCoverage(t, tc)
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
-	}
-
-	expected := 2
-	if model.CoveredCount != expected {
-		t.Fatalf("expected TotalCount %d, got %d", expected, model.CoveredCount)
 	}
 
 	if model.Properties == nil {
@@ -1524,14 +1481,35 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 
 func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 	apiVersion := strings.Split(tc.resourceType, "@")[1]
-	swaggerModel, err := coverage.GetModelInfoFromLocalIndex(
-		tc.apiPath,
-		apiVersion,
-		tc.method,
-		"/home/wangta/project/go/azure-rest-api-specs/specification/",
-		"index0910.json",
-	)
 
+	var swaggerModel *coverage.SwaggerModel
+	var err error
+	azureRepoDir := os.Getenv("AZURE_REST_REPO_DIR")
+	if azureRepoDir != "" {
+		if strings.HasSuffix(azureRepoDir, "specification") {
+			azureRepoDir += "/"
+		}
+		if !strings.HasSuffix(normarlizePath(azureRepoDir), "specification/") {
+			t.Fatalf("AZURE_REST_REPO_DIR must specify the specification folder, e.g., AZURE_REST_REPO_DIR=\"/home/test/go/src/github.com/azure/azure-rest-api-specs/specification/\"")
+		}
+
+		t.Logf("AZURE_REST_REPO_DIR: %s", azureRepoDir)
+
+		swaggerModel, err = coverage.GetModelInfoFromLocalIndex(
+			tc.apiPath,
+			apiVersion,
+			tc.method,
+			azureRepoDir,
+			"./testdata/index.json",
+		)
+	} else {
+		swaggerModel, err = coverage.GetModelInfoFromIndex(
+			tc.apiPath,
+			apiVersion,
+			tc.method,
+			"./testdata/index.json",
+		)
+	}
 	t.Logf("swaggerModel: %+v", swaggerModel)
 
 	if err != nil {
@@ -1594,7 +1572,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 		},
 	}
 
-	storeCoverageReport(passReport, coverageReport, ".", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
+	storeCoverageReport(passReport, coverageReport, "./testdata/", fmt.Sprintf("test_coverage_report_%s.md", tc.name))
 
 	return model, nil
 }
