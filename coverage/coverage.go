@@ -32,7 +32,7 @@ type Model struct {
 	SourceFile              string             `json:"SourceFile,omitempty"`
 	TotalCount              int                `json:"TotalCount,omitempty"`
 	Type                    *string            `json:"Type,omitempty"`
-	Variants                *map[string]*Model `json:"Variants,omitempty"`    // variant model name is used as key, this may only contains
+	Variants                *map[string]*Model `json:"Variants,omitempty"`    // variant model name is used as key, in case x-ms-discriminator-value is not available
 	VariantType             *string            `json:"VariantType,omitempty"` // the x-ms-discriminator-value of the variant model if exists, otherwise model name
 }
 
@@ -171,14 +171,14 @@ func (m *Model) MarkCovered(root interface{}) {
 
 					// either the discriminator value hit the variant model name or variant type, we match the variant
 					if variant, ok := (*m.Variants)[v.(string)]; ok {
-						isMatchProperty = false
+						isMatchProperty = true
 						variant.MarkCovered(value)
 
 						break
 					}
 					for _, variant := range *m.Variants {
 						if variant.VariantType != nil && *variant.VariantType == v.(string) {
-							isMatchProperty = false
+							isMatchProperty = true
 							variant.MarkCovered(value)
 
 							break Loop

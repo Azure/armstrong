@@ -123,7 +123,7 @@ func TestCoverage_MachineLearningServicesWorkspacesJobs(t *testing.T) {
 		name:                 "MachineLearningServicesWorkspacesJobs",
 		resourceType:         "Microsoft.MachineLearningServices/workspaces/jobs@2024-04-01",
 		method:               "PUT",
-		expectedCoveredCount: 11,
+		expectedCoveredCount: 19,
 		expectedTotalCount:   895,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/jobs/job1",
 		rawRequest: []string{
@@ -182,7 +182,7 @@ func TestCoverage_MachineLearningServicesWorkspacesDataVersions(t *testing.T) {
 		name:                 "MachineLearningServicesWorkspacesDataVersions",
 		resourceType:         "Microsoft.MachineLearningServices/workspaces/data/versions@2024-04-01",
 		method:               "PUT",
-		expectedCoveredCount: 8,
+		expectedCoveredCount: 15,
 		expectedTotalCount:   29,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.MachineLearningServices/workspaces/works1/data/data1/versions/version1",
 		rawRequest: []string{
@@ -218,7 +218,7 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 		name:                 "DeviceSecurityGroup",
 		resourceType:         "Microsoft.Security/deviceSecurityGroups@2019-08-01",
 		method:               "PUT",
-		expectedCoveredCount: 5,
+		expectedCoveredCount: 10,
 		expectedTotalCount:   192,
 		apiPath:              "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
 		rawRequest: []string{
@@ -243,7 +243,6 @@ func TestCoverage_DeviceSecurityGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("process coverage: %+v", err)
 	}
-
 }
 
 func TestCoverage_SCVMM(t *testing.T) {
@@ -283,7 +282,7 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 		name:                 "DataMigrationServiceTasks",
 		resourceType:         "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
 		method:               "PUT",
-		expectedCoveredCount: 2,
+		expectedCoveredCount: 3,
 		expectedTotalCount:   615,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
 		rawRequest: []string{
@@ -311,7 +310,7 @@ func TestCoverage_DataMigrationTasks(t *testing.T) {
 		name:                 "DataMigrationTasks",
 		resourceType:         "Microsoft.DataMigration/services/projects/tasks@2021-06-30",
 		method:               "PUT",
-		expectedCoveredCount: 8,
+		expectedCoveredCount: 9,
 		expectedTotalCount:   615,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/projects/DmsSdkProject/tasks/DmsSdkTask",
 		rawRequest: []string{
@@ -1039,7 +1038,7 @@ func TestCoverage_CosmosDB(t *testing.T) {
 		name:                 "CosmosDB",
 		resourceType:         "Microsoft.DocumentDB/databaseAccounts@2024-05-15",
 		method:               "PUT",
-		expectedCoveredCount: 33,
+		expectedCoveredCount: 34,
 		expectedTotalCount:   67,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/testdb",
 		rawRequest: []string{
@@ -1264,7 +1263,7 @@ func TestCoverage_DataFactoryPipelines(t *testing.T) {
 		name:                 "DataFactoryPipelines",
 		resourceType:         "Microsoft.DataFactory/factories/pipelines@2018-06-01",
 		method:               "PUT",
-		expectedCoveredCount: 11,
+		expectedCoveredCount: 13,
 		expectedTotalCount:   7239,
 		apiPath:              "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
 		rawRequest: []string{
@@ -1362,7 +1361,7 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		name:                 "DataFactoryLinkedServices",
 		resourceType:         "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
 		method:               "PUT",
-		expectedCoveredCount: 2,
+		expectedCoveredCount: 3,
 		expectedTotalCount:   3450,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
 		rawRequest: []string{
@@ -1397,8 +1396,8 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		t.Fatalf("expected properties type property, got none")
 	}
 
-	if (*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
-		t.Fatalf("expected properties type IsAnyCovered false, got true")
+	if !(*(*model.Properties)["properties"].Properties)["type"].IsAnyCovered {
+		t.Fatalf("expected properties type IsAnyCovered true, got false")
 	}
 
 	if (*model.Properties)["properties"].Discriminator == nil {
