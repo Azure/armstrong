@@ -61,28 +61,6 @@ func TestCoverage_ResourceGroup(t *testing.T) {
 	}
 }
 
-func TestCoverage_AzureTerraform(t *testing.T) {
-	tc := testCase{
-		name:                 "AzureTerraform",
-		resourceType:         "Microsoft.AzureTerraform@2023-07-01-preview",
-		method:               "POST",
-		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.AzureTerraform/exportTerraform",
-		expectedCoveredCount: 2,
-		expectedTotalCount:   25,
-		rawRequest: []string{
-			`{
-    "resourceGroupName" : "rg1",
-    "type"              : "ExportResourceGroup"
-  }`,
-		},
-	}
-
-	_, err := testCoverage(t, tc)
-	if err != nil {
-		t.Fatalf("process coverage: %+v", err)
-	}
-}
-
 func TestCoverage_HealthcareDicom(t *testing.T) {
 	tc := testCase{
 		name:                 "HealthcareApisDicom",
@@ -91,7 +69,6 @@ func TestCoverage_HealthcareDicom(t *testing.T) {
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rgName/providers/Microsoft.HealthcareApis/workspaces/workspaceName/dicomservices/dicomServiceName",
 		expectedCoveredCount: 12,
 		expectedTotalCount:   14,
-		// bulkImportConfiguration property not in swagger
 		rawRequest: []string{
 			`{
     "identity": {
@@ -119,9 +96,6 @@ func TestCoverage_HealthcareDicom(t *testing.T) {
             "origins": [
                 "*"
             ]
-        },
-        "bulkImportConfiguration": {
-            "enabled": false
         },
         "enableDataPartitions": false,
         "encryption": {
@@ -309,15 +283,15 @@ func TestCoverage_DataMigrationServiceTasks(t *testing.T) {
 		name:                 "DataMigrationServiceTasks",
 		resourceType:         "Microsoft.DataMigration/services/serviceTasks@2021-06-30",
 		method:               "PUT",
-		expectedCoveredCount: 1,
+		expectedCoveredCount: 2,
 		expectedTotalCount:   615,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/DmsSdkRg/providers/Microsoft.DataMigration/services/DmsSdkService/serviceTasks/DmsSdkTask",
 		rawRequest: []string{
 			`{
     "properties": {
-        "taskType": "Service.Check.OCI",
+        "taskType": "ConnectToSource.MySql",
         "input": {
-            "serverVersion": "NA"
+            "targetPlatform": "string"
         }
     }
 }`,

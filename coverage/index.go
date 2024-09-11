@@ -178,7 +178,7 @@ func GetModelInfoFromIndex(resourceId, apiVersion, method, indexFilePath string)
 	}
 	ref, err := index.Lookup(method, *uRL)
 	if err != nil {
-		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
+		return nil, fmt.Errorf("lookup %s URL %s in index: %+v", method, resourceURL, err)
 	}
 
 	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, azureRepoURL)
@@ -223,7 +223,7 @@ func GetModelInfoFromLocalIndex(resourceId, apiVersion, method, swaggerRepo, ind
 	}
 	ref, err := index.Lookup(method, *uRL)
 	if err != nil {
-		return nil, fmt.Errorf("lookup PUT URL %s in index: %+v", resourceURL, err)
+		return nil, fmt.Errorf("lookup %s URL %s in index: %+v", method, resourceURL, err)
 	}
 
 	model, err := GetModelInfoFromIndexRef(openapispec.Ref{Ref: *ref}, swaggerRepo)
