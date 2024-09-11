@@ -564,7 +564,7 @@ func TestCoverage_VNet(t *testing.T) {
 		resourceType:         "Microsoft.Network/virtualNetworks@2024-01-01",
 		method:               "PUT",
 		expectedCoveredCount: 4,
-		expectedTotalCount:   104,
+		expectedTotalCount:   103,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/virtualNetwork",
 		rawRequest: []string{
 			`{
