@@ -1,3 +1,8 @@
+## v0.15.1
+
+BUG FIXES:
+- Fix a bug that root level discriminator is not handled correctly.
+
 ## v0.15.0
 
 ENHANCEMENTS:
