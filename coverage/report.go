@@ -300,35 +300,6 @@ func getCoverageCount(model *Model) string {
 	return fmt.Sprintf("(%v/%v)", model.CoveredCount, model.TotalCount)
 }
 
-// func getChildReport(name string, model *Model) string {
-// 	var style, report string
-
-// 	style = getStyle(model.IsFullyCovered)
-
-// 	if hasNoDetail(model) {
-// 		// leaf property
-// 		report = fmt.Sprintf(`<!-- %[1]v -->
-// <details>
-// <summary><span%[2]v>%[3]v</span></summary>
-
-// </details>`, model.Identifier, style, name)
-// 	} else {
-// 		childReport := getReport(model, model.ModelName)
-// 		sort.Strings(childReport)
-// 		report = fmt.Sprintf(`<!-- %[1]v -->
-// <details>
-// <summary><span%[2]v>%[3]v %[4]v</span></summary>
-// <blockquote>
-
-// %[5]v
-
-// </blockquote>
-// </details>`, model.Identifier, style, name, getCoverageCount(model), strings.Join(childReport, "\n\n"))
-// 	}
-
-// 	return report
-// }
-
 func hasNoDetail(model *Model) bool {
 	if model.Properties == nil && model.Variants == nil && model.Item == nil && (!isBoolEnumDisplayed || (model.Bool == nil && model.Enum == nil)) {
 		return true
