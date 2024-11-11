@@ -296,15 +296,28 @@ func readZipFile(zf *zip.File) ([]byte, error) {
 
 func MockResourceIDFromType(azapiResourceType string) (string, string) {
 	const (
-		managementGroupId = "/providers/Microsoft.Management/managementGroups/group1"
+		managementGroupId = "/providers/Microsoft.Management"
 		subscritionSeg    = "/subscriptions/00000000-0000-0000-0000-000000000000"
 		resourceGroupSeg  = "resourceGroups/rg"
 	)
+
 	resourceType := strings.Split(azapiResourceType, "@")[0]
 	apiVersion := strings.Split(azapiResourceType, "@")[1]
 	resourceProvider := strings.Split(resourceType, "/")[0]
 	rTypes := strings.Split(resourceType, "/")[1:]
 	typeIds := strings.Join(rTypes, "/xxx/") + "/xxx"
+
+	if strings.HasPrefix(strings.ToLower(resourceType), strings.ToLower("Microsoft.Management/managementGroups")) {
+		return fmt.Sprintf("%s/%s", managementGroupId, typeIds), apiVersion
+	}
+
+	if strings.EqualFold(resourceType, "Microsoft.Resources/subscriptions") {
+		return subscritionSeg, apiVersion
+	}
+
+	if strings.EqualFold(resourceType, "Microsoft.Resources/resourceGroups") {
+		return fmt.Sprintf("%s/%s", subscritionSeg, resourceGroupSeg), apiVersion
+	}
 
 	return fmt.Sprintf("%s/%s/providers/%s/%s", subscritionSeg, resourceGroupSeg, resourceProvider, typeIds), apiVersion
 }

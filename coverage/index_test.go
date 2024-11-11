@@ -217,7 +217,6 @@ func TestGetModelInfoFromLocalIndexWithCache_DataCollectionRule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
-
 }
 
 func TestGetModelInfoFromIndexRef(t *testing.T) {
@@ -234,5 +233,56 @@ func TestGetModelInfoFromIndexRef(t *testing.T) {
 	_, err := coverage.GetModelInfoFromIndexRef(openapispec.Ref{Ref: pathRef}, azureRepoDir)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestMockResourceIDFromType(t *testing.T) {
+	cases := []struct {
+		Type            string
+		Expected        string
+		ExpectedVersion string
+	}{
+		{
+			Type:            "Microsoft.Insights/dataCollectionRules@2022-06-01",
+			Expected:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Insights/dataCollectionRules/xxx",
+			ExpectedVersion: "2022-06-01",
+		},
+		{
+			Type:            "Microsoft.Resources/resourceGroups@2024-03-01",
+			Expected:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg",
+			ExpectedVersion: "2024-03-01",
+		},
+		{
+			Type:            "Microsoft.Resources/subscriptions@2024-03-01",
+			Expected:        "/subscriptions/00000000-0000-0000-0000-000000000000",
+			ExpectedVersion: "2024-03-01",
+		},
+		{
+			Type:            "Microsoft.Management/managementGroups@2021-04-01",
+			Expected:        "/providers/Microsoft.Management/managementGroups/xxx",
+			ExpectedVersion: "2021-04-01",
+		},
+		{
+			Type:            "Microsoft.Management/managementGroups/subscriptions@2021-04-01",
+			Expected:        "/providers/Microsoft.Management/managementGroups/xxx/subscriptions/xxx",
+			ExpectedVersion: "2021-04-01",
+		},
+		{
+			Type:            "Microsoft.Network/virtualNetworks/subnets@2024-03-01",
+			Expected:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/xxx/subnets/xxx",
+			ExpectedVersion: "2024-03-01",
+		},
+	}
+	for _, tc := range cases {
+		resourceType, version := coverage.MockResourceIDFromType(tc.Type)
+		if tc.Expected != resourceType {
+			t.Fatalf("TestMockResourceIDFromType Type: %s, Expected: %s, Got: %s ", tc.Type, tc.Expected, resourceType)
+			return
+		}
+
+		if tc.ExpectedVersion != version {
+			t.Fatalf("TestMockResourceIDFromType Type: %s, ExpectedVersion: %s, Got: %s ", tc.Type, tc.ExpectedVersion, version)
+			return
+		}
 	}
 }
