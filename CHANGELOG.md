@@ -1,3 +1,17 @@
+## v0.16.0
+
+ENHANCEMENTS:
+- Add more azapi examples for the dependency resolver.
+- Update mapping of azurerm v4.14.0
+
+BUG FIXES:
+- Fix mockResourceIDFromType for special resource types.
+
+## v0.15.1
+
+BUG FIXES:
+- Fix a bug that root level discriminator is not handled correctly.
+
 ## v0.15.0
 
 ENHANCEMENTS:
