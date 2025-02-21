@@ -707,11 +707,11 @@ resource "azapi_resource" "kafkaConfiguration" {
 
   ```hcl
   provider "azapi" {
-    endpoint {
+    endpoint = [{
       resource_manager_endpoint = "https://management.azure.com/"
       resource_manager_audience = "https://management.core.windows.net/"
       active_directory_authority_host = "https://login.microsoftonline.com"
-    }
+    }]
   }
   ```
   More details about this argument could be found [here](https://registry.terraform.io/providers/Azure/azapi/latest/docs#endpoint).
