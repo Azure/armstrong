@@ -21,9 +21,9 @@ variable "location" {
 }
 
 resource "azapi_resource" "resourceGroup" {
-  type                      = "Microsoft.Resources/resourceGroups@2020-06-01"
-  name                      = var.resource_name
-  location                  = var.location
+  type     = "Microsoft.Resources/resourceGroups@2020-06-01"
+  name     = var.resource_name
+  location = var.location
 }
 
 resource "azapi_resource" "storageAccount" {
@@ -68,3 +68,21 @@ resource "azapi_resource" "storageAccount" {
   response_export_values    = ["*"]
 }
 
+resource "azapi_resource" "localUser" {
+  type      = "Microsoft.Storage/storageAccounts/localUsers@2021-09-01"
+  parent_id = azapi_resource.storageAccount.id
+  name      = var.resource_name
+  body = {
+    properties = {
+      hasSshPassword = false,
+      homeDirectory  = "containername/"
+      hasSharedKey   = true,
+      hasSshKey      = false,
+      permissionScopes = [{
+        permissions  = "cwl",
+        service      = "blob",
+        resourceName = "containername"
+      }]
+    }
+  }
+}

@@ -18,3 +18,7 @@ armstrong.exe
 # test output
 coverage/testdata/test_coverage_report*.md
 coverage/testdata/index.json
+
+.DS_Store
+terraform.tfstate
+terraform.tfstate.backup

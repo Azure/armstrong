@@ -21,9 +21,9 @@ variable "location" {
 }
 
 resource "azapi_resource" "resourceGroup" {
-  type                      = "Microsoft.Resources/resourceGroups@2020-06-01"
-  name                      = var.resource_name
-  location                  = var.location
+  type     = "Microsoft.Resources/resourceGroups@2020-06-01"
+  name     = var.resource_name
+  location = var.location
 }
 
 resource "azapi_resource" "Spring" {
@@ -60,42 +60,10 @@ resource "azapi_resource_action" "buildService" {
   response_export_values = ["*"]
 }
 
-resource "azapi_resource" "builder" {
-  type      = "Microsoft.AppPlatform/Spring/buildServices/builders@2023-05-01-preview"
-  parent_id = azapi_resource_action.buildService.id
-  name      = var.resource_name
-  body = {
-    properties = {
-      buildpackGroups = [
-        {
-          buildpacks = [
-            {
-              id = "tanzu-buildpacks/java-azure"
-            },
-          ]
-          name = "mix"
-        },
-      ]
-      stack = {
-        id      = "io.buildpacks.stacks.bionic"
-        version = "base"
-      }
-    }
-  }
-  schema_validation_enabled = false
-  response_export_values    = ["*"]
-}
+data "azapi_resource" "buildService" {
+  type      = "Microsoft.AppPlatform/Spring/buildServices@2023-05-01-preview"
+  name      = "default"
+  parent_id = azapi_resource.Spring.id
 
-resource "azapi_resource" "buildpackBinding" {
-  type      = "Microsoft.AppPlatform/Spring/buildServices/builders/buildpackBindings@2023-05-01-preview"
-  parent_id = azapi_resource.builder.id
-  name      = var.resource_name
-  body = {
-    properties = {
-      bindingType = "ApplicationInsights"
-    }
-  }
-  schema_validation_enabled = false
-  response_export_values    = ["*"]
+  depends_on = [azapi_resource_action.buildService]
 }
-
