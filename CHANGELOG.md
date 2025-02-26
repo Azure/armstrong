@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 - Add more azapi examples for the dependency resolver.
-- Update mapping of azurerm v4.14.0
+- Update mapping of azurerm v4.20.0
 
 BUG FIXES:
 - Fix mockResourceIDFromType for special resource types.
