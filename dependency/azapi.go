@@ -42,9 +42,15 @@ func LoadAzapiDependencies() ([]Dependency, error) {
 		return nil, err
 	}
 	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
 		filename := path.Join(dir, entry.Name(), "main.tf")
 		if _, err := StaticFiles.Open(filename); os.IsNotExist(err) {
 			filename = path.Join(dir, entry.Name(), "basic", "main.tf")
+		}
+		if _, err := StaticFiles.Open(filename); os.IsNotExist(err) {
+			continue
 		}
 		data, err := StaticFiles.ReadFile(filename)
 		if err != nil {

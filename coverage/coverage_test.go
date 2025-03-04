@@ -1264,7 +1264,7 @@ func TestCoverage_DataFactoryPipelines(t *testing.T) {
 		resourceType:         "Microsoft.DataFactory/factories/pipelines@2018-06-01",
 		method:               "PUT",
 		expectedCoveredCount: 13,
-		expectedTotalCount:   7243,
+		expectedTotalCount:   7253,
 		apiPath:              "/subscriptions/12345678-1234-1234-1234-12345678abc/resourceGroups/exampleResourceGroup/providers/Microsoft.DataFactory/factories/exampleFactoryName/pipelines/examplePipeline",
 		rawRequest: []string{
 			`{
@@ -1362,7 +1362,7 @@ func TestCoverage_DataFactoryLinkedServices(t *testing.T) {
 		resourceType:         "Microsoft.DataFactory/factories/linkedServices@2018-06-01",
 		method:               "PUT",
 		expectedCoveredCount: 3,
-		expectedTotalCount:   3470,
+		expectedTotalCount:   3540,
 		apiPath:              "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/rg1/providers/Microsoft.DataFactory/factories/factory1/linkedServices/linked",
 		rawRequest: []string{
 			`{
