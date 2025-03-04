@@ -1,3 +1,7 @@
+## v0.16.1
+BUG FIXES:
+- Fix a bug the azapi examples are not correctly loaded.
+
 ## v0.16.0
 
 ENHANCEMENTS:
