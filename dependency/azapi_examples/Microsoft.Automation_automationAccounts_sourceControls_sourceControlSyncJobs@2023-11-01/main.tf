@@ -104,7 +104,7 @@ resource "azapi_resource" "roleAssignment" {
 # use azapi_resource_action to create a sourceControlSyncJob because the API doesn't support DELETE
 resource "azapi_resource_action" "sourceControlSyncJob" {
   type        = "Microsoft.Automation/automationAccounts/sourceControls/sourceControlSyncJobs@2023-11-01"
-  resource_id = provider::azapi::build_resource_id(azapi_resource.sourceControl.id, "Microsoft.Automation/automationAccounts/sourceControls/sourceControlSyncJobs", uuid())
+  resource_id = "${azapi_resource.sourceControl.id}/syncJobs/${uuid()}"
   method      = "PUT"
 
   body = {
