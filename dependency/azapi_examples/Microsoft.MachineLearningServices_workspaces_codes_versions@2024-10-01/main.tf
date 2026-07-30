@@ -100,11 +100,10 @@ resource "azapi_resource" "container" {
 }
 
 resource "azurerm_storage_blob" "example" {
-  name                   = "codes.py"
-  storage_account_name   = azapi_resource.storageAccount.name
-  storage_container_name = azapi_resource.container.name
-  type                   = "Block"
-  source                 = "/Users/luheng/go/playground/issues/icm/azapi_ml_code/output.md"
+  name                  = "codes.py"
+  storage_container_id  = azapi_resource.container.id
+  type                  = "Block"
+  source                = "/Users/luheng/go/playground/issues/icm/azapi_ml_code/output.md"
 }
 
 resource "azapi_resource" "component" {

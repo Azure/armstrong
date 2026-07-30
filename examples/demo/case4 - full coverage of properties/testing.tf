@@ -3,7 +3,7 @@ resource "azapi_resource" "sqr" {
   parent_id = azurerm_resource_group.test.id
   location  = azurerm_resource_group.test.location
   name      = "test-sqr"
-  body = jsonencode({
+  body = {
     kind = "LogAlert"
     properties = {
       criteria = {
@@ -57,7 +57,7 @@ QUERY
       displayName                           = "1"
       severity                              = 0
     }
-  })
+  }
 }
 
 resource "azapi_resource" "sqr2" {
@@ -65,7 +65,7 @@ resource "azapi_resource" "sqr2" {
   parent_id = azurerm_resource_group.test.id
   location  = azurerm_resource_group.test.location
   name      = "test-sqr2"
-  body = jsonencode({
+  body = {
     kind = "LogAlert"
     properties = {
       criteria = {
@@ -92,7 +92,7 @@ QUERY
       scopes                                = [azurerm_application_insights.test.id]
       severity                              = 0
     }
-  })
+  }
 }
 
 resource "azapi_resource" "sqr3" {
@@ -100,7 +100,7 @@ resource "azapi_resource" "sqr3" {
   parent_id = azurerm_resource_group.test.id
   location  = azurerm_resource_group.test.location
   name      = "test-sqr3"
-  body = jsonencode({
+  body = {
     kind = "LogToMetric"
     tags = {
       ENV = "Test"
@@ -117,5 +117,5 @@ resource "azapi_resource" "sqr3" {
       }
       scopes                                = [azurerm_log_analytics_workspace.test.id]
     }
-  })
+  }
 }

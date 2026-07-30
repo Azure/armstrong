@@ -34,7 +34,8 @@ func TestGetModelInfoFromIndex_DataCollectionRule(t *testing.T) {
 		t.Fatalf("expected modelName %s, got %s", expectedModelName, swaggerModel.ModelName)
 	}
 
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/dataCollectionRules_API.json"
+	// upstream monitor swagger moved under an extra Microsoft.Insights/Insights/ segment
+	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
@@ -62,7 +63,8 @@ func TestGetModelInfoFromIndexWithCache_DataCollectionRule(t *testing.T) {
 		t.Fatalf("expected modelName %s, got %s", expectedModelName, swaggerModel.ModelName)
 	}
 
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/dataCollectionRules_API.json"
+	// upstream monitor swagger moved under an extra Microsoft.Insights/Insights/ segment
+	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
@@ -90,7 +92,8 @@ func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
 		t.Fatalf("expected modelName %s, got %s", expectedModelName, swaggerModel.ModelName)
 	}
 
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/security/resource-manager/Microsoft.Security/stable/2019-08-01/deviceSecurityGroups.json"
+	// upstream security swagger merged deviceSecurityGroups.json into security-IoTSecurity.json, nested under an extra Microsoft.Security/Security/ segment
+	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/security/resource-manager/Microsoft.Security/Security/stable/2019-08-01/security-IoTSecurity.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}

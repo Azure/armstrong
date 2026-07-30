@@ -18,6 +18,9 @@ import (
 )
 
 func TestExpand_MediaTransform(t *testing.T) {
+	// the mediaservices spec was removed from azure-rest-api-specs main after Azure Media Services was retired
+	t.Skip("specification/mediaservices no longer exists on azure-rest-api-specs main")
+
 	modelName := "Transform"
 	modelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/mediaservices/resource-manager/Microsoft.Media/Encoding/stable/2022-07-01/Encoding.json"
 	model, err := coverage.Expand(modelName, modelSwaggerPath)

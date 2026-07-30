@@ -4,7 +4,7 @@ resource "azapi_resource" "dataCollectionRule" {
   name      = "acctest818"
   parent_id = azurerm_resource_group.test.id
 
-  body = jsonencode({
+  body = {
     location = azurerm_resource_group.test.location
     properties = {
       dataFlows = [
@@ -106,7 +106,7 @@ resource "azapi_resource" "dataCollectionRule" {
         ]
       }
     }
-  })
+  }
   
   depends_on = [
     azurerm_log_analytics_solution.test

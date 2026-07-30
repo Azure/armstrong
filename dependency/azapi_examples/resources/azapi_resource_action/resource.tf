@@ -19,7 +19,7 @@ variable "enabled" {
   description = "whether start the spring service"
 }
 
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "test" {
   name     = "example-rg"
   location = "west europe"
 }

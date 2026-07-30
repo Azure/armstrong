@@ -3,7 +3,7 @@ resource "azapi_resource" "serverGroupsv2" {
   name      = "acctest9810"
   parent_id = azurerm_resource_group.test.id
 
-  body = jsonencode({
+  body = {
     location = "westus"
     properties = {
       administratorLoginPassword      = "MSDFL8923@#$"
@@ -24,7 +24,7 @@ resource "azapi_resource" "serverGroupsv2" {
     }
     tags = {
     }
-  })
+  }
 
   schema_validation_enabled = false
   ignore_missing_property   = true
@@ -35,14 +35,14 @@ resource "azapi_resource" "serverGroupsv22" {
   name      = "acctest1681"
   parent_id = azurerm_resource_group.test.id
 
-  body = jsonencode({
+  body = {
     location = "westus"
     properties = {
       pointInTimeUTC   = "2023-03-23T08:30:37.467Z"
       sourceLocation   = "westus"
       sourceResourceId = azapi_resource.serverGroupsv2.id
     }
-  })
+  }
 
   schema_validation_enabled = false
   ignore_missing_property   = false

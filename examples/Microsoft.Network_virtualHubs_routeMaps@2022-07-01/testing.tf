@@ -4,7 +4,7 @@ resource "azapi_resource" "routeMap" {
   name      = "acctest836"
   parent_id = azurerm_route_server.test.id
 
-  body = jsonencode({
+  body = {
     properties = {
       associatedInboundConnections = [
         azurerm_express_route_connection.test.id,
@@ -46,7 +46,7 @@ resource "azapi_resource" "routeMap" {
         },
       ]
     }
-  })
+  }
 
   schema_validation_enabled = false
   ignore_missing_property   = false

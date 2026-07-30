@@ -12,8 +12,8 @@ resource "azapi_resource" "server" {
   location  = var.location
   body = {
     properties = {
-      administratorLogin         = "acctestadmin"
-      administratorLoginPassword = "t2RX8A76GrnE4EKC"
+      administratorLogin         = var.administrator_login
+      administratorLoginPassword = var.administrator_login_password
       version                    = "12.0"
     }
   }

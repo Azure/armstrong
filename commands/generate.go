@@ -149,11 +149,14 @@ func (c GenerateCommand) fromExamplePath() int {
 		_ = os.RemoveAll(path.Join(wd, "testing.tf"))
 		_ = os.RemoveAll(path.Join(wd, "dependency.tf"))
 	}
-	err := os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(resource.DefaultProviderConfig)), 0644)
-	if err != nil {
-		logrus.Errorf("writing provider.tf: %+v", err)
+	// only (re-)seed provider.tf with the default template when it doesn't exist yet,
+	// so variable blocks appended by a previous run (e.g. dependency secrets) aren't lost
+	if _, err := os.Stat(path.Join(wd, "provider.tf")); c.overwrite || os.IsNotExist(err) {
+		if err := os.WriteFile(path.Join(wd, "provider.tf"), hclwrite.Format([]byte(resource.DefaultProviderConfig)), 0644); err != nil {
+			logrus.Errorf("writing provider.tf: %+v", err)
+		}
+		logrus.Infof("provider configuration is written to %s", path.Join(wd, "provider.tf"))
 	}
-	logrus.Infof("provider configuration is written to %s", path.Join(wd, "provider.tf"))
 
 	// load example
 	logrus.Infof("loading example: %s", c.path)
@@ -195,8 +198,16 @@ func (c GenerateCommand) fromExamplePath() int {
 	len := len(context.File.Body().Blocks())
 	for i, block := range context.File.Body().Blocks() {
 		switch block.Type() {
-		case "terraform", "provider", "variable":
+		case "terraform", "provider":
 			continue
+		case "variable":
+			// dependency examples may declare extra variables (e.g. admin credentials);
+			// keep them in provider.tf instead of silently dropping them
+			key := fmt.Sprintf("%s.%s", block.Type(), strings.Join(block.Labels(), "."))
+			if _, ok := blockMap[key]; ok {
+				continue
+			}
+			contentToAppend["provider.tf"] = contentToAppend["provider.tf"] + "\n" + string(block.BuildTokens(nil).Bytes())
 		default:
 			key := fmt.Sprintf("%s.%s", block.Type(), strings.Join(block.Labels(), "."))
 			if _, ok := blockMap[key]; ok {

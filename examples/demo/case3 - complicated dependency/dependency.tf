@@ -42,25 +42,36 @@ resource "azurerm_virtual_network" "test" {
     enable = true
   }
 
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "subnet2"
-    address_prefix = "10.0.2.0/24"
-  }
-
-  subnet {
-    name           = "subnet3"
-    address_prefix = "10.0.3.0/24"
-    security_group = azurerm_network_security_group.test.id
-  }
-
   tags = {
     environment = "Production"
   }
+}
+
+# inline subnet blocks are removed in azurerm 5.0 in favour of standalone azurerm_subnet resources
+resource "azurerm_subnet" "subnet1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "subnet2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_subnet" "subnet3" {
+  name                 = "subnet3"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "subnet3" {
+  subnet_id                 = azurerm_subnet.subnet3.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_databricks_workspace" "test" {
