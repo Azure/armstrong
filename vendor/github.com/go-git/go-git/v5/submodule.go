@@ -5,13 +5,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"path"
+	"path/filepath"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/internal/pathutil"
+	giturl "github.com/go-git/go-git/v5/internal/url"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/format/index"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 )
 
 var (
@@ -119,6 +122,16 @@ func (s *Submodule) Repository() (*Repository, error) {
 		exists = true
 	}
 
+	// s.c.Path is sourced from the worktree's .gitmodules and is
+	// therefore tree-controlled. Apply the strict tree-path validator
+	// before chroot — the wrapper's tolerant validPath would let a
+	// final-position .git component through (e.g. "submodule/.git"),
+	// which a malicious .gitmodules could use to chroot the submodule
+	// worktree into the repository's actual .git directory.
+	if err := pathutil.ValidTreePath(s.c.Path); err != nil {
+		return nil, err
+	}
+
 	var worktree billy.Filesystem
 	if worktree, err = s.w.Filesystem.Chroot(s.c.Path); err != nil {
 		return nil, err
@@ -133,32 +146,85 @@ func (s *Submodule) Repository() (*Repository, error) {
 		return nil, err
 	}
 
-	moduleURL, err := url.Parse(s.c.URL)
+	moduleEndpoint, err := transport.NewEndpoint(s.c.URL)
 	if err != nil {
 		return nil, err
 	}
 
-	if !path.IsAbs(moduleURL.Path) {
-		remotes, err := s.w.r.Remotes()
+	// A relative submodule URL such as "../X.git" must resolve against
+	// the parent repository's remote URL, not against the process CWD.
+	// Detect relativity from the raw configured URL because
+	// transport.NewEndpoint normalizes local paths to absolute form via
+	// filepath.Abs, which would otherwise mask the relative form here.
+	if giturl.IsLocalEndpoint(s.c.URL) &&
+		!path.IsAbs(s.c.URL) && !filepath.IsAbs(s.c.URL) {
+
+		base, err := defaultRemote(s.w.r)
+		if err != nil {
+			return nil, fmt.Errorf("resolving relative submodule URL: %w", err)
+		}
+
+		rootEndpoint, err := transport.NewEndpoint(base.URLs[0])
 		if err != nil {
 			return nil, err
 		}
 
-		rootURL, err := url.Parse(remotes[0].c.URLs[0])
-		if err != nil {
-			return nil, err
-		}
-
-		rootURL.Path = path.Join(rootURL.Path, moduleURL.Path)
-		*moduleURL = *rootURL
+		rootEndpoint.Path = path.Join(rootEndpoint.Path, s.c.URL)
+		*moduleEndpoint = *rootEndpoint
 	}
 
 	_, err = r.CreateRemote(&config.RemoteConfig{
 		Name: DefaultRemoteName,
-		URLs: []string{moduleURL.String()},
+		URLs: []string{moduleEndpoint.String()},
 	})
 
 	return r, err
+}
+
+// defaultRemote returns the remote that relative submodule URLs are
+// resolved against, mirroring canonical Git's repo_default_remote
+// (remote.c) and resolve_relative_url (builtin/submodule--helper.c):
+//
+//  1. if HEAD is on a branch with branch.<name>.remote configured,
+//     use that remote;
+//  2. else if exactly one remote is configured, use it;
+//  3. otherwise fall back to DefaultRemoteName ("origin").
+//
+// Each rule falls through unconditionally: a branch lookup that
+// finds the branch but with an empty Remote does not short-circuit
+// rule (2). Returns an error when the chosen remote is not configured.
+func defaultRemote(r *Repository) (*config.RemoteConfig, error) {
+	cfg, err := r.Config()
+	if err != nil {
+		return nil, err
+	}
+
+	if ref, err := r.Reference(plumbing.HEAD, false); err == nil &&
+		ref.Type() == plumbing.SymbolicReference &&
+		ref.Target().IsBranch() {
+		if b, ok := cfg.Branches[ref.Target().Short()]; ok && b.Remote != "" {
+			return lookupRemote(cfg, b.Remote)
+		}
+	}
+
+	if len(cfg.Remotes) == 1 {
+		for name := range cfg.Remotes {
+			return lookupRemote(cfg, name)
+		}
+	}
+
+	return lookupRemote(cfg, DefaultRemoteName)
+}
+
+func lookupRemote(cfg *config.Config, name string) (*config.RemoteConfig, error) {
+	rc, ok := cfg.Remotes[name]
+	if !ok {
+		return nil, fmt.Errorf("remote %q not found", name)
+	}
+	if len(rc.URLs) == 0 {
+		return nil, fmt.Errorf("remote %q has no configured URL", name)
+	}
+	return rc, nil
 }
 
 // Update the registered submodule to match what the superproject expects, the
@@ -214,10 +280,10 @@ func (s *Submodule) update(ctx context.Context, o *SubmoduleUpdateOptions, force
 		return err
 	}
 
-	return s.doRecursiveUpdate(r, o)
+	return s.doRecursiveUpdate(ctx, r, o)
 }
 
-func (s *Submodule) doRecursiveUpdate(r *Repository, o *SubmoduleUpdateOptions) error {
+func (s *Submodule) doRecursiveUpdate(ctx context.Context, r *Repository, o *SubmoduleUpdateOptions) error {
 	if o.RecurseSubmodules == NoRecurseSubmodules {
 		return nil
 	}
@@ -236,14 +302,14 @@ func (s *Submodule) doRecursiveUpdate(r *Repository, o *SubmoduleUpdateOptions) 
 	*new = *o
 
 	new.RecurseSubmodules--
-	return l.Update(new)
+	return l.UpdateContext(ctx, new)
 }
 
 func (s *Submodule) fetchAndCheckout(
 	ctx context.Context, r *Repository, o *SubmoduleUpdateOptions, hash plumbing.Hash,
 ) error {
 	if !o.NoFetch {
-		err := r.FetchContext(ctx, &FetchOptions{Auth: o.Auth})
+		err := r.FetchContext(ctx, &FetchOptions{Auth: o.Auth, Depth: o.Depth})
 		if err != nil && err != NoErrAlreadyUpToDate {
 			return err
 		}
@@ -265,6 +331,7 @@ func (s *Submodule) fetchAndCheckout(
 			err := r.FetchContext(ctx, &FetchOptions{
 				Auth:     o.Auth,
 				RefSpecs: []config.RefSpec{refSpec},
+				Depth:    o.Depth,
 			})
 			if err != nil && err != NoErrAlreadyUpToDate && err != ErrExactSHA1NotSupported {
 				return err

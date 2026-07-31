@@ -14,9 +14,10 @@ type RawLog struct {
 }
 
 var regLayoutMap = map[*regexp.Regexp]string{
-	regexp.MustCompile(`([\d+.:T\-]{28})\s\[([A-Z]+)]`):  "2006-01-02T15:04:05.999-0700",
-	regexp.MustCompile(`([\d+.:T\- ]{19})\s\[([A-Z]+)]`): "2006-01-02 15:04:05",
-	regexp.MustCompile(`([\d+.:T/ ]{19})\s\[([A-Z]+)]`):  "2006/01/02 15:04:05",
+	regexp.MustCompile(`([\d+.:TZ\-]{20,28})\s\[([A-Z]+)]`): "2006-01-02T15:04:05.999Z",
+	regexp.MustCompile(`([\d+.:T\-]{28})\s\[([A-Z]+)]`):     "2006-01-02T15:04:05.999-0700",
+	regexp.MustCompile(`([\d+.:T\- ]{19})\s\[([A-Z]+)]`):    "2006-01-02 15:04:05",
+	regexp.MustCompile(`([\d+.:T/ ]{19})\s\[([A-Z]+)]`):     "2006/01/02 15:04:05",
 }
 
 func NewRawLog(message string) (*RawLog, error) {

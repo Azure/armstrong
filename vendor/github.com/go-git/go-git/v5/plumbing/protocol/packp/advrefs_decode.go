@@ -133,6 +133,7 @@ func decodeFirstHash(p *advRefsDecoder) decoderStateFn {
 		return nil
 	}
 
+	// TODO: Use object-format (when available) for hash size. Git 2.41+
 	if len(p.line) < hashSize {
 		p.error("cannot read hash, pkt-line too short")
 		return nil
@@ -261,9 +262,8 @@ func decodeShallow(p *advRefsDecoder) decoderStateFn {
 	p.line = bytes.TrimPrefix(p.line, shallow)
 
 	if len(p.line) != hashSize {
-		p.error(fmt.Sprintf(
-			"malformed shallow hash: wrong length, expected 40 bytes, read %d bytes",
-			len(p.line)))
+		p.error("malformed shallow hash: wrong length, expected 40 bytes, read %d bytes",
+			len(p.line))
 		return nil
 	}
 

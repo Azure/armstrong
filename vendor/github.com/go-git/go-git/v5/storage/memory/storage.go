@@ -69,7 +69,11 @@ type IndexStorage struct {
 	index *index.Index
 }
 
+// SetIndex stores the given index.
+// Note: this method sets idx.ModTime to simulate filesystem storage behavior.
 func (c *IndexStorage) SetIndex(idx *index.Index) error {
+	// Set ModTime to enable racy git detection in the metadata optimization.
+	idx.ModTime = time.Now()
 	c.index = idx
 	return nil
 }
@@ -199,6 +203,10 @@ func (o *ObjectStorage) LooseObjectTime(hash plumbing.Hash) (time.Time, error) {
 	return time.Time{}, errNotSupported
 }
 func (o *ObjectStorage) DeleteLooseObject(plumbing.Hash) error {
+	return errNotSupported
+}
+
+func (o *ObjectStorage) AddAlternate(remote string) error {
 	return errNotSupported
 }
 

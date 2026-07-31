@@ -131,7 +131,7 @@ func (a AzureRMProvider) ParseResponse(l rawlog.RawLog) (*types.RequestTrace, er
 			headers[key] = value
 		default:
 			if matches := statusCodeRegex.FindAllStringSubmatch(line, -1); len(matches) > 0 && len(matches[0]) == 2 {
-				fmt.Sscanf(matches[0][1], "%d", &statusCode)
+				_, _ = fmt.Sscanf(matches[0][1], "%d", &statusCode)
 			}
 		}
 		if foundBodySegment {

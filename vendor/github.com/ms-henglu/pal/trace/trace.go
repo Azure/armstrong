@@ -17,6 +17,12 @@ func mergeTraces(traces []types.RequestTrace) []types.RequestTrace {
 			continue
 		}
 
+		// skip [DEBUG] lines that didn't contain any request information
+		if traces[i].Url == "/" && traces[i].StatusCode == 0 && len(traces[i].Method) == 0 && len(traces[i].Host) == 0 {
+			// we should ignore that lines
+			continue
+		}
+
 		if traces[i].Request != nil && traces[i].Response != nil {
 			mergedTraces = append(mergedTraces, traces[i])
 			continue

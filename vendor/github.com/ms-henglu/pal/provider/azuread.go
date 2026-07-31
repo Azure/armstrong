@@ -83,7 +83,7 @@ func (a AzureADProvider) ParseResponse(l rawlog.RawLog) (*types.RequestTrace, er
 		case statusCodeRegex.FindAllStringSubmatch(line, -1) != nil:
 			matches := statusCodeRegex.FindAllStringSubmatch(line, -1)
 			if len(matches) > 0 && len(matches[0]) == 2 {
-				fmt.Sscanf(matches[0][1], "%d", &statusCode)
+				_, _ = fmt.Sscanf(matches[0][1], "%d", &statusCode)
 			}
 		case utils.IsJson(line):
 			body = line

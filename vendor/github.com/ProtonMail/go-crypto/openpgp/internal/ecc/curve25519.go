@@ -9,7 +9,7 @@ import (
 	x25519lib "github.com/cloudflare/circl/dh/x25519"
 )
 
-type curve25519 struct {}
+type curve25519 struct{}
 
 func NewCurve25519() *curve25519 {
 	return &curve25519{}
@@ -21,14 +21,14 @@ func (c *curve25519) GetCurveName() string {
 
 // MarshalBytePoint encodes the public point from native format, adding the prefix.
 // See https://datatracker.ietf.org/doc/html/draft-ietf-openpgp-crypto-refresh-06#section-5.5.5.6
-func (c *curve25519) MarshalBytePoint(point [] byte) []byte {
+func (c *curve25519) MarshalBytePoint(point []byte) []byte {
 	return append([]byte{0x40}, point...)
 }
 
 // UnmarshalBytePoint decodes the public point to native format, removing the prefix.
 // See https://datatracker.ietf.org/doc/html/draft-ietf-openpgp-crypto-refresh-06#section-5.5.5.6
 func (c *curve25519) UnmarshalBytePoint(point []byte) []byte {
-	if len(point) != x25519lib.Size + 1 {
+	if len(point) != x25519lib.Size+1 {
 		return nil
 	}
 
@@ -125,7 +125,10 @@ func (c *curve25519) Encaps(rand io.Reader, point []byte) (ephemeral, sharedSecr
 	//	"VB = convert point V to the octet string"
 	// sharedPoint corresponds to `VB`.
 	var sharedPoint x25519lib.Key
-	x25519lib.Shared(&sharedPoint, &ephemeralPrivate, &pubKey)
+	ok := x25519lib.Shared(&sharedPoint, &ephemeralPrivate, &pubKey)
+	if !ok {
+		return nil, nil, errors.KeyInvalidError("ecc: the public key is a low order point")
+	}
 
 	return ephemeralPublic[:], sharedPoint[:], nil
 }
@@ -146,7 +149,10 @@ func (c *curve25519) Decaps(vsG, secret []byte) (sharedSecret []byte, err error)
 	// RFC6637 §8: "Note that the recipient obtains the shared secret by calculating
 	//   S = rV = rvG, where (r,R) is the recipient's key pair."
 	// sharedPoint corresponds to `S`.
-	x25519lib.Shared(&sharedPoint, &decodedPrivate, &ephemeralPublic)
+	ok := x25519lib.Shared(&sharedPoint, &decodedPrivate, &ephemeralPublic)
+	if !ok {
+		return nil, errors.KeyInvalidError("ecc: the public key is a low order point")
+	}
 
 	return sharedPoint[:], nil
 }

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5/internal/url"
+	"github.com/go-git/go-git/v5/plumbing"
 	format "github.com/go-git/go-git/v5/plumbing/format/config"
 )
 
@@ -59,12 +59,24 @@ type Config struct {
 		// CommentChar is the character indicating the start of a
 		// comment for commands like commit and tag
 		CommentChar string
+		// RepositoryFormatVersion identifies the repository format and layout version.
+		RepositoryFormatVersion format.RepositoryFormatVersion
+		// ProtectNTFS controls whether NTFS-specific path protections are
+		// applied (e.g. rejecting .git trailing spaces/periods, alternate
+		// data streams, 8.3 short names). When unset, defaults to true on
+		// Windows.
+		ProtectNTFS OptBool
+		// ProtectHFS controls whether HFS+-specific path protections are
+		// applied (e.g. rejecting .git with Unicode zero-width or
+		// directional characters that HFS+ would normalize away).
+		// When unset, defaults to true on macOS.
+		ProtectHFS OptBool
 	}
 
 	User struct {
-		// Name is the personal name of the author and the commiter of a commit.
+		// Name is the personal name of the author and the committer of a commit.
 		Name string
-		// Email is the email of the author and the commiter of a commit.
+		// Email is the email of the author and the committer of a commit.
 		Email string
 	}
 
@@ -76,9 +88,9 @@ type Config struct {
 	}
 
 	Committer struct {
-		// Name is the personal name of the commiter of a commit.
+		// Name is the personal name of the committer of a commit.
 		Name string
-		// Email is the email of the  the commiter of a commit.
+		// Email is the email of the committer of a commit.
 		Email string
 	}
 
@@ -94,6 +106,17 @@ type Config struct {
 		// e.g. when initializing a new repository or when cloning
 		// an empty repository.
 		DefaultBranch string
+	}
+
+	Extensions struct {
+		// ObjectFormat specifies the hash algorithm to use. The
+		// acceptable values are sha1 and sha256. If not specified,
+		// sha1 is assumed. It is an error to specify this key unless
+		// core.repositoryFormatVersion is 1.
+		//
+		// This setting must not be changed after repository initialization
+		// (e.g. clone or init).
+		ObjectFormat format.ObjectFormat
 	}
 
 	// Remotes list of repository remotes, the key of the map is the name
@@ -131,7 +154,7 @@ func NewConfig() *Config {
 
 // ReadConfig reads a config file from a io.Reader.
 func ReadConfig(r io.Reader) (*Config, error) {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +168,8 @@ func ReadConfig(r io.Reader) (*Config, error) {
 }
 
 // LoadConfig loads a config file from a given scope. The returned Config,
-// contains exclusively information fom the given scope. If couldn't find a
-// config file to the given scope, a empty one is returned.
+// contains exclusively information from the given scope. If it couldn't find a
+// config file to the given scope, an empty one is returned.
 func LoadConfig(scope Scope) (*Config, error) {
 	if scope == LocalScope {
 		return nil, fmt.Errorf("LocalScope should be read from the a ConfigStorer")
@@ -226,28 +249,35 @@ func (c *Config) Validate() error {
 }
 
 const (
-	remoteSection    = "remote"
-	submoduleSection = "submodule"
-	branchSection    = "branch"
-	coreSection      = "core"
-	packSection      = "pack"
-	userSection      = "user"
-	authorSection    = "author"
-	committerSection = "committer"
-	initSection      = "init"
-	urlSection       = "url"
-	fetchKey         = "fetch"
-	urlKey           = "url"
-	bareKey          = "bare"
-	worktreeKey      = "worktree"
-	commentCharKey   = "commentChar"
-	windowKey        = "window"
-	mergeKey         = "merge"
-	rebaseKey        = "rebase"
-	nameKey          = "name"
-	emailKey         = "email"
-	descriptionKey   = "description"
-	defaultBranchKey = "defaultBranch"
+	remoteSection              = "remote"
+	submoduleSection           = "submodule"
+	branchSection              = "branch"
+	coreSection                = "core"
+	packSection                = "pack"
+	userSection                = "user"
+	authorSection              = "author"
+	committerSection           = "committer"
+	initSection                = "init"
+	urlSection                 = "url"
+	extensionsSection          = "extensions"
+	fetchKey                   = "fetch"
+	urlKey                     = "url"
+	pushurlKey                 = "pushurl"
+	bareKey                    = "bare"
+	worktreeKey                = "worktree"
+	commentCharKey             = "commentChar"
+	windowKey                  = "window"
+	mergeKey                   = "merge"
+	rebaseKey                  = "rebase"
+	nameKey                    = "name"
+	emailKey                   = "email"
+	descriptionKey             = "description"
+	defaultBranchKey           = "defaultBranch"
+	repositoryFormatVersionKey = "repositoryformatversion"
+	objectFormat               = "objectformat"
+	mirrorKey                  = "mirror"
+	protectNTFSKey             = "protectNTFS"
+	protectHFSKey              = "protectHFS"
 
 	// DefaultPackWindow holds the number of previous objects used to
 	// generate deltas. The value 10 is the same used by git command.
@@ -291,6 +321,14 @@ func (c *Config) unmarshalCore() {
 
 	c.Core.Worktree = s.Options.Get(worktreeKey)
 	c.Core.CommentChar = s.Options.Get(commentCharKey)
+
+	if parsed := parseConfigBool(s.Options.Get(protectNTFSKey)); parsed.IsSet() {
+		c.Core.ProtectNTFS = parsed
+	}
+
+	if parsed := parseConfigBool(s.Options.Get(protectHFSKey)); parsed.IsSet() {
+		c.Core.ProtectHFS = parsed
+	}
 }
 
 func (c *Config) unmarshalUser() {
@@ -361,7 +399,8 @@ func unmarshalSubmodules(fc *format.Config, submodules map[string]*Submodule) {
 		m := &Submodule{}
 		m.unmarshal(sub)
 
-		if m.Validate() == ErrModuleBadPath {
+		if err := m.Validate(); errors.Is(err, ErrModuleBadPath) ||
+			errors.Is(err, ErrModuleBadName) {
 			continue
 		}
 
@@ -391,6 +430,7 @@ func (c *Config) unmarshalInit() {
 // Marshal returns Config encoded as a git-config file.
 func (c *Config) Marshal() ([]byte, error) {
 	c.marshalCore()
+	c.marshalExtensions()
 	c.marshalUser()
 	c.marshalPack()
 	c.marshalRemotes()
@@ -410,9 +450,29 @@ func (c *Config) Marshal() ([]byte, error) {
 func (c *Config) marshalCore() {
 	s := c.Raw.Section(coreSection)
 	s.SetOption(bareKey, fmt.Sprintf("%t", c.Core.IsBare))
+	if string(c.Core.RepositoryFormatVersion) != "" {
+		s.SetOption(repositoryFormatVersionKey, string(c.Core.RepositoryFormatVersion))
+	}
 
 	if c.Core.Worktree != "" {
 		s.SetOption(worktreeKey, c.Core.Worktree)
+	}
+
+	if c.Core.ProtectNTFS.IsSet() {
+		s.SetOption(protectNTFSKey, c.Core.ProtectNTFS.FormatBool())
+	}
+
+	if c.Core.ProtectHFS.IsSet() {
+		s.SetOption(protectHFSKey, c.Core.ProtectHFS.FormatBool())
+	}
+}
+
+func (c *Config) marshalExtensions() {
+	// Extensions are only supported on Version 1, therefore
+	// ignore them otherwise.
+	if c.Core.RepositoryFormatVersion == format.Version_1 {
+		s := c.Raw.Section(extensionsSection)
+		s.SetOption(objectFormat, string(c.Extensions.ObjectFormat))
 	}
 }
 
@@ -549,6 +609,8 @@ type RemoteConfig struct {
 	// URLs the URLs of a remote repository. It must be non-empty. Fetch will
 	// always use the first URL, while push will use all of them.
 	URLs []string
+	// Mirror indicates that the repository is a mirror of remote.
+	Mirror bool
 
 	// insteadOfRulesApplied have urls been modified
 	insteadOfRulesApplied bool
@@ -583,7 +645,7 @@ func (c *RemoteConfig) Validate() error {
 		c.Fetch = []RefSpec{RefSpec(fmt.Sprintf(DefaultFetchRefSpec, c.Name))}
 	}
 
-	return nil
+	return plumbing.NewRemoteHEADReferenceName(c.Name).Validate()
 }
 
 func (c *RemoteConfig) unmarshal(s *format.Subsection) error {
@@ -601,7 +663,9 @@ func (c *RemoteConfig) unmarshal(s *format.Subsection) error {
 
 	c.Name = c.raw.Name
 	c.URLs = append([]string(nil), c.raw.Options.GetAll(urlKey)...)
+	c.URLs = append(c.URLs, c.raw.Options.GetAll(pushurlKey)...)
 	c.Fetch = fetch
+	c.Mirror = c.raw.Options.Get(mirrorKey) == "true"
 
 	return nil
 }
@@ -632,6 +696,10 @@ func (c *RemoteConfig) marshal() *format.Subsection {
 		}
 
 		c.raw.SetOption(fetchKey, values...)
+	}
+
+	if c.Mirror {
+		c.raw.SetOption(mirrorKey, strconv.FormatBool(c.Mirror))
 	}
 
 	return c.raw

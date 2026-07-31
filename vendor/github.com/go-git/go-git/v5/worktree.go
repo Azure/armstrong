@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	stdioutil "io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/util"
+
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
@@ -25,11 +25,12 @@ import (
 )
 
 var (
-	ErrWorktreeNotClean     = errors.New("worktree is not clean")
-	ErrSubmoduleNotFound    = errors.New("submodule not found")
-	ErrUnstagedChanges      = errors.New("worktree contains unstaged changes")
-	ErrGitModulesSymlink    = errors.New(gitmodulesFile + " is a symlink")
-	ErrNonFastForwardUpdate = errors.New("non-fast-forward update")
+	ErrWorktreeNotClean                = errors.New("worktree is not clean")
+	ErrSubmoduleNotFound               = errors.New("submodule not found")
+	ErrUnstagedChanges                 = errors.New("worktree contains unstaged changes")
+	ErrGitModulesSymlink               = errors.New(gitmodulesFile + " is a symlink")
+	ErrNonFastForwardUpdate            = errors.New("non-fast-forward update")
+	ErrRestoreWorktreeOnlyNotSupported = errors.New("worktree only is not supported")
 )
 
 // Worktree represents a git worktree.
@@ -78,7 +79,10 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 		Progress:        o.Progress,
 		Force:           o.Force,
 		InsecureSkipTLS: o.InsecureSkipTLS,
+		ClientCert:      o.ClientCert,
+		ClientKey:       o.ClientKey,
 		CABundle:        o.CABundle,
+		ProxyOptions:    o.ProxyOptions,
 	})
 
 	updated := true
@@ -95,7 +99,15 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 
 	head, err := w.r.Head()
 	if err == nil {
-		headAheadOfRef, err := isFastForward(w.r.Storer, ref.Hash(), head.Hash())
+		// if we don't have a shallows list, just ignore it
+		shallowList, _ := w.r.Storer.Shallow()
+
+		var earliestShallow *plumbing.Hash
+		if len(shallowList) > 0 {
+			earliestShallow = &shallowList[0]
+		}
+
+		headAheadOfRef, err := isFastForward(w.r.Storer, ref.Hash(), head.Hash(), earliestShallow)
 		if err != nil {
 			return err
 		}
@@ -104,7 +116,7 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 			return NoErrAlreadyUpToDate
 		}
 
-		ff, err := isFastForward(w.r.Storer, head.Hash(), ref.Hash())
+		ff, err := isFastForward(w.r.Storer, head.Hash(), ref.Hash(), earliestShallow)
 		if err != nil {
 			return err
 		}
@@ -130,7 +142,7 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 	}
 
 	if o.RecurseSubmodules != NoRecurseSubmodules {
-		return w.updateSubmodules(&SubmoduleUpdateOptions{
+		return w.updateSubmodules(ctx, &SubmoduleUpdateOptions{
 			RecurseSubmodules: o.RecurseSubmodules,
 			Auth:              o.Auth,
 		})
@@ -139,13 +151,13 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 	return nil
 }
 
-func (w *Worktree) updateSubmodules(o *SubmoduleUpdateOptions) error {
+func (w *Worktree) updateSubmodules(ctx context.Context, o *SubmoduleUpdateOptions) error {
 	s, err := w.Submodules()
 	if err != nil {
 		return err
 	}
 	o.Init = true
-	return s.Update(o)
+	return s.UpdateContext(ctx, o)
 }
 
 // Checkout switch branches or restore working tree files.
@@ -188,7 +200,12 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 
 	return w.Reset(ro)
 }
+
 func (w *Worktree) createBranch(opts *CheckoutOptions) error {
+	if err := opts.Branch.Validate(); err != nil {
+		return err
+	}
+
 	_, err := w.r.Storer.Reference(opts.Branch)
 	if err == nil {
 		return fmt.Errorf("a branch named %q already exists", opts.Branch)
@@ -213,20 +230,17 @@ func (w *Worktree) createBranch(opts *CheckoutOptions) error {
 }
 
 func (w *Worktree) getCommitFromCheckoutOptions(opts *CheckoutOptions) (plumbing.Hash, error) {
-	if !opts.Hash.IsZero() {
-		return opts.Hash, nil
+	hash := opts.Hash
+	if hash.IsZero() {
+		b, err := w.r.Reference(opts.Branch, true)
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+
+		hash = b.Hash()
 	}
 
-	b, err := w.r.Reference(opts.Branch, true)
-	if err != nil {
-		return plumbing.ZeroHash, err
-	}
-
-	if !b.Name().IsTag() {
-		return b.Hash(), nil
-	}
-
-	o, err := w.r.Object(plumbing.AnyObject, b.Hash())
+	o, err := w.r.Object(plumbing.AnyObject, hash)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -234,7 +248,7 @@ func (w *Worktree) getCommitFromCheckoutOptions(opts *CheckoutOptions) (plumbing
 	switch o := o.(type) {
 	case *object.Tag:
 		if o.TargetType != plumbing.CommitObject {
-			return plumbing.ZeroHash, fmt.Errorf("unsupported tag object target %q", o.TargetType)
+			return plumbing.ZeroHash, fmt.Errorf("%w: tag target %q", object.ErrUnsupportedObject, o.TargetType)
 		}
 
 		return o.Target, nil
@@ -242,7 +256,7 @@ func (w *Worktree) getCommitFromCheckoutOptions(opts *CheckoutOptions) (plumbing
 		return o.Hash, nil
 	}
 
-	return plumbing.ZeroHash, fmt.Errorf("unsupported tag target %q", o.Type())
+	return plumbing.ZeroHash, fmt.Errorf("%w: %q", object.ErrUnsupportedObject, o.Type())
 }
 
 func (w *Worktree) setHEADToCommit(commit plumbing.Hash) error {
@@ -290,19 +304,26 @@ func (w *Worktree) ResetSparsely(opts *ResetOptions, dirs []string) error {
 		return nil
 	}
 
-	t, err := w.getTreeFromCommitHash(opts.Commit)
+	t, err := w.r.getTreeFromCommitHash(opts.Commit)
 	if err != nil {
 		return err
 	}
 
+	var removedFiles []string
 	if opts.Mode == MixedReset || opts.Mode == MergeReset || opts.Mode == HardReset {
-		if err := w.resetIndex(t, dirs); err != nil {
+		if removedFiles, err = w.resetIndex(t, dirs, opts.Files); err != nil {
 			return err
 		}
 	}
 
-	if opts.Mode == MergeReset || opts.Mode == HardReset {
-		if err := w.resetWorktree(t); err != nil {
+	if opts.Mode == MergeReset && len(removedFiles) > 0 {
+		if err := w.resetWorktree(t, removedFiles); err != nil {
+			return err
+		}
+	}
+
+	if opts.Mode == HardReset {
+		if err := w.resetWorktree(t, opts.Files); err != nil {
 			return err
 		}
 	}
@@ -310,31 +331,65 @@ func (w *Worktree) ResetSparsely(opts *ResetOptions, dirs []string) error {
 	return nil
 }
 
+// Restore restores specified files in the working tree or stage with contents from
+// a restore source. If a path is tracked but does not exist in the restore,
+// source, it will be removed to match the source.
+//
+// If Staged and Worktree are true, then the restore source will be the index.
+// If only Staged is true, then the restore source will be HEAD.
+// If only Worktree is true or neither Staged nor Worktree are true, will
+// result in ErrRestoreWorktreeOnlyNotSupported because restoring the working
+// tree while leaving the stage untouched is not currently supported.
+//
+// Restore with no files specified will return ErrNoRestorePaths.
+func (w *Worktree) Restore(o *RestoreOptions) error {
+	if err := o.Validate(); err != nil {
+		return err
+	}
+
+	if o.Staged {
+		opts := &ResetOptions{
+			Files: o.Files,
+		}
+
+		if o.Worktree {
+			// If we are doing both Worktree and Staging then it is a hard reset
+			opts.Mode = HardReset
+		} else {
+			// If we are doing just staging then it is a mixed reset
+			opts.Mode = MixedReset
+		}
+
+		return w.Reset(opts)
+	}
+
+	return ErrRestoreWorktreeOnlyNotSupported
+}
+
 // Reset the worktree to a specified state.
 func (w *Worktree) Reset(opts *ResetOptions) error {
 	return w.ResetSparsely(opts, nil)
 }
 
-func (w *Worktree) resetIndex(t *object.Tree, dirs []string) error {
+func (w *Worktree) resetIndex(t *object.Tree, dirs []string, files []string) ([]string, error) {
 	idx, err := w.r.Storer.Index()
-	if len(dirs) > 0 {
-		idx.SkipUnless(dirs)
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil {
-		return err
-	}
 	b := newIndexBuilder(idx)
 
 	changes, err := w.diffTreeWithStaging(t, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	removedFiles := make([]string, 0, len(changes))
+	filesMap := buildFilePathMap(files)
 	for _, ch := range changes {
 		a, err := ch.Action()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		var name string
@@ -345,13 +400,21 @@ func (w *Worktree) resetIndex(t *object.Tree, dirs []string) error {
 			name = ch.To.String()
 			e, err = t.FindEntry(name)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		case merkletrie.Delete:
 			name = ch.From.String()
 		}
 
+		if len(files) > 0 {
+			contains := inFiles(filesMap, name)
+			if !contains {
+				continue
+			}
+		}
+
 		b.Remove(name)
+		removedFiles = append(removedFiles, name)
 		if e == nil {
 			continue
 		}
@@ -365,11 +428,23 @@ func (w *Worktree) resetIndex(t *object.Tree, dirs []string) error {
 	}
 
 	b.Write(idx)
-	return w.r.Storer.SetIndex(idx)
+
+	if len(dirs) > 0 {
+		idx.SkipUnless(dirs)
+	}
+
+	return removedFiles, w.r.Storer.SetIndex(idx)
 }
 
-func (w *Worktree) resetWorktree(t *object.Tree) error {
-	changes, err := w.diffStagingWithWorktree(true)
+// inFiles checks if the given file is in the list of files. The incoming filepaths in files should be cleaned before calling this function.
+func inFiles(files map[string]struct{}, v string) bool {
+	v = filepath.Clean(v)
+	_, exists := files[v]
+	return exists
+}
+
+func (w *Worktree) resetWorktree(t *object.Tree, files []string) error {
+	changes, err := w.diffStagingWithWorktree(true, false)
 	if err != nil {
 		return err
 	}
@@ -380,7 +455,26 @@ func (w *Worktree) resetWorktree(t *object.Tree) error {
 	}
 	b := newIndexBuilder(idx)
 
+	filesMap := buildFilePathMap(files)
 	for _, ch := range changes {
+		if len(files) > 0 {
+			file := ""
+			if ch.From != nil {
+				file = ch.From.String()
+			} else if ch.To != nil {
+				file = ch.To.String()
+			}
+
+			if file == "" {
+				continue
+			}
+
+			contains := inFiles(filesMap, file)
+			if !contains {
+				continue
+			}
+		}
+
 		if err := w.checkoutChange(ch, t, b); err != nil {
 			return err
 		}
@@ -421,7 +515,7 @@ func (w *Worktree) checkoutChange(ch merkletrie.Change, t *object.Tree, idx *ind
 }
 
 func (w *Worktree) containsUnstagedChanges() (bool, error) {
-	ch, err := w.diffStagingWithWorktree(false)
+	ch, err := w.diffStagingWithWorktree(false, true)
 	if err != nil {
 		return false, err
 	}
@@ -526,7 +620,7 @@ func (w *Worktree) checkoutChangeRegularFile(name string,
 			return err
 		}
 
-		return w.addIndexFromFile(name, e.Hash, idx)
+		return w.addIndexFromFile(name, e.Hash, f.Mode, idx)
 	}
 
 	return nil
@@ -562,6 +656,11 @@ func (w *Worktree) checkoutFile(f *object.File) (err error) {
 }
 
 func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
+	// .gitmodules symlink rejection (and its NTFS / HFS variants) is
+	// enforced by the worktreeFilesystem wrapper's Symlink method via
+	// validSymlinkName. See https://github.com/git/git/commit/10ecfa7
+	// for the upstream rationale.
+
 	from, err := f.Reader()
 	if err != nil {
 		return
@@ -569,7 +668,7 @@ func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
 
 	defer ioutil.CheckClose(from, &err)
 
-	bytes, err := stdioutil.ReadAll(from)
+	bytes, err := io.ReadAll(from)
 	if err != nil {
 		return
 	}
@@ -604,14 +703,9 @@ func (w *Worktree) addIndexFromTreeEntry(name string, f *object.TreeEntry, idx *
 	return nil
 }
 
-func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *indexBuilder) error {
+func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, mode filemode.FileMode, idx *indexBuilder) error {
 	idx.Remove(name)
 	fi, err := w.Filesystem.Lstat(name)
-	if err != nil {
-		return err
-	}
-
-	mode, err := filemode.NewFromOSFileMode(fi.Mode())
 	if err != nil {
 		return err
 	}
@@ -633,8 +727,8 @@ func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *indexBuil
 	return nil
 }
 
-func (w *Worktree) getTreeFromCommitHash(commit plumbing.Hash) (*object.Tree, error) {
-	c, err := w.r.CommitObject(commit)
+func (r *Repository) getTreeFromCommitHash(commit plumbing.Hash) (*object.Tree, error) {
+	c, err := r.CommitObject(commit)
 	if err != nil {
 		return nil, err
 	}
@@ -718,7 +812,7 @@ func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
 	}
 
 	defer f.Close()
-	input, err := stdioutil.ReadAll(f)
+	input, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -802,9 +896,9 @@ func (gr GrepResult) String() string {
 	return fmt.Sprintf("%s:%s:%d:%s", gr.TreeName, gr.FileName, gr.LineNumber, gr.Content)
 }
 
-// Grep performs grep on a worktree.
-func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
-	if err := opts.Validate(w); err != nil {
+// Grep performs grep on a repository.
+func (r *Repository) Grep(opts *GrepOptions) ([]GrepResult, error) {
+	if err := opts.validate(r); err != nil {
 		return nil, err
 	}
 
@@ -814,7 +908,7 @@ func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
 	var treeName string
 
 	if opts.ReferenceName != "" {
-		ref, err := w.r.Reference(opts.ReferenceName, true)
+		ref, err := r.Reference(opts.ReferenceName, true)
 		if err != nil {
 			return nil, err
 		}
@@ -827,13 +921,18 @@ func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
 
 	// Obtain a tree from the commit hash and get a tracked files iterator from
 	// the tree.
-	tree, err := w.getTreeFromCommitHash(commitHash)
+	tree, err := r.getTreeFromCommitHash(commitHash)
 	if err != nil {
 		return nil, err
 	}
 	fileiter := tree.Files()
 
 	return findMatchInFiles(fileiter, treeName, opts)
+}
+
+// Grep performs grep on a worktree.
+func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
+	return w.r.Grep(opts)
 }
 
 // findMatchInFiles takes a FileIter, worktree name and GrepOptions, and
@@ -932,7 +1031,7 @@ func rmFileAndDirsIfEmpty(fs billy.Filesystem, name string) error {
 	dir := filepath.Dir(name)
 	for {
 		removed, err := removeDirIfEmpty(fs, dir)
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return err
 		}
 
@@ -997,4 +1096,17 @@ func (b *indexBuilder) Add(e *index.Entry) {
 
 func (b *indexBuilder) Remove(name string) {
 	delete(b.entries, filepath.ToSlash(name))
+}
+
+// buildFilePathMap creates a map of cleaned file paths for efficient lookup.
+// Returns nil if the input slice is empty.
+func buildFilePathMap(files []string) map[string]struct{} {
+	if len(files) == 0 {
+		return nil
+	}
+	filesMap := make(map[string]struct{}, len(files))
+	for _, f := range files {
+		filesMap[filepath.Clean(f)] = struct{}{}
+	}
+	return filesMap
 }

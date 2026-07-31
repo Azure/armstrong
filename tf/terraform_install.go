@@ -6,7 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/terraform-exec/tfinstall"
+	install "github.com/hashicorp/hc-install"
+	"github.com/hashicorp/hc-install/fs"
+	"github.com/hashicorp/hc-install/product"
+	"github.com/hashicorp/hc-install/releases"
+	"github.com/hashicorp/hc-install/src"
 )
 
 const terraformBinary = "terraform"
@@ -29,32 +33,14 @@ func FindTerraform(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("creating terraform cache dir %q: %w", tfDir, err)
 	}
 
-	var terraformPath string
-	opts := []tfinstall.ExecPathFinder{
-		tfinstall.ExactPath(filepath.Join(tfDir, terraformBinary)),
-		tfinstall.LookPath(),
-		tfinstall.LatestVersion(tfDir, false),
-	}
-
-	// go through the options in order
-	// until a valid terraform executable is found
-	for _, opt := range opts {
-		p, err := opt.ExecPath(ctx)
-		if err != nil {
-			return "", fmt.Errorf("unexpected error: %w", err)
-		}
-
-		if p == "" {
-			// strategy did not locate an executable - fall through to next
-			continue
-		}
-
-		terraformPath = p
-		break
-	}
-
-	if terraformPath == "" {
-		return "", fmt.Errorf("could not find terraform executable")
+	installer := install.NewInstaller()
+	terraformPath, err := installer.Ensure(ctx, []src.Source{
+		&fs.AnyVersion{ExactBinPath: filepath.Join(tfDir, terraformBinary)},
+		&fs.AnyVersion{Product: &product.Terraform},
+		&releases.LatestVersion{Product: product.Terraform, InstallDir: tfDir},
+	})
+	if err != nil {
+		return "", fmt.Errorf("finding or installing terraform: %w", err)
 	}
 
 	return terraformPath, nil

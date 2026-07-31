@@ -45,7 +45,7 @@ func (c ReportCommand) Run(args []string) int {
 
 	if c.swaggerPath == "" {
 		logrus.Error("swagger path is required")
-		logrus.Infof(c.Help())
+		logrus.Info(c.Help())
 		return 1
 	}
 	return c.Execute()

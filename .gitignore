@@ -10,6 +10,7 @@ internal/schemas/schemas_gen.go
 internal/schemas/data/
 terraform-ls
 commands/.temp
+commands/log.txt
 
 # never upload the build to git
 armstrong
