@@ -44,7 +44,11 @@ func runGenerateCommand(t *testing.T, args [][]string) {
 	if err := os.MkdirAll(tfDir, 0755); err != nil {
 		t.Fatalf("failed to create working directory: %+v", err)
 	}
-	defer os.RemoveAll(tfDir)
+	defer func() {
+		if err := os.RemoveAll(tfDir); err != nil {
+			t.Errorf("failed to remove working directory: %+v", err)
+		}
+	}()
 
 	command := commands.GenerateCommand{}
 

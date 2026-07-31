@@ -58,7 +58,11 @@ func runTestCommand(t *testing.T, fileContentMap map[string]string) {
 	if err := os.MkdirAll(tfDir, 0755); err != nil {
 		t.Fatalf("failed to create working directory: %+v", err)
 	}
-	defer os.RemoveAll(tfDir)
+	defer func() {
+		if err := os.RemoveAll(tfDir); err != nil {
+			t.Errorf("failed to remove working directory: %+v", err)
+		}
+	}()
 	defer commands.CleanupCommand{}.Run([]string{"-working-dir", tfDir})
 
 	if err := copyFile(path.Join(wd, "testdata", t.Name(), "main.tf"), path.Join(tfDir, "main.tf")); err != nil {

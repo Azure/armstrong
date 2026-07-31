@@ -11,7 +11,6 @@ import (
 	"github.com/azure/armstrong/utils"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
-	"golang.org/x/exp/slices"
 )
 
 // Load loads the swagger spec from the given path
@@ -134,8 +133,8 @@ func Load(swaggerPath string) ([]ApiPath, error) {
 		}
 	}
 
-	slices.SortFunc(apiPaths, func(i, j ApiPath) int {
-		return strings.Compare(i.Path, j.Path)
+	sort.Slice(apiPaths, func(i, j int) bool {
+		return apiPaths[i].Path < apiPaths[j].Path
 	})
 	return apiPaths, nil
 }

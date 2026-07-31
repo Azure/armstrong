@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 )
 
 type GenerateCommand struct {
@@ -326,8 +325,9 @@ func (c *GenerateCommand) generate(apiPaths []swagger.ApiPath) int {
 
 	resourceTypes := make([]string, 0)
 	for resourceType := range azapiDefinitionByResourceType {
-		slices.SortFunc(azapiDefinitionByResourceType[resourceType], func(i, j types.AzapiDefinition) int {
-			return azapiDefinitionOrder(i) - azapiDefinitionOrder(j)
+		definitions := azapiDefinitionByResourceType[resourceType]
+		sort.Slice(definitions, func(i, j int) bool {
+			return azapiDefinitionOrder(definitions[i]) < azapiDefinitionOrder(definitions[j])
 		})
 		resourceTypes = append(resourceTypes, resourceType)
 	}

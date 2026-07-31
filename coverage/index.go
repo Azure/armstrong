@@ -102,11 +102,13 @@ func GetIndex(indexFilePath string) (*azidx.Index, error) {
 
 	logrus.Infof("downloading index file from %s", indexFileURL)
 
-	defer resp.Body.Close()
-
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("download index file zip: %+v", err)
+	}
+	if err := resp.Body.Close(); err != nil {
+		return nil, fmt.Errorf("close index file response: %+v", err)
 	}
 
 	zipReader, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
@@ -290,8 +292,15 @@ func readZipFile(zf *zip.File) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	return io.ReadAll(f)
+	b, err := io.ReadAll(f)
+	if err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	if err := f.Close(); err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func MockResourceIDFromType(azapiResourceType string) (string, string) {

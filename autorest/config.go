@@ -35,8 +35,10 @@ func ParseAutoRestConfig(filename string) []Package {
 
 	out := make([]Package, 0)
 	for _, codeBlock := range codeBlocks {
-		if string(codeBlock.Info) == "yaml" {
-			yamlPackage, err := ParseYamlConfig(string(codeBlock.Literal))
+		const yamlPrefix = "yaml "
+		if info := string(codeBlock.Info); strings.HasPrefix(info, yamlPrefix) {
+			content := strings.TrimPrefix(info, yamlPrefix) + "\n" + string(codeBlock.Literal)
+			yamlPackage, err := ParseYamlConfig(content)
 			if err != nil {
 				logrus.Warnf("failed to parse yaml config: %+v", err)
 			} else {
