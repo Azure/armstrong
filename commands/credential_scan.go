@@ -166,52 +166,68 @@ func (c CredentialScanCommand) Execute() int {
 	credScanErrors := make([]CredScanError, 0)
 
 	for _, azureProvider := range azureProviders {
+		providerName := azureProvider.Type
+		if azureProvider.Alias != "" {
+			providerName = fmt.Sprintf("%q.%q", azureProvider.Type, azureProvider.Alias)
+		}
+		target := credScanTarget{
+			FileName:   azureProvider.FileName,
+			LineNumber: azureProvider.LineNumber,
+			Name:       providerName,
+			Type:       "provider",
+		}
 		if v := azureProvider.SubscriptionId; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "subscription_id", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "subscription_id", v, vars)...)
 		}
 
 		if v := azureProvider.TenantId; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "tenant_id", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "tenant_id", v, vars)...)
 		}
 
 		if v := azureProvider.AuxiliaryTenantIds; len(v) > 0 {
 			for i, tenant_id := range v {
-				credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, fmt.Sprintf("auxiliary_tenant_ids[%v]", i), tenant_id, vars)...)
+				credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, fmt.Sprintf("auxiliary_tenant_ids[%v]", i), tenant_id, vars)...)
 			}
 		}
 
 		if v := azureProvider.AuxiliaryTenantIdsString; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "auxiliary_tenant_ids", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "auxiliary_tenant_ids", v, vars)...)
 		}
 
 		if v := azureProvider.ClientId; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "client_id", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "client_id", v, vars)...)
 		}
 
 		if v := azureProvider.ClientCertificate; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "client_certificate", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "client_certificate", v, vars)...)
 		}
 
 		if v := azureProvider.ClientCertificatePassword; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "client_certificate_password", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "client_certificate_password", v, vars)...)
 		}
 
 		if v := azureProvider.ClientSecret; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "client_secret", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "client_secret", v, vars)...)
 		}
 
 		if v := azureProvider.OidcRequestToken; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "oidc_request_token", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "oidc_request_token", v, vars)...)
 		}
 
 		if v := azureProvider.OidcToken; v != "" {
-			credScanErrors = append(credScanErrors, checkAzureProviderSecret(azureProvider, "oidc_token", v, vars)...)
+			credScanErrors = append(credScanErrors, checkAzureProviderSecret(target, "oidc_token", v, vars)...)
 		}
 
 	}
 
 	for _, azapiResource := range azapiResources {
 		logrus.Infof("scaning azapi_resource.%s(%s)", azapiResource.Name, azapiResource.Type)
+		target := credScanTarget{
+			FileName:   azapiResource.FileName,
+			LineNumber: azapiResource.LineNumber,
+			Name:       fmt.Sprintf("azapi_resource.%s", azapiResource.Name),
+			Type:       azapiResource.Type,
+		}
 
 		if azapiResource.Body == "" {
 			continue
@@ -220,7 +236,7 @@ func (c CredentialScanCommand) Execute() int {
 		err = json.Unmarshal([]byte(azapiResource.Body), &body)
 		if err != nil {
 			credScanErr := makeCredScanError(
-				azapiResource,
+				target,
 				fmt.Sprintf("failed to unmarshal body: %+v", err),
 				"",
 			)
@@ -238,7 +254,7 @@ func (c CredentialScanCommand) Execute() int {
 			swaggerModel, err = coverage.GetModelInfoFromLocalIndex(mockedResourceId, apiVersion, "PUT", c.swaggerRepoPath, c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
-					azapiResource,
+					target,
 					fmt.Sprintf("fail to find swagger model from local swagger with possible resource ID(%s) API version(%s): %+v", mockedResourceId, apiVersion, err),
 					"",
 				)
@@ -251,7 +267,7 @@ func (c CredentialScanCommand) Execute() int {
 			swaggerModel, err = coverage.GetModelInfoFromIndex(mockedResourceId, apiVersion, "PUT", c.swaggerIndexFile)
 			if err != nil {
 				credScanErr := makeCredScanError(
-					azapiResource,
+					target,
 					fmt.Sprintf("fail to find swagger model with possible resource ID(%s) API version(%s): %+v", mockedResourceId, apiVersion, err),
 					"",
 				)
@@ -264,7 +280,7 @@ func (c CredentialScanCommand) Execute() int {
 
 		if swaggerModel == nil {
 			credScanErr := makeCredScanError(
-				azapiResource,
+				target,
 				fmt.Sprintf("unable to find swagger model with possible resource ID(%s) API version(%s)", mockedResourceId, apiVersion),
 				"",
 			)
@@ -279,7 +295,7 @@ func (c CredentialScanCommand) Execute() int {
 		model, err := coverage.Expand(swaggerModel.ModelName, swaggerModel.SwaggerPath)
 		if err != nil {
 			credScanErr := makeCredScanError(
-				azapiResource,
+				target,
 				fmt.Sprintf("failed to expand model: %+v", err),
 				"",
 			)
@@ -292,12 +308,10 @@ func (c CredentialScanCommand) Execute() int {
 		secrets := make(map[string]string)
 		model.CredScan(body, secrets)
 
-		logrus.Infof("find secrets for azapi_resource.%s(%s): %+v", azapiResource.Name, azapiResource.Type, secrets)
-
 		for k, v := range secrets {
 			if !strings.HasPrefix(v, "$") || strings.HasPrefix(v, "$local.") {
 				credScanErr := makeCredScanError(
-					azapiResource,
+					target,
 					"cannot use plain text or 'local' for secret, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to hide the secret values",
 					k,
 				)
@@ -308,13 +322,11 @@ func (c CredentialScanCommand) Execute() int {
 			}
 
 			if strings.HasPrefix(v, "$var.") {
-				varName := strings.TrimPrefix(v, "$var.")
-				varName = strings.Split(varName, ".")[0]
-				theVar, ok := vars[varName]
+				varName, theVar, ok := findReferencedVariable(v, vars)
 				if !ok {
 					credScanErr := makeCredScanError(
-						azapiResource,
-						fmt.Sprintf("variable %q was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName),
+						target,
+						"referenced variable was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values",
 						k,
 					)
 					credScanErrors = append(credScanErrors, credScanErr)
@@ -325,7 +337,7 @@ func (c CredentialScanCommand) Execute() int {
 
 				if theVar.HasDefault {
 					credScanErr := makeCredScanError(
-						azapiResource,
+						target,
 						fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 						k,
 					)
@@ -335,7 +347,7 @@ func (c CredentialScanCommand) Execute() int {
 
 				if !theVar.IsSensitive {
 					credScanErr := makeCredScanError(
-						azapiResource,
+						target,
 						fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 						k,
 					)
@@ -360,12 +372,19 @@ type CredScanError struct {
 	LineNumber   int    `json:"line_number"`
 }
 
-func makeCredScanError(azapiResource hcl.AzapiResource, errMessage, propertyName string) CredScanError {
+type credScanTarget struct {
+	FileName   string
+	Name       string
+	Type       string
+	LineNumber int
+}
+
+func makeCredScanError(target credScanTarget, errMessage, propertyName string) CredScanError {
 	result := CredScanError{
-		FileName:     azapiResource.FileName,
-		LineNumber:   azapiResource.LineNumber,
-		Name:         fmt.Sprintf("azapi_resource.%s", azapiResource.Name),
-		Type:         azapiResource.Type,
+		FileName:     target.FileName,
+		LineNumber:   target.LineNumber,
+		Name:         target.Name,
+		Type:         target.Type,
 		ErrorMessage: errMessage,
 	}
 
@@ -376,12 +395,12 @@ func makeCredScanError(azapiResource hcl.AzapiResource, errMessage, propertyName
 	return result
 }
 
-func makeCredScanErrorForProvider(azureProvider hcl.AzureProvider, errMessage, propertyName string) CredScanError {
+func makeCredScanErrorForProvider(target credScanTarget, errMessage, propertyName string) CredScanError {
 	result := CredScanError{
-		FileName:     azureProvider.FileName,
-		LineNumber:   azureProvider.LineNumber,
-		Name:         azureProvider.Name(),
-		Type:         "provider",
+		FileName:     target.FileName,
+		LineNumber:   target.LineNumber,
+		Name:         target.Name,
+		Type:         target.Type,
 		ErrorMessage: errMessage,
 	}
 
@@ -427,7 +446,7 @@ func storeCredScanErrors(wd string, credScanErrors []CredScanError) {
 	jsonFileName := "errors.json"
 	jsonContent, err := json.MarshalIndent(credScanErrors, "", "  ")
 	if err != nil {
-		logrus.Errorf("failed to marshal json content %+v: %+v", credScanErrors, err)
+		logrus.Errorf("failed to marshal credential scan errors: %+v", err)
 	}
 
 	jsonFileName = path.Join(reportDir, jsonFileName)
@@ -439,12 +458,12 @@ func storeCredScanErrors(wd string, credScanErrors []CredScanError) {
 	}
 }
 
-func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, propertyValue string, vars map[string]hcl.Variable) []CredScanError {
+func checkAzureProviderSecret(target credScanTarget, propertyName, propertyValue string, vars map[string]hcl.Variable) []CredScanError {
 	credScanErrors := make([]CredScanError, 0)
 
 	if !strings.HasPrefix(propertyValue, "$") || strings.HasPrefix(propertyValue, "$local.") {
 		credScanErr := makeCredScanErrorForProvider(
-			azureProvider,
+			target,
 			"cannot use plain text or 'local' for secret, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to hide the secret values",
 			propertyName,
 		)
@@ -455,13 +474,11 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 	}
 
 	if strings.HasPrefix(propertyValue, "$var.") {
-		varName := strings.TrimPrefix(propertyValue, "$var.")
-		varName = strings.Split(varName, ".")[0]
-		theVar, ok := vars[varName]
+		varName, theVar, ok := findReferencedVariable(propertyValue, vars)
 		if !ok {
 			credScanErr := makeCredScanErrorForProvider(
-				azureProvider,
-				fmt.Sprintf("variable %q was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName),
+				target,
+				"referenced variable was not found, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values",
 				propertyName,
 			)
 			credScanErrors = append(credScanErrors, credScanErr)
@@ -472,7 +489,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 
 		if theVar.HasDefault {
 			credScanErr := makeCredScanErrorForProvider(
-				azureProvider,
+				target,
 				fmt.Sprintf("variable %q (%v:%v) used in secret field but has a default value, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 				propertyName,
 			)
@@ -482,7 +499,7 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 
 		if !theVar.IsSensitive {
 			credScanErr := makeCredScanErrorForProvider(
-				azureProvider,
+				target,
 				fmt.Sprintf("variable %q (%v:%v) used in secret field but is not marked as sensitive, please follow https://github.com/Azure/armstrong/blob/main/docs/guidance-for-api-test.md#4-q-i-have-some-sensitive-information-in-the-test-case-how-to-hide-it to set the variable for secret values", varName, theVar.FileName, theVar.LineNumber),
 				propertyName,
 			)
@@ -492,4 +509,14 @@ func checkAzureProviderSecret(azureProvider hcl.AzureProvider, propertyName, pro
 	}
 
 	return credScanErrors
+}
+
+func findReferencedVariable(value string, vars map[string]hcl.Variable) (string, hcl.Variable, bool) {
+	for name, variable := range vars {
+		reference := "$var." + name
+		if value == reference || strings.HasPrefix(value, reference+".") {
+			return name, variable, true
+		}
+	}
+	return "", hcl.Variable{}, false
 }
