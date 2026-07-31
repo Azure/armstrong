@@ -20,7 +20,6 @@ require (
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/sirupsen/logrus v1.9.3
 	github.com/zclconf/go-cty v1.18.1
-	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/text v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )
