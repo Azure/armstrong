@@ -20,7 +20,7 @@ type Terraform struct {
 
 const (
 	planfile            = "tfplan"
-	logSensitiveDataEnv = "LOG_SENSITIVE_DATA"
+	logSensitiveDataEnv = "AZAPI_LOG_SENSITIVE_DATA"
 )
 
 func NewTerraform(workingDirectory string, logEnabled bool) (*Terraform, error) {
