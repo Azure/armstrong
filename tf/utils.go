@@ -180,7 +180,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (covera
 		return out, nil
 	}
 	for _, res := range state.Values.RootModule.Resources {
-		if res.Type != "azapi_resource" || res.Mode != tfjson.ManagedResourceMode {
+		if (res.Type != "azapi_resource" && res.Type != "azapi_update_resource") || res.Mode != tfjson.ManagedResourceMode {
 			continue
 		}
 
@@ -221,10 +221,10 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 	}
 
 	for _, resourceChange := range plan.ResourceChanges {
-		if resourceChange.Type != "azapi_resource" {
+		if resourceChange == nil || resourceChange.Change == nil {
 			continue
 		}
-		if resourceChange == nil || resourceChange.Change == nil {
+		if (resourceChange.Type != "azapi_resource" && resourceChange.Type != "azapi_update_resource") || resourceChange.Mode != tfjson.ManagedResourceMode {
 			continue
 		}
 		if actions := resourceChange.Change.Actions; len(actions) == 1 && (actions[0] == tfjson.ActionNoop || actions[0] == tfjson.ActionUpdate) {

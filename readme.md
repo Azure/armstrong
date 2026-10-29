@@ -108,6 +108,7 @@ It also contains other details like http traces to help debugging.
 **Notice:**
 1. How to install `oav`, please refer to [oav](https://github.com/Azure/oav).
 2. The `coverage report` is generated based on the [public swagger repo](https://github.com/Azure/azure-rest-api-specs) by default, but it can be changed to the local swagger specs by specifying `-swagger` option.
+3. Property coverage combines applied bodies from managed `azapi_resource` and `azapi_update_resource` resources for each API path and checks them against the PUT request model, even when only update resources are used.
 
 ### cleanup - Clean up dependencies and testing resource
 
