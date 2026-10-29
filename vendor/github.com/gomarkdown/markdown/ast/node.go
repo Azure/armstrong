@@ -1,7 +1,7 @@
 package ast
 
 // An attribute can be attached to block elements. They are specified as
-// {#id .classs key="value"} where quotes for values are mandatory, multiple
+// {#id .class key="value"} where quotes for values are mandatory, multiple
 // key/value pairs are separated by whitespace.
 type Attribute struct {
 	ID      []byte
@@ -21,7 +21,7 @@ const (
 	ListTypeTerm
 
 	ListItemContainsBlock
-	ListItemBeginningOfList // TODO: figure out if this is of any use now
+	ListItemBeginningOfList // Marks the first item emitted for a list.
 	ListItemEndOfList
 )
 
@@ -85,6 +85,8 @@ type Node interface {
 type Container struct {
 	Parent   Node
 	Children []Node
+	Prev     Node
+	Next     Node
 
 	Literal []byte // Text contents of the leaf nodes
 	Content []byte // Markdown content of the block nodes
@@ -99,38 +101,31 @@ type CanContain interface {
 }
 
 // AsContainer returns itself as *Container
-func (c *Container) AsContainer() *Container {
-	return c
-}
+func (c *Container) AsContainer() *Container { return c }
 
 // AsLeaf returns nil
-func (c *Container) AsLeaf() *Leaf {
-	return nil
-}
+func (c *Container) AsLeaf() *Leaf { return nil }
 
 // GetParent returns parent node
-func (c *Container) GetParent() Node {
-	return c.Parent
-}
+func (c *Container) GetParent() Node { return c.Parent }
 
 // SetParent sets the parent node
-func (c *Container) SetParent(newParent Node) {
-	c.Parent = newParent
-}
+func (c *Container) SetParent(newParent Node) { c.Parent = newParent }
 
 // GetChildren returns children nodes
-func (c *Container) GetChildren() []Node {
-	return c.Children
-}
+func (c *Container) GetChildren() []Node { return c.Children }
 
 // SetChildren sets children node
 func (c *Container) SetChildren(newChildren []Node) {
 	c.Children = newChildren
+	linkSiblings(newChildren)
 }
 
 // Leaf is a type of node that cannot have children
 type Leaf struct {
 	Parent Node
+	Prev   Node
+	Next   Node
 
 	Literal []byte // Text contents of the leaf nodes
 	Content []byte // Markdown content of the block nodes
@@ -139,29 +134,19 @@ type Leaf struct {
 }
 
 // AsContainer returns nil
-func (l *Leaf) AsContainer() *Container {
-	return nil
-}
+func (l *Leaf) AsContainer() *Container { return nil }
 
 // AsLeaf returns itself as *Leaf
-func (l *Leaf) AsLeaf() *Leaf {
-	return l
-}
+func (l *Leaf) AsLeaf() *Leaf { return l }
 
 // GetParent returns parent node
-func (l *Leaf) GetParent() Node {
-	return l.Parent
-}
+func (l *Leaf) GetParent() Node { return l.Parent }
 
-// SetParent sets the parent nodd
-func (l *Leaf) SetParent(newParent Node) {
-	l.Parent = newParent
-}
+// SetParent sets the parent node
+func (l *Leaf) SetParent(newParent Node) { l.Parent = newParent }
 
 // GetChildren returns nil because Leaf cannot have children
-func (l *Leaf) GetChildren() []Node {
-	return nil
-}
+func (l *Leaf) GetChildren() []Node { return nil }
 
 // SetChildren will panic if trying to set non-empty children
 // because Leaf cannot have children
@@ -169,12 +154,15 @@ func (l *Leaf) SetChildren(newChildren []Node) {
 	if len(newChildren) != 0 {
 		panic("leaf node cannot have children")
 	}
-
 }
 
 // Document represents markdown document node, a root of ast
 type Document struct {
 	Container
+
+	// CommonMark records that the document uses CommonMark parsing semantics.
+	// Renderers can use this to preserve CommonMark escaping and block spacing.
+	CommonMark bool
 }
 
 // DocumentMatter represents markdown node that signals a document
@@ -186,14 +174,10 @@ type DocumentMatter struct {
 }
 
 // BlockQuote represents markdown block quote node
-type BlockQuote struct {
-	Container
-}
+type BlockQuote struct{ Container }
 
 // Aside represents an markdown aside node.
-type Aside struct {
-	Container
-}
+type Aside struct{ Container }
 
 // List represents markdown list node
 type List struct {
@@ -221,19 +205,13 @@ type ListItem struct {
 }
 
 // Paragraph represents markdown paragraph node
-type Paragraph struct {
-	Container
-}
+type Paragraph struct{ Container }
 
 // Math represents markdown MathAjax inline node
-type Math struct {
-	Leaf
-}
+type Math struct{ Leaf }
 
 // MathBlock represents markdown MathAjax block node
-type MathBlock struct {
-	Container
-}
+type MathBlock struct{ Container }
 
 // Heading represents markdown heading node
 type Heading struct {
@@ -246,24 +224,16 @@ type Heading struct {
 }
 
 // HorizontalRule represents markdown horizontal rule node
-type HorizontalRule struct {
-	Leaf
-}
+type HorizontalRule struct{ Leaf }
 
 // Emph represents markdown emphasis node
-type Emph struct {
-	Container
-}
+type Emph struct{ Container }
 
 // Strong represents markdown strong node
-type Strong struct {
-	Container
-}
+type Strong struct{ Container }
 
 // Del represents markdown del node
-type Del struct {
-	Container
-}
+type Del struct{ Container }
 
 // Link represents markdown link node
 type Link struct {
@@ -303,56 +273,46 @@ type Image struct {
 }
 
 // Text represents markdown text node
-type Text struct {
-	Leaf
-}
+type Text struct{ Leaf }
 
 // HTMLBlock represents markdown html node
-type HTMLBlock struct {
-	Leaf
-}
+type HTMLBlock struct{ Leaf }
 
 // CodeBlock represents markdown code block node
 type CodeBlock struct {
 	Leaf
 
-	IsFenced    bool   // Specifies whether it's a fenced code block or an indented one
-	Info        []byte // This holds the info string
-	FenceChar   byte
+	IsFenced bool   // Specifies whether it's a fenced code block or an indented one
+	Info     []byte // This holds the info string
+	// FenceChar is the fence character ('`' or '~'), 0 for indented code blocks
+	FenceChar byte
+	// FenceLength is the number of fence characters in the opening fence
 	FenceLength int
+	// FenceOffset is the number of spaces (0-3) before the opening fence,
+	// relative to the content of the enclosing container as the parser sees it.
+	// It's always 0 for fenced blocks recognized inside a paragraph (when the
+	// FencedCode extension is off).
 	FenceOffset int
 }
 
 // Softbreak represents markdown softbreak node
-// Note: not used currently
-type Softbreak struct {
-	Leaf
-}
+// The built-in parser does not currently emit Softbreak nodes.
+type Softbreak struct{ Leaf }
 
 // Hardbreak represents markdown hard break node
-type Hardbreak struct {
-	Leaf
-}
+type Hardbreak struct{ Leaf }
 
-// NonBlockingSpace represents markdown non-blocking space node
-type NonBlockingSpace struct {
-	Leaf
-}
+// NonBlockingSpace represents a markdown non-breaking space node
+type NonBlockingSpace struct{ Leaf }
 
 // Code represents markdown code node
-type Code struct {
-	Leaf
-}
+type Code struct{ Leaf }
 
 // HTMLSpan represents markdown html span node
-type HTMLSpan struct {
-	Leaf
-}
+type HTMLSpan struct{ Leaf }
 
 // Table represents markdown table node
-type Table struct {
-	Container
-}
+type Table struct{ Container }
 
 // TableCell represents markdown table cell node
 type TableCell struct {
@@ -364,29 +324,19 @@ type TableCell struct {
 }
 
 // TableHeader represents markdown table head node
-type TableHeader struct {
-	Container
-}
+type TableHeader struct{ Container }
 
 // TableBody represents markdown table body node
-type TableBody struct {
-	Container
-}
+type TableBody struct{ Container }
 
 // TableRow represents markdown table row node
-type TableRow struct {
-	Container
-}
+type TableRow struct{ Container }
 
 // TableFooter represents markdown table foot node
-type TableFooter struct {
-	Container
-}
+type TableFooter struct{ Container }
 
 // Caption represents a figure, code or quote caption
-type Caption struct {
-	Container
-}
+type Caption struct{ Container }
 
 // CaptionFigure is a node (blockquote or codeblock) that has a caption
 type CaptionFigure struct {
@@ -413,169 +363,21 @@ type Index struct {
 }
 
 // Subscript is a subscript node
-type Subscript struct {
-	Leaf
-}
+type Subscript struct{ Leaf }
 
-// Subscript is a superscript node
-type Superscript struct {
-	Leaf
-}
+// Superscript is a superscript node.
+type Superscript struct{ Leaf }
 
 // Footnotes is a node that contains all footnotes
-type Footnotes struct {
-	Container
-}
+type Footnotes struct{ Container }
 
-func removeNodeFromArray(a []Node, node Node) []Node {
-	n := len(a)
-	for i := 0; i < n; i++ {
-		if a[i] == node {
-			return append(a[:i], a[i+1:]...)
-		}
-	}
-	return nil
-}
+// ReferenceDefinition is a [label]: destination "title" definition.
+// Links still resolve Destination at parse time; this node is additive so
+// round-trippers can recover the original reference syntax.
+type ReferenceDefinition struct {
+	Leaf
 
-// AppendChild appends child to children of parent
-// It panics if either node is nil.
-func AppendChild(parent Node, child Node) {
-	RemoveFromTree(child)
-	child.SetParent(parent)
-	newChildren := append(parent.GetChildren(), child)
-	parent.SetChildren(newChildren)
-}
-
-// RemoveFromTree removes this node from tree
-func RemoveFromTree(n Node) {
-	if n.GetParent() == nil {
-		return
-	}
-	// important: don't clear n.Children if n has no parent
-	// we're called from AppendChild and that might happen on a node
-	// that accumulated Children but hasn't been inserted into the tree
-	n.SetChildren(nil)
-	p := n.GetParent()
-	newChildren := removeNodeFromArray(p.GetChildren(), n)
-	if newChildren != nil {
-		p.SetChildren(newChildren)
-	}
-}
-
-// GetLastChild returns last child of node n
-// It's implemented as stand-alone function to keep Node interface small
-func GetLastChild(n Node) Node {
-	a := n.GetChildren()
-	if len(a) > 0 {
-		return a[len(a)-1]
-	}
-	return nil
-}
-
-// GetFirstChild returns first child of node n
-// It's implemented as stand-alone function to keep Node interface small
-func GetFirstChild(n Node) Node {
-	a := n.GetChildren()
-	if len(a) > 0 {
-		return a[0]
-	}
-	return nil
-}
-
-// GetNextNode returns next sibling of node n (node after n)
-// We can't make it part of Container or Leaf because we loose Node identity
-func GetNextNode(n Node) Node {
-	parent := n.GetParent()
-	if parent == nil {
-		return nil
-	}
-	a := parent.GetChildren()
-	len := len(a) - 1
-	for i := 0; i < len; i++ {
-		if a[i] == n {
-			return a[i+1]
-		}
-	}
-	return nil
-}
-
-// GetPrevNode returns previous sibling of node n (node before n)
-// We can't make it part of Container or Leaf because we loose Node identity
-func GetPrevNode(n Node) Node {
-	parent := n.GetParent()
-	if parent == nil {
-		return nil
-	}
-	a := parent.GetChildren()
-	len := len(a)
-	for i := 1; i < len; i++ {
-		if a[i] == n {
-			return a[i-1]
-		}
-	}
-	return nil
-}
-
-// WalkStatus allows NodeVisitor to have some control over the tree traversal.
-// It is returned from NodeVisitor and different values allow Node.Walk to
-// decide which node to go to next.
-type WalkStatus int
-
-const (
-	// GoToNext is the default traversal of every node.
-	GoToNext WalkStatus = iota
-	// SkipChildren tells walker to skip all children of current node.
-	SkipChildren
-	// Terminate tells walker to terminate the traversal.
-	Terminate
-)
-
-// NodeVisitor is a callback to be called when traversing the syntax tree.
-// Called twice for every node: once with entering=true when the branch is
-// first visited, then with entering=false after all the children are done.
-type NodeVisitor interface {
-	Visit(node Node, entering bool) WalkStatus
-}
-
-// NodeVisitorFunc casts a function to match NodeVisitor interface
-type NodeVisitorFunc func(node Node, entering bool) WalkStatus
-
-// Walk traverses tree recursively
-func Walk(n Node, visitor NodeVisitor) WalkStatus {
-	isContainer := n.AsContainer() != nil
-	status := visitor.Visit(n, true) // entering
-	if status == Terminate {
-		// even if terminating, close container node
-		if isContainer {
-			visitor.Visit(n, false)
-		}
-		return status
-	}
-	if isContainer && status != SkipChildren {
-		children := n.GetChildren()
-		for _, n := range children {
-			status = Walk(n, visitor)
-			if status == Terminate {
-				return status
-			}
-		}
-	}
-	if isContainer {
-		status = visitor.Visit(n, false) // exiting
-		if status == Terminate {
-			return status
-		}
-	}
-	return GoToNext
-}
-
-// Visit calls visitor function
-func (f NodeVisitorFunc) Visit(node Node, entering bool) WalkStatus {
-	return f(node, entering)
-}
-
-// WalkFunc is like Walk but accepts just a callback function
-func WalkFunc(n Node, f NodeVisitorFunc) {
-	visitor := NodeVisitorFunc(f)
-	Walk(n, visitor)
+	Label       []byte
+	Destination []byte
+	Title       []byte
 }

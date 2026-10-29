@@ -4,18 +4,18 @@
 
 Package `github.com/gomarkdown/markdown` is a Go library for parsing Markdown text and rendering as HTML.
 
-It's very fast and supports common extensions.
+It's very fast, supports common extensions and has a [CommonMark](#commonmark) mode that passes all 652 examples of the [CommonMark 0.31.2 spec](https://spec.commonmark.org/0.31.2/).
 
 Tutorial: https://blog.kowalczyk.info/article/cxn3/advanced-markdown-processing-in-go.html
 
 Code examples:
-* https://tools.arslexis.io/goplayground/#txO7hJ-ibeU : basic markdown => HTML
-* https://tools.arslexis.io/goplayground/#yFRIWRiu-KL : customize HTML renderer
-* https://tools.arslexis.io/goplayground/#2yV5-HDKBUV : modify AST
-* https://tools.arslexis.io/goplayground/#9fqKwRbuJ04 : customize parser
-* https://tools.arslexis.io/goplayground/#Bk0zTvrzUDR : syntax highlight
+* https://arslexis.io/goplayground/#txO7hJ-ibeU : basic markdown => HTML
+* https://arslexis.io/goplayground/#yFRIWRiu-KL : customize HTML renderer
+* https://arslexis.io/goplayground/#2yV5-HDKBUV : modify AST
+* https://arslexis.io/goplayground/#9fqKwRbuJ04 : customize parser
+* https://arslexis.io/goplayground/#Bk0zTvrzUDR : syntax highlight
 
-Those examples are also in [examples](./examples) directory.
+Those examples are also in the [examples](./examples) directory.
 
 ## API Docs:
 
@@ -68,16 +68,34 @@ func main() {
 }
 ```
 
-Try it online: https://onlinetool.io/goplayground/#txO7hJ-ibeU
+Example source: [examples/basic.go](examples/basic.go)
 
-For more documentation read [this guide](https://blog.kowalczyk.info/article/cxn3/advanced-markdown-processing-in-go.html)
+## CommonMark
+
+`parser.NewCommonMark()` creates a parser for the [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) grammar. It's a shortcut for setting the `parser.CommonMark` flag. All 652 official examples are tested against exact HTML output. The flag is off by default, preserving existing parsing and rendering behavior.
+
+CommonMark mode uses this library's parser and usual `ast` nodes, so AST traversal, transformation, custom renderers, and HTML rendering hooks remain available. It uses strict CommonMark syntax regardless of the parser's `Extensions` setting; extensions and custom block/inline parsers apply only when the flag is off. Reference destination and title overrides remain available.
+
+When `markdown.ToHTML` receives no renderer, CommonMark documents use XHTML tags and no smart punctuation, matching the official examples. To customize rendering, supply an `html.Renderer` with your own flags.
+
+```go
+p := parser.NewCommonMark()
+output := markdown.ToHTML([]byte("# Hello\n"), p, nil)
+```
+
+For more documentation, read [this guide](https://blog.kowalczyk.info/article/cxn3/advanced-markdown-processing-in-go.html)
 
 Comparing to other markdown parsers: https://babelmark.github.io/
 
 ## Sanitize untrusted content
 
 We don't protect against malicious content. When dealing with user-provided
-markdown, run renderer HTML through HTML sanitizer such as [Bluemonday](https://github.com/microcosm-cc/bluemonday).
+markdown, run the rendered HTML through an HTML sanitizer such as [Bluemonday](https://github.com/microcosm-cc/bluemonday).
+
+In particular, the `parser.Attributes` and `parser.InlineAttributes`
+extensions let the markdown author set arbitrary HTML attributes such as
+`onclick` via `{: key="value"}`. That is by design, so never enable them for
+untrusted input, even with `html.SkipHTML`.
 
 Here's an example of simple usage with Bluemonday:
 
@@ -94,7 +112,7 @@ html := bluemonday.UGCPolicy().SanitizeBytes(maybeUnsafeHTML)
 
 ## mdtohtml command-line tool
 
-https://github.com/gomarkdown/mdtohtml is a command-line markdown to html
+https://github.com/gomarkdown/mdtohtml is a command-line markdown-to-HTML
 converter built using this library.
 
 You can also use it as an example of how to use the library.
@@ -106,6 +124,10 @@ You can install it with:
 To run: `mdtohtml input-file [output-file]`
 
 ## Features
+
+- **CommonMark compliance**. With `parser.NewCommonMark()`, parsing follows
+  the [CommonMark 0.31.2 spec](https://spec.commonmark.org/0.31.2/) and the
+  output matches all 652 official examples exactly. See [CommonMark](#commonmark).
 
 - **Compatibility**. The Markdown v1.0.3 test suite passes with
   the `--tidy` option. Without `--tidy`, the differences are
@@ -142,7 +164,7 @@ To run: `mdtohtml input-file [output-file]`
 In addition to the standard markdown syntax, this package
 implements the following extensions:
 
-- **Intra-word emphasis supression**. The `_` character is
+- **Intra-word emphasis suppression**. The `_` character is
   commonly used inside words when discussing code, so having
   markdown interpret it as an emphasis command is usually the
   wrong thing. We let you treat all emphasis markers as
@@ -169,7 +191,7 @@ implements the following extensions:
   Total   | 50
   ```
 
-  A cell spanning multiple columns (colspan) is supported, just repeat the pipe symbol:
+  A cell spanning multiple columns (colspan) is supported; just repeat the pipe symbol:
 
   ```
   Name    | Age
@@ -179,6 +201,12 @@ implements the following extensions:
   ========|======
   Total   | 23
   ```
+
+  A pipe inside a code span does not end the cell, so `` `a|b` `` is
+  one cell. Elsewhere, write a literal pipe as `\|`. This differs from
+  GitHub, where a pipe always ends the cell and `\|` is the only way to
+  include one; a `\|` inside a code span is left as written here rather
+  than unescaped.
 
 
 - **Fenced code blocks**. In addition to the normal 4-space
@@ -220,11 +248,11 @@ implements the following extensions:
 - **Strikethrough**. Use two tildes (`~~`) to mark text that
   should be crossed out.
 
-- **Hard line breaks**. With this extension enabled newlines in the input
-  translates into line breaks in the output. This extension is off by default.
+- **Hard line breaks**. With this extension enabled, newlines in the input
+  translate into line breaks in the output. This extension is off by default.
 
-- **Non blocking space**. With this extension enabled spaces preceded by a backslash
-  in the input translates non-blocking spaces in the output. This extension is off by default.
+- **Non-breaking space**. With this extension enabled, a space preceded by a backslash
+  in the input becomes a non-breaking space in the output. This extension is off by default.
 
 - **Smart quotes**. Smartypants-style punctuation substitution is
   supported, turning normal double- and single-quote marks into
@@ -238,14 +266,14 @@ implements the following extensions:
 
 - **Smart fractions**, where anything that looks like a fraction
   is translated into suitable HTML (instead of just a few special
-  cases like most smartypant processors). For example, `4/5`
+  cases like most smartypants processors). For example, `4/5`
   becomes `<sup>4</sup>&frasl;<sub>5</sub>`, which renders as
   <sup>4</sup>&frasl;<sub>5</sub>.
 
-- **MathJaX Support** is an additional feature which is supported by
-  many markdown editor. It translates inline math equations quoted by `$`
-  and displays math blocks quoted by `$$` into MathJax compatible format.
-  Hyphens (`_`) won't break LaTeX render within a math element any more.
+- **MathJax support** is an additional feature supported by
+  many markdown editors. It translates inline math equations quoted by `$`
+  and math blocks quoted by `$$` into MathJax-compatible format.
+  Underscores (`_`) won't break LaTeX rendering within a math element.
 
   ```
   $$
@@ -264,11 +292,11 @@ implements the following extensions:
 - **Ordered list start number**. With this extension enabled an ordered list will start with
   the number that was used to start it.
 
-- **Super and subscript**. With this extension enabled sequences between ^ will indicate
-  superscript and ~ will become a subscript. For example: H~2~O is a liquid, 2^10^ is 1024.
+- **Super- and subscript**. With this extension enabled, text between `^` is
+  superscript and text between `~` is subscript. For example: H~2~O is a liquid, 2^10^ is 1024.
 
-- **Block level attributes** allow setting attributes (ID, classes and key/value pairs) on block
-  level elements. The attribute must be enclosed with braces and be put on a line before the
+- **Block-level attributes** allow setting attributes (ID, classes and key/value pairs) on block-level
+  elements. The attribute must be enclosed in braces and put on a line before the
   element.
 
   ```
@@ -279,6 +307,7 @@ implements the following extensions:
   Will convert into `<h1 id="id3" class="myclass" fontsize="tiny">Header 1</h1>`.
 
 - **Mmark support**, see <https://mmark.miek.nl/post/syntax/> for all new syntax elements this adds.
+  Table captions (`Table: ...`) require both `Tables` and `Mmark`.
 
 ## Users
 
@@ -290,7 +319,7 @@ markdown is a fork of v2 of https://github.com/russross/blackfriday.
 
 I refactored the API (split into ast/parser/html sub-packages).
 
-Blackfriday itself was based on C implementation [sundown](https://github.com/vmg/sundown) which in turn was based on [libsoldout](http://fossil.instinctive.eu/libsoldout/home).
+Blackfriday itself was based on the C implementation [sundown](https://github.com/vmg/sundown), which in turn was based on [libsoldout](http://fossil.instinctive.eu/libsoldout/home).
 
 ## License
 
