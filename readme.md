@@ -19,7 +19,7 @@ For ARM review, please refer to [guidance for API test](./docs/guidance-for-api-
 
 #### Install from the source code:
 
-1. Install [Go](https://golang.org/doc/install).
+1. Install [Go](https://golang.org/doc/install) 1.27.3 or later (see [go.mod](./go.mod)).
 
 2. Run `go install github.com/azure/armstrong@latest` to install the latest version.
 
