@@ -1,3 +1,17 @@
+## v0.18.0
+
+ENHANCEMENTS:
+- Include `azapi_update_resource` resources in property coverage reports.
+- Update Go to 1.27.3 and refresh dependencies and CI workflows.
+
+## v0.17.1
+
+ENHANCEMENTS:
+- Pin GitHub Actions to full-length commit SHAs.
+
+BUG FIXES:
+- Fix sensitive data logging and support `AZAPI_LOG_SENSITIVE_DATA`.
+
 ## v0.17.0
 
 ENHANCEMENTS:
