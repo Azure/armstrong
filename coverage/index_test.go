@@ -13,6 +13,7 @@ import (
 const indexFilePath = "testdata/index.json"
 
 func TestGetModelInfoFromIndex_DataCollectionRule(t *testing.T) {
+	azureRepoURL := coverage.SetupPinnedIndex(t)
 	apiVersion := "2022-06-01"
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
@@ -35,19 +36,20 @@ func TestGetModelInfoFromIndex_DataCollectionRule(t *testing.T) {
 	}
 
 	// upstream monitor swagger moved under an extra Microsoft.Insights/Insights/ segment
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
+	expectedModelSwaggerPath := azureRepoURL + "monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
 }
 
 func TestGetModelInfoFromIndexWithCache_DataCollectionRule(t *testing.T) {
+	cacheFile, azureRepoURL := coverage.SetupPinnedIndexCacheFile(t)
 	apiVersion := "2022-06-01"
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/test-resources/providers/Microsoft.Insights/dataCollectionRules/testDCR",
 		apiVersion,
 		"PUT",
-		indexFilePath,
+		cacheFile,
 	)
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
@@ -64,13 +66,14 @@ func TestGetModelInfoFromIndexWithCache_DataCollectionRule(t *testing.T) {
 	}
 
 	// upstream monitor swagger moved under an extra Microsoft.Insights/Insights/ segment
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
+	expectedModelSwaggerPath := azureRepoURL + "monitor/resource-manager/Microsoft.Insights/Insights/stable/2022-06-01/dataCollectionRules_API.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
 }
 
 func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
+	azureRepoURL := coverage.SetupPinnedIndex(t)
 	apiVersion := "2019-08-01"
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/SampleRG/providers/Microsoft.Devices/iotHubs/sampleiothub/providers/Microsoft.Security/deviceSecurityGroups/samplesecuritygroup",
@@ -93,13 +96,14 @@ func TestGetModelInfoFromIndex_DeviceSecurityGroups(t *testing.T) {
 	}
 
 	// upstream security swagger merged deviceSecurityGroups.json into security-IoTSecurity.json, nested under an extra Microsoft.Security/Security/ segment
-	expectedModelSwaggerPath := "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/security/resource-manager/Microsoft.Security/Security/stable/2019-08-01/security-IoTSecurity.json"
+	expectedModelSwaggerPath := azureRepoURL + "security/resource-manager/Microsoft.Security/Security/stable/2019-08-01/security-IoTSecurity.json"
 	if swaggerModel.SwaggerPath != expectedModelSwaggerPath {
 		t.Fatalf("expected modelSwaggerPath %s, got %s", expectedModelSwaggerPath, swaggerModel.SwaggerPath)
 	}
 }
 
 func TestGetModelInfoFromIndexWithType_DataCollectionRule(t *testing.T) {
+	coverage.SetupPinnedIndex(t)
 	azapiResourceType := "Microsoft.Insights/dataCollectionRules@2022-06-01"
 	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", "")
 	if err != nil {
@@ -113,8 +117,9 @@ func TestGetModelInfoFromIndexWithType_DataCollectionRule(t *testing.T) {
 }
 
 func TestGetModelInfoFromIndexWithTypeWithCache_DataCollectionRule(t *testing.T) {
+	cacheFile, _ := coverage.SetupPinnedIndexCacheFile(t)
 	azapiResourceType := "Microsoft.Insights/dataCollectionRules@2022-06-01"
-	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", indexFilePath)
+	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", cacheFile)
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
@@ -124,13 +129,14 @@ func TestGetModelInfoFromIndexWithTypeWithCache_DataCollectionRule(t *testing.T)
 		t.Fatalf("expected apiPath %s, got %s", expectedApiPath, swaggerModel.ApiPath)
 	}
 
-	_, err = coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", indexFilePath)
+	_, err = coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", cacheFile)
 	if err != nil {
 		t.Fatalf("get model info from index error: %+v", err)
 	}
 }
 
 func TestGetModelInfoFromIndexWithType_DeviceSecurityGroups(t *testing.T) {
+	coverage.SetupPinnedIndex(t)
 	azapiResourceType := "Microsoft.Security/deviceSecurityGroups@2019-08-01"
 	swaggerModel, err := coverage.GetModelInfoFromIndexWithType(azapiResourceType, "PUT", "")
 	if err != nil {

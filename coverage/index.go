@@ -17,7 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
+var (
 	indexFileURL = "https://github.com/teowa/azure-rest-api-index-file/releases/latest/download/index.json.zip"
 	azureRepoURL = "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/"
 )

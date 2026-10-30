@@ -1477,6 +1477,7 @@ func testCoverage(t *testing.T, tc testCase) (*coverage.Model, error) {
 			"./testdata/index.json",
 		)
 	} else {
+		coverage.SetupPinnedIndex(t)
 		swaggerModel, err = coverage.GetModelInfoFromIndex(
 			tc.apiPath,
 			apiVersion,
@@ -1563,6 +1564,7 @@ func storeCoverageReport(passReport types.PassReport, coverageReport coverage.Co
 }
 
 func testCredScan(t *testing.T, tc testCase) (*map[string]string, error) {
+	coverage.SetupPinnedIndex(t)
 	apiVersion := strings.Split(tc.resourceType, "@")[1]
 	swaggerModel, err := coverage.GetModelInfoFromIndex(
 		tc.apiPath,

@@ -210,6 +210,7 @@ func testExpandAll(t *testing.T, azureRepoDir, testResultPath string) result {
 }
 
 func getRefList(t *testing.T) []jsonreference.Ref {
+	coverage.SetupPinnedIndex(t)
 	index, err := coverage.GetIndex("")
 	if err != nil {
 		t.Fatal(err)
