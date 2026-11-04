@@ -1351,7 +1351,7 @@
   },
   {
     "resourceType": "azurerm_data_factory_linked_service_cosmosdb_mongoapi",
-    "exampleConfiguration": "resource \"azurerm_resource_group\" \"example\" {\n  name     = \"example-resources\"\n  location = \"West Europe\"\n}\n\nresource \"azurerm_data_factory\" \"example\" {\n  name                = \"example\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n}\n\nresource \"azurerm_data_factory_linked_service_cosmosdb_mongoapi\" \"example\" {\n  name              = \"example\"\n  data_factory_id   = azurerm_data_factory.example.id\n  connection_string = \"mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true\"\n  database          = \"foo\"\n\n}\n",
+    "exampleConfiguration": "resource \"azurerm_resource_group\" \"example\" {\n  name     = \"example-resources\"\n  location = \"West Europe\"\n}\n\nresource \"azurerm_data_factory\" \"example\" {\n  name                = \"example\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n}\n\nresource \"azurerm_data_factory_linked_service_cosmosdb_mongoapi\" \"example\" {\n  name              = \"example\"\n  data_factory_id   = azurerm_data_factory.example.id\n  connection_string = \"mongodb://testinstance.documents.azure.com:10255/?ssl=true\"\n  database          = \"foo\"\n\n}\n",
     "idPattern": "/subscriptions/resourceGroups/providers/Microsoft.DataFactory/factories/linkedservices"
   },
   {
