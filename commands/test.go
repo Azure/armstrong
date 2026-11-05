@@ -154,7 +154,7 @@ func (c TestCommand) Execute() int {
 		if applyErr == nil && len(tf.GetChanges(plan)) == 0 {
 			if state, err := terraform.Show(); err == nil {
 				passReport = tf.NewPassReportFromState(state)
-				coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath)
+				coverageReport, err := tf.NewCoverageReportFromState(state, c.swaggerPath, logs)
 				if err != nil {
 					logrus.Errorf("error producing coverage report: %+v", err)
 				}
@@ -164,7 +164,7 @@ func (c TestCommand) Execute() int {
 			}
 		} else {
 			passReport = tf.NewPassReport(plan)
-			coverageReport, err := tf.NewCoverageReport(plan, c.swaggerPath)
+			coverageReport, err := tf.NewCoverageReport(plan, c.swaggerPath, logs)
 			if err != nil {
 				logrus.Errorf("error producing coverage report: %+v", err)
 			}
