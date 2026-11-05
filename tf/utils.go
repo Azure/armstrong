@@ -3,10 +3,12 @@ package tf
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/azure/armstrong/coverage"
+	"github.com/azure/armstrong/report"
 	"github.com/azure/armstrong/types"
 	"github.com/azure/armstrong/utils"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -165,7 +167,7 @@ func NewPassReport(plan *tfjson.Plan) types.PassReport {
 	return out
 }
 
-func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (coverage.CoverageReport, error) {
+func NewCoverageReportFromState(state *tfjson.State, swaggerPath string, logs []paltypes.RequestTrace) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			logrus.Errorf("panic when producing coverage report from state: %+v", r)
@@ -198,7 +200,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (covera
 			return out, err
 		}
 
-		err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
+		err = addCoverage(&out, id, resourceType, body, swaggerPath, logs)
 		if err != nil {
 			return out, err
 		}
@@ -206,7 +208,7 @@ func NewCoverageReportFromState(state *tfjson.State, swaggerPath string) (covera
 	return out, nil
 }
 
-func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.CoverageReport, error) {
+func NewCoverageReport(plan *tfjson.Plan, swaggerPath string, logs []paltypes.RequestTrace) (coverage.CoverageReport, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			logrus.Errorf("panic when producing coverage report: %+v", r)
@@ -249,8 +251,7 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 			if err != nil {
 				return out, err
 			}
-
-			err = out.AddCoverageFromState(id, resourceType, body, swaggerPath)
+			err = addCoverage(&out, id, resourceType, body, swaggerPath, logs)
 			if err != nil {
 				return out, err
 			}
@@ -261,13 +262,55 @@ func NewCoverageReport(plan *tfjson.Plan, swaggerPath string) (coverage.Coverage
 	return out, nil
 }
 
+// addCoverage marks the properties of body and of the successful azapi PUT
+// requests sent for id as covered. Requests include write-only properties
+// such as sensitive_body, which are absent from Terraform state.
+func addCoverage(out *coverage.CoverageReport, id, resourceType string, body map[string]interface{}, swaggerPath string, logs []paltypes.RequestTrace) error {
+	if err := out.AddCoverageFromState(id, resourceType, body, swaggerPath); err != nil {
+		return err
+	}
+	for _, trace := range logs {
+		if trace.Provider != "azapi" || trace.Method != http.MethodPut {
+			continue
+		}
+		if trace.StatusCode < 200 || trace.StatusCode >= 300 || trace.Request == nil || trace.Request.Body == "" || !report.IsUrlMatchWithId(trace.Url, id) {
+			continue
+		}
+		var requestBody map[string]interface{}
+		if err := json.Unmarshal([]byte(trace.Request.Body), &requestBody); err != nil {
+			logrus.Warnf("skipping coverage of %s request to %s: invalid body: %+v", trace.Method, trace.Url, err)
+			continue
+		}
+		if err := out.AddCoverageFromState(id, resourceType, requestBody, swaggerPath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func getBody(input map[string]interface{}) (map[string]interface{}, error) {
 	output := map[string]interface{}{}
 	bodyRaw, ok := input["body"]
 	if !ok || bodyRaw == nil {
 		return output, nil
 	}
+	if bodyMap, ok := bodyRaw.(map[string]interface{}); ok {
+		// azapi v2 stores body as an object decoded with json.Number; jsonencode it
+		// to handle it like a v1 JSON string body.
+		raw, err := json.Marshal(bodyMap)
+		if err != nil {
+			return output, err
+		}
+		bodyRaw = string(raw)
+	}
 	if bodyStr, ok := bodyRaw.(string); ok && bodyStr != "" {
+		if err := json.Unmarshal([]byte(bodyStr), &output); err != nil {
+			return output, err
+		}
+		if output == nil {
+			output = map[string]interface{}{}
+		}
+
 		if value, ok := input["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
 			output["tags"] = value.(map[string]interface{})
 		}
@@ -279,23 +322,6 @@ func getBody(input map[string]interface{}) (map[string]interface{}, error) {
 		if value, ok := input["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
 			output["identity"] = expandIdentity(value.([]interface{}))
 		}
-
-		err := json.Unmarshal([]byte(bodyStr), &output)
-		return output, err
-	}
-	if bodyMap, ok := bodyRaw.(map[string]interface{}); ok {
-		if value, ok := input["tags"]; ok && value != nil && len(value.(map[string]interface{})) > 0 {
-			bodyMap["tags"] = value.(map[string]interface{})
-		}
-
-		if value, ok := input["location"]; ok && value != nil && value.(string) != "" {
-			bodyMap["location"] = value.(string)
-		}
-
-		if value, ok := input["identity"]; ok && value != nil && len(value.([]interface{})) > 0 {
-			bodyMap["identity"] = expandIdentity(value.([]interface{}))
-		}
-		return bodyMap, nil
 	}
 
 	return output, nil
