@@ -1,7 +1,9 @@
-## Unreleased
+## v0.18.1
 
 ENHANCEMENTS:
 - Include properties of successful azapi `PUT` requests, such as write-only `sensitive_body`, in the coverage report of `azapi_resource` and `azapi_update_resource`.
+
+BUG FIXES:
 - Fix `unexpect type json.Number` errors in coverage for azapi v2 object `body`.
 
 ## v0.18.0
